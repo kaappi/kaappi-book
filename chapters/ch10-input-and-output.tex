@@ -1,3 +1,360 @@
 \chapter{Input and Output}
+\index{input/output}\index{ports}
 
-This chapter covers Scheme's port-based I/O system: reading from and writing to the console, working with files, and understanding the difference between \texttt{display}, \texttt{write}, and \texttt{newline}. You will learn how to build programs that interact with the outside world.
+Programs need to communicate with the outside world: reading user input, writing results to the screen, processing files, and formatting data. Scheme's I/O system is based on \emph{ports}---abstract objects that represent sources and destinations for data. This chapter covers console I/O, file operations, string ports, and the difference between \texttt{display} and \texttt{write}.
+
+\section{Output: \texttt{display}, \texttt{write}, and \texttt{newline}}
+\index{display}\index{write}\index{newline}
+
+Scheme provides two primary output procedures, each serving a different purpose.
+
+\subsection{\texttt{display}: Human-Readable Output}
+
+\texttt{display} outputs a value in a form meant for humans. Strings appear without quotes, characters without the \texttt{\#\textbackslash} prefix:
+
+\begin{lstlisting}[style=repl]
+> (display "Hello, world!")
+Hello, world!
+> (display 42)
+42
+> (display #\a)
+a
+> (display '(1 2 3))
+(1 2 3)
+\end{lstlisting}
+
+\texttt{display} does not add a newline. Use \texttt{newline} to move to the next line:
+
+\begin{lstlisting}[style=repl]
+> (display "line one")
+> (newline)
+> (display "line two")
+> (newline)
+line one
+line two
+\end{lstlisting}
+
+\subsection{\texttt{write}: Machine-Readable Output}
+
+\texttt{write} outputs a value in a form that can be read back by \texttt{read}. Strings include quotes, characters include the \texttt{\#\textbackslash} prefix:
+
+\begin{lstlisting}[style=repl]
+> (write "hello")
+"hello"
+> (write #\a)
+#\a
+> (write '(1 "two" #t))
+(1 "two" #t)
+\end{lstlisting}
+
+Use \texttt{write} when you want to serialize data that will later be read by a program. Use \texttt{display} when you want output meant for a person.
+
+\begin{note}[Coming from Python]
+\texttt{display} is like Python's \texttt{print(..., end="")} (without the trailing newline). \texttt{write} is like Python's \texttt{repr()}---it shows the value in a way you could paste back into code.
+\end{note}
+
+\subsection{Combining Output}
+
+A common pattern for formatted output:
+
+\begin{lstlisting}[style=repl]
+> (define (show-result label value)
+    (display label)
+    (display ": ")
+    (display value)
+    (newline))
+> (show-result "Total" 42)
+Total: 42
+> (show-result "Name" "Alice")
+Name: Alice
+\end{lstlisting}
+
+\section{Input: \texttt{read-line} and \texttt{read}}
+\index{read-line}\index{read}
+
+\subsection{\texttt{read-line}: Reading Text}
+
+\texttt{read-line} reads one line of text from standard input (up to the newline, which is consumed but not included):
+
+\begin{lstlisting}[style=repl]
+> (display "Enter your name: ")
+> (define name (read-line))
+Alice
+> (string-append "Hello, " name "!")
+"Hello, Alice!"
+\end{lstlisting}
+
+At end of file, \texttt{read-line} returns an \emph{eof object}\index{eof object}. You can test for it with \texttt{eof-object?}:
+
+\begin{lstlisting}
+(let loop ((line (read-line)))
+  (unless (eof-object? line)
+    (display line)
+    (newline)
+    (loop (read-line))))
+\end{lstlisting}
+
+\subsection{\texttt{read}: Reading Scheme Data}
+
+\texttt{read} parses a complete Scheme datum from input---a number, string, list, symbol, or any other value the reader understands:
+
+\begin{lstlisting}[style=repl]
+> (define x (read))
+(1 2 3)
+> (car x)
+1
+> (length x)
+3
+\end{lstlisting}
+
+\texttt{read} is the inverse of \texttt{write}: anything produced by \texttt{write} can be read back by \texttt{read}. This makes Scheme's S-expression syntax a built-in serialization format.
+
+\begin{warning}[Security]
+Never use \texttt{read} on untrusted input. It can parse any Scheme datum, including large data structures that consume memory. For untrusted data, use \texttt{read-line} and parse the string yourself.
+\end{warning}
+
+\section{Ports}
+\index{ports}
+
+A \emph{port} is an abstract source or destination for I/O. Every read operation reads from some port; every write operation writes to some port. When you call \texttt{display} or \texttt{read-line} without specifying a port, they use the \emph{current ports}:
+
+\begin{lstlisting}[style=repl]
+> (current-input-port)
+#<input-port stdin>
+> (current-output-port)
+#<output-port stdout>
+> (current-error-port)
+#<output-port stderr>
+\end{lstlisting}
+
+You can write to a specific port by passing it as an extra argument:
+
+\begin{lstlisting}[style=repl]
+> (display "error!\n" (current-error-port))
+error!
+\end{lstlisting}
+
+\subsection{Port Predicates}
+
+\begin{lstlisting}[style=repl]
+> (port? (current-input-port))
+#t
+> (input-port? (current-input-port))
+#t
+> (output-port? (current-output-port))
+#t
+\end{lstlisting}
+
+\section{File I/O}
+\index{file I/O}
+
+\subsection{Opening and Closing Ports}
+
+\begin{lstlisting}
+(define in (open-input-file "data.txt"))
+;; ... read from in ...
+(close-input-port in)
+
+(define out (open-output-file "output.txt"))
+;; ... write to out ...
+(close-output-port out)
+\end{lstlisting}
+
+\subsection{\texttt{call-with-port}: Safe Port Handling}
+\index{call-with-port}
+
+To ensure ports are always closed (even if an error occurs), use \texttt{call-with-port}:
+
+\begin{lstlisting}
+(call-with-port (open-input-file "data.txt")
+  (lambda (port)
+    (let loop ((line (read-line port)))
+      (unless (eof-object? line)
+        (display line)
+        (newline)
+        (loop (read-line port))))))
+\end{lstlisting}
+
+The port is automatically closed when the procedure returns.
+
+\subsection{\texttt{with-input-from-file} and \texttt{with-output-to-file}}
+\index{with-input-from-file}\index{with-output-to-file}
+
+These redirect the current input/output port for the duration of a thunk (a zero-argument procedure):
+
+\begin{lstlisting}
+;; Read all lines from a file
+(with-input-from-file "data.txt"
+  (lambda ()
+    (let loop ((line (read-line)))
+      (unless (eof-object? line)
+        (display line)
+        (newline)
+        (loop (read-line))))))
+\end{lstlisting}
+
+\begin{lstlisting}
+;; Write to a file
+(with-output-to-file "output.txt"
+  (lambda ()
+    (display "Hello, file!")
+    (newline)))
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{call-with-port} is similar to Python's \texttt{with open(...) as f:} context manager---it guarantees the file is closed when you are done.
+\end{note}
+
+\subsection{Reading an Entire File}
+
+A utility that reads all lines into a list:
+
+\begin{lstlisting}
+(define (read-all-lines filename)
+  (call-with-port (open-input-file filename)
+    (lambda (port)
+      (let loop ((line (read-line port))
+                 (lines '()))
+        (if (eof-object? line)
+            (reverse lines)
+            (loop (read-line port)
+                  (cons line lines)))))))
+\end{lstlisting}
+
+\subsection{Writing to a File}
+
+\begin{lstlisting}
+(define (write-lines filename lines)
+  (call-with-port (open-output-file filename)
+    (lambda (port)
+      (for-each (lambda (line)
+                  (display line port)
+                  (newline port))
+                lines))))
+\end{lstlisting}
+
+\section{String Ports}
+\index{string ports}
+
+String ports let you use I/O procedures on strings instead of files. They are useful for building strings incrementally or parsing string content.
+
+\subsection{Output String Ports}
+
+\begin{lstlisting}[style=repl]
+> (define port (open-output-string))
+> (display "Hello, " port)
+> (display "world!" port)
+> (get-output-string port)
+"Hello, world!"
+\end{lstlisting}
+
+This is more efficient than repeated \texttt{string-append} for building large strings.
+
+\subsection{Input String Ports}
+
+\begin{lstlisting}[style=repl]
+> (define port (open-input-string "(+ 1 2) (+ 3 4)"))
+> (read port)
+(+ 1 2)
+> (read port)
+(+ 3 4)
+> (read port)
+#<eof>
+\end{lstlisting}
+
+Input string ports are useful for parsing structured data from strings.
+
+\subsection{Capturing Output as a String}
+
+A handy pattern using an output string port:
+
+\begin{lstlisting}[style=repl]
+> (define (value->string val)
+    (let ((port (open-output-string)))
+      (write val port)
+      (get-output-string port)))
+> (value->string '(1 2 3))
+"(1 2 3)"
+> (value->string "hello")
+"\"hello\""
+\end{lstlisting}
+
+\section{The EOF Object}
+\index{eof object}
+
+When a read operation reaches the end of input, it returns an \emph{eof object}---a special value distinct from all other Scheme values:
+
+\begin{lstlisting}[style=repl]
+> (define port (open-input-string ""))
+> (read-line port)
+#<eof>
+> (eof-object? (read-line port))
+#t
+\end{lstlisting}
+
+Always test for EOF using \texttt{eof-object?}. The standard loop pattern is:
+
+\begin{lstlisting}
+(let loop ((datum (read port)))
+  (unless (eof-object? datum)
+    ;; process datum
+    (loop (read port))))
+\end{lstlisting}
+
+\section{\texttt{read-char} and \texttt{write-char}}
+\index{read-char}\index{write-char}
+
+For character-level I/O:
+
+\begin{lstlisting}[style=repl]
+> (define port (open-input-string "hello"))
+> (read-char port)
+#\h
+> (read-char port)
+#\e
+> (peek-char port)
+#\l
+> (read-char port)
+#\l
+\end{lstlisting}
+
+\texttt{peek-char}\index{peek-char} returns the next character without consuming it---useful for lookahead in parsers.
+
+\texttt{write-char} writes a single character to a port:
+
+\begin{lstlisting}[style=repl]
+> (write-char #\A)
+A
+> (write-char #\newline)
+
+\end{lstlisting}
+
+\section{Putting It Together: A File Processing Example}
+
+Here is a program that reads a text file, numbers each line, and writes the result to a new file:
+
+\begin{lstlisting}
+(define (number-lines input-file output-file)
+  (call-with-port (open-input-file input-file)
+    (lambda (in)
+      (call-with-port (open-output-file output-file)
+        (lambda (out)
+          (let loop ((line (read-line in))
+                     (n 1))
+            (unless (eof-object? line)
+              (display n out)
+              (display ": " out)
+              (display line out)
+              (newline out)
+              (loop (read-line in) (+ n 1)))))))))
+\end{lstlisting}
+
+Usage:
+
+\begin{lstlisting}[style=repl]
+> (number-lines "input.txt" "output.txt")
+\end{lstlisting}
+
+\sectionbreak
+
+You now understand Scheme's port-based I/O system: console output with \texttt{display}/\texttt{write}/\texttt{newline}, input with \texttt{read-line}/\texttt{read}, file operations with \texttt{call-with-port}, and string ports for in-memory I/O. This completes Part~II of the book. In Part~III, we move to advanced topics, starting with Scheme's powerful macro system.

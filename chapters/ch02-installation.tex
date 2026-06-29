@@ -1,3 +1,298 @@
 \chapter{Installation and Setup}
+\index{installation}
 
-Before writing any Scheme code, you need to install Kaappi on your system. This chapter covers installation on macOS and Linux, verifying your setup, configuring your editor, and getting comfortable with the REPL.
+This chapter gets Kaappi running on your system, introduces the interactive REPL, and shows you how to run script files. By the end, you will have a working environment for the rest of the book.
+
+\section{Installing Kaappi}
+\index{install script}
+
+\subsection{Install Script (Recommended)}
+
+The fastest way to install Kaappi is the one-line install script. It detects your platform, downloads the correct binary, verifies SHA256 checksums, and places everything in the right location:
+
+\begin{Verbatim}[fontsize=\small]
+curl -fsSL https://kaappi-lang.org/install.sh | bash
+\end{Verbatim}
+
+This installs two binaries to \texttt{\textasciitilde/.local/bin/}:
+
+\begin{itemize}
+    \item \texttt{kaappi} --- the Scheme interpreter, compiler, and REPL.
+    \item \texttt{thottam}\index{thottam} --- the package manager for installing third-party libraries.
+\end{itemize}
+
+Standard libraries (SRFIs and Scheme base libraries) are extracted to \texttt{\textasciitilde/.kaappi/lib/}.
+
+To install to a different location, set the \texttt{INSTALL\_DIR} environment variable:
+
+\begin{Verbatim}[fontsize=\small]
+curl -fsSL https://kaappi-lang.org/install.sh | INSTALL_DIR=/usr/local/bin bash
+\end{Verbatim}
+
+\begin{warning}[PATH configuration]
+Make sure \texttt{\textasciitilde/.local/bin} is in your shell's \texttt{PATH}. If running \texttt{kaappi} after installation gives ``command not found,'' add this line to your \texttt{\textasciitilde/.bashrc}, \texttt{\textasciitilde/.zshrc}, or equivalent:
+
+\begin{Verbatim}[fontsize=\small]
+export PATH="$HOME/.local/bin:$PATH"
+\end{Verbatim}
+
+Then restart your terminal or run \texttt{source \textasciitilde/.zshrc}.
+\end{warning}
+
+\subsection{Manual Download}
+
+If you prefer not to pipe a script to your shell, download the binary directly from the GitHub releases page. Kaappi provides pre-built binaries for these platforms:
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{OS} & \textbf{Architecture} & \textbf{Binary name} \\
+\hline
+macOS & ARM64 (Apple Silicon) & \texttt{kaappi-aarch64-macos} \\
+Linux & x86\_64 & \texttt{kaappi-x86\_64-linux} \\
+Linux & ARM64 & \texttt{kaappi-aarch64-linux} \\
+Linux & RISC-V 64 & \texttt{kaappi-riscv64-linux} \\
+\end{tabular}
+\end{center}
+
+After downloading, make it executable and move it to a directory in your PATH:
+
+\begin{Verbatim}[fontsize=\small]
+chmod +x kaappi-aarch64-macos
+mv kaappi-aarch64-macos ~/.local/bin/kaappi
+\end{Verbatim}
+
+You also need the standard library archive. Download \texttt{kaappi-lib.tar.gz} and extract it:
+
+\begin{Verbatim}[fontsize=\small]
+mkdir -p ~/.kaappi/lib
+tar xzf kaappi-lib.tar.gz -C ~/.kaappi/lib
+\end{Verbatim}
+
+\subsection{Building from Source}
+\index{Zig}
+
+Building from source requires Zig 0.16 or later. No other build tools (make, cmake, cargo) are needed.
+
+On macOS:
+
+\begin{Verbatim}[fontsize=\small]
+brew install zig
+git clone https://github.com/kaappi/kaappi
+cd kaappi
+zig build
+\end{Verbatim}
+
+On Linux, download Zig from \texttt{ziglang.org/download}, add it to your PATH, then:
+
+\begin{Verbatim}[fontsize=\small]
+git clone https://github.com/kaappi/kaappi
+cd kaappi
+zig build
+\end{Verbatim}
+
+The binary appears at \texttt{zig-out/bin/kaappi}. Copy it to a location in your PATH:
+
+\begin{Verbatim}[fontsize=\small]
+cp zig-out/bin/kaappi zig-out/bin/thottam ~/.local/bin/
+\end{Verbatim}
+
+\begin{note}[Build modes]
+The default build uses ReleaseSafe (fast execution with bounds checking). For maximum performance, use \texttt{zig build -Doptimize=ReleaseFast}. Avoid Debug mode for normal use---it is roughly 500x slower on allocation-heavy workloads.
+\end{note}
+
+\section{Verifying Your Installation}
+
+Check that Kaappi is installed correctly:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi --version
+\end{Verbatim}
+
+You should see output like \texttt{Kaappi Scheme v0.8.0}. Next, test that evaluation works:
+
+\begin{Verbatim}[fontsize=\small]
+echo '(+ 1 2)' | kaappi
+\end{Verbatim}
+
+This should print \texttt{3}. If both commands succeed, your installation is ready.
+
+\begin{note}[No install yet?]
+If you want to follow along before installing, Kaappi provides a browser-based playground at \texttt{https://kaappi-lang.org/playground/} that runs the same interpreter via WebAssembly. It is perfect for trying examples, though you will eventually want a local install for file I/O and the full feature set.
+\end{note}
+
+\section{The REPL}
+\index{REPL}
+
+The REPL (Read-Eval-Print Loop) is where you will spend most of your time while learning. Launch it by running \texttt{kaappi} with no arguments:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi
+\end{Verbatim}
+
+You will see a welcome banner and a prompt:
+
+\begin{lstlisting}[style=repl]
+Kaappi Scheme v0.8.0
+Type ,help for commands, ,quit to exit.
+
+> (+ 2 3)
+5
+> (* 6 7)
+42
+\end{lstlisting}
+
+\subsection{Multi-Line Input}
+
+The REPL tracks open parentheses. If your expression is incomplete, it shows a continuation prompt and waits for you to finish:
+
+\begin{lstlisting}[style=repl]
+> (define (square x)
+    (* x x))
+> (square 7)
+49
+\end{lstlisting}
+
+\subsection{Line Editing}
+
+The REPL supports standard editing keys:
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Key} & \textbf{Action} \\
+\hline
+Left / Right & Move cursor \\
+Up / Down & Navigate history \\
+Ctrl-A & Move to start of line \\
+Ctrl-E & Move to end of line \\
+Ctrl-K & Delete to end of line \\
+Ctrl-C & Cancel current line \\
+Tab & Auto-complete symbol names \\
+Ctrl-D & Exit (on empty line) \\
+\end{tabular}
+\end{center}
+
+\subsection{Tab Completion}
+
+Press Tab to complete symbol names. If you type \texttt{string-} and press Tab, the REPL shows all matching procedures:
+
+\begin{lstlisting}[style=repl]
+> string-
+string-append  string-copy  string-length  string-ref  ...
+\end{lstlisting}
+
+Completion works for built-in procedures, your own definitions, and imported library exports.
+
+\subsection{Syntax Highlighting}
+
+As you type, the REPL colors different elements: keywords in magenta, strings in green, numbers in yellow, and comments in gray. This makes it easier to spot typos and unbalanced parentheses.
+
+\subsection{The \texttt{\_} Variable}
+
+The special variable \texttt{\_} always holds the result of the last evaluated expression:
+
+\begin{lstlisting}[style=repl]
+> (+ 10 20)
+30
+> (* _ 2)
+60
+\end{lstlisting}
+
+This is useful for building on previous results without re-typing them.
+
+\subsection{History}
+
+Command history is saved to \texttt{\textasciitilde/.kaappi/history} and persists across sessions. Use the Up and Down arrow keys to navigate previous inputs.
+
+\subsection{Exiting}
+
+Type \texttt{,quit} or press Ctrl-D on an empty line to exit the REPL.
+
+\section{Running Script Files}
+
+While the REPL is great for exploration, real programs live in files. Create a file called \texttt{hello.scm}:
+
+\begin{lstlisting}
+(import (scheme base) (scheme write))
+
+(display "Hello, world!")
+(newline)
+\end{lstlisting}
+
+Run it from the command line:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi hello.scm
+\end{Verbatim}
+
+Output:
+
+\begin{codeoutput}
+Hello, world!
+\end{codeoutput}
+
+\begin{note}[Import in scripts vs.\ REPL]
+Script files must explicitly import the libraries they use. The REPL automatically imports \texttt{(scheme base)}, so expressions like \texttt{(+ 1 2)} work immediately. In a file, you would get an ``unbound variable'' error without the \texttt{import} line.
+\end{note}
+
+\section{Editor Support}
+\index{editor support}\index{LSP}
+
+You can write Scheme in any text editor, but language server support makes the experience significantly better.
+
+\subsection{VS Code}
+
+Install the \texttt{kaappi} extension from the VS Code marketplace. It provides syntax highlighting, bracket matching, and full LSP integration (go-to-definition, find-references, document symbols) via the bundled \texttt{kaappi-lsp} server.
+
+\subsection{Neovim, Emacs, and Helix}
+
+Configure your editor's LSP client to use \texttt{kaappi-lsp} (installed alongside \texttt{kaappi}) as the language server for \texttt{.scm} and \texttt{.sld} files.
+
+\subsection{Shell Completions}
+
+Enable tab completion for the \texttt{kaappi} command itself:
+
+\begin{Verbatim}[fontsize=\small]
+# For zsh (add to ~/.zshrc)
+eval "$(kaappi --completions zsh)"
+
+# For bash (add to ~/.bashrc)
+eval "$(kaappi --completions bash)"
+
+# For fish (add to config.fish)
+kaappi --completions fish | source
+\end{Verbatim}
+
+\begin{note}[Editor setup is optional]
+For the purposes of this book, the REPL and a plain text editor are sufficient. Do not let editor configuration slow you down---you can always set up LSP later.
+\end{note}
+
+\section{The Package Manager}
+\index{thottam}\index{package manager}
+
+Kaappi ships with \texttt{thottam}, a package manager for installing third-party libraries. You will not need it for the first several chapters, but here is a quick preview of how it works.
+
+Install a library:
+
+\begin{Verbatim}[fontsize=\small]
+thottam install kaappi-json
+\end{Verbatim}
+
+This downloads the \texttt{kaappi-json} library and its dependencies to \texttt{\textasciitilde/.kaappi/lib/}. Once installed, you can import it in any Scheme file:
+
+\begin{lstlisting}
+(import (kaappi json))
+
+(define data (json-read (open-input-file "config.json")))
+\end{lstlisting}
+
+List installed packages:
+
+\begin{Verbatim}[fontsize=\small]
+thottam list
+\end{Verbatim}
+
+The ecosystem includes libraries for HTTP, web frameworks, PostgreSQL, SQLite, Redis, JSON, TOML, YAML, CSV, email, cryptography, logging, testing, and CLI tools. We will use several of these in later chapters.
+
+\sectionbreak
+
+You now have Kaappi installed, know how to use the REPL, can run script files, and are aware of the editor and package ecosystem. In the next chapter, we will start writing Scheme in earnest.

@@ -1,3 +1,214 @@
 \chapter{Foreign Function Interface}
+\index{FFI}\index{foreign function interface}
 
-Kaappi can call C shared libraries directly from Scheme using the \texttt{(kaappi ffi)} library. This chapter shows how to open shared objects, bind C functions, handle different types, and even pass Scheme callbacks into C code.
+Sometimes you need to use a library written in C---a graphics toolkit, a database driver, a compression algorithm, or a system API. Kaappi's Foreign Function Interface (FFI) lets you call C functions directly from Scheme without writing any C code yourself. This chapter covers opening shared libraries, binding functions, handling types, and passing Scheme callbacks into C.
+
+\section{The \texttt{(kaappi ffi)} Library}
+
+The FFI is provided by the \texttt{(kaappi ffi)}\index{kaappi ffi} library:
+
+\begin{lstlisting}
+(import (kaappi ffi))
+\end{lstlisting}
+
+The core procedures are:
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Purpose} \\
+\hline
+\texttt{ffi-open} & Open a shared library (.dylib / .so) \\
+\texttt{ffi-fn} & Bind a C function from the library \\
+\texttt{ffi-close} & Close the library handle \\
+\texttt{ffi-callback} & Create a C function pointer from a Scheme procedure \\
+\texttt{ffi-callback-release} & Free a callback \\
+\end{tabular}
+\end{center}
+
+\section{Opening a Shared Library}
+\index{ffi-open}
+
+\begin{lstlisting}[style=repl]
+> (import (kaappi ffi))
+> (define libm (ffi-open "libm.dylib"))  ; macOS
+\end{lstlisting}
+
+On Linux, use the \texttt{.so} name:
+
+\begin{lstlisting}
+(define libm (ffi-open "libm.so.6"))
+\end{lstlisting}
+
+The library is loaded into the process and stays open until you call \texttt{ffi-close} or the program exits.
+
+\begin{note}[Library names by platform]
+macOS uses \texttt{.dylib} extensions (\texttt{libm.dylib}, \texttt{libsqlite3.dylib}). Linux uses \texttt{.so} with version suffixes (\texttt{libm.so.6}, \texttt{libsqlite3.so.0}). You can also pass an absolute path.
+\end{note}
+
+\section{Binding C Functions}
+\index{ffi-fn}
+
+\texttt{ffi-fn} looks up a symbol in the library and creates a callable Scheme procedure:
+
+\begin{lstlisting}
+(ffi-fn library "function-name" '(param-types ...) 'return-type)
+\end{lstlisting}
+
+\subsection{Example: Math Functions}
+
+\begin{lstlisting}[style=repl]
+> (define c-sqrt (ffi-fn libm "sqrt" '(double) 'double))
+> (define c-pow (ffi-fn libm "pow" '(double double) 'double))
+> (define c-ceil (ffi-fn libm "ceil" '(double) 'double))
+> (c-sqrt 2.0)
+1.4142135623730951
+> (c-pow 2.0 10.0)
+1024.0
+> (c-ceil 3.2)
+4.0
+\end{lstlisting}
+
+The bound function behaves like any other Scheme procedure---you can pass it to \texttt{map}, store it in a variable, or use it in higher-order patterns.
+
+\subsection{Example: String Functions}
+
+\begin{lstlisting}[style=repl]
+> (define libc (ffi-open "libc.dylib"))
+> (define c-strlen (ffi-fn libc "strlen" '(string) 'size_t))
+> (c-strlen "hello")
+5
+> (c-strlen "")
+0
+\end{lstlisting}
+
+\section{Supported Types}
+\index{FFI types}
+
+The following C types are supported in parameter and return type positions:
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{FFI type} & \textbf{C type} \\
+\hline
+\texttt{int} & \texttt{int} (32-bit signed) \\
+\texttt{long} & \texttt{long} (64-bit on 64-bit systems) \\
+\texttt{int8} / \texttt{uint8} & \texttt{int8\_t} / \texttt{uint8\_t} \\
+\texttt{int16} / \texttt{uint16} & \texttt{int16\_t} / \texttt{uint16\_t} \\
+\texttt{int32} / \texttt{uint32} & \texttt{int32\_t} / \texttt{uint32\_t} \\
+\texttt{int64} / \texttt{uint64} & \texttt{int64\_t} / \texttt{uint64\_t} \\
+\texttt{size\_t} & \texttt{size\_t} \\
+\texttt{float} & \texttt{float} (32-bit) \\
+\texttt{double} & \texttt{double} (64-bit) \\
+\texttt{char} & \texttt{char} \\
+\texttt{bool} & \texttt{\_Bool} \\
+\texttt{string} & \texttt{const char*} (null-terminated) \\
+\texttt{pointer} & \texttt{void*} (opaque pointer) \\
+\texttt{void} & \texttt{void} (return type only) \\
+\end{tabular}
+\end{center}
+
+\subsection{Type Conversions}
+
+\begin{itemize}
+    \item \textbf{Strings:} Scheme strings are automatically converted to null-terminated C strings when passed as arguments, and C strings are converted back to Scheme strings when returned.
+    \item \textbf{Numbers:} Scheme integers and floats are converted to the appropriate C numeric type.
+    \item \textbf{Pointers:} Opaque pointer values are represented as Scheme FFI pointer objects. You cannot dereference them directly from Scheme.
+    \item \textbf{Void:} Use \texttt{'void} as the return type for C functions that return nothing.
+\end{itemize}
+
+\section{A Complete Example: SQLite}
+
+Here is a more realistic example that uses SQLite's C API:
+
+\begin{lstlisting}
+(import (kaappi ffi))
+
+(define libsqlite (ffi-open "libsqlite3.dylib"))
+
+(define sqlite3-open
+  (ffi-fn libsqlite "sqlite3_open" '(string pointer) 'int))
+(define sqlite3-close
+  (ffi-fn libsqlite "sqlite3_close" '(pointer) 'int))
+(define sqlite3-errmsg
+  (ffi-fn libsqlite "sqlite3_errmsg" '(pointer) 'string))
+\end{lstlisting}
+
+\begin{note}
+In practice, you would use the \texttt{kaappi-sqlite} package (via \texttt{thottam install kaappi-sqlite}) which wraps these raw FFI calls in a clean Scheme interface. The FFI is for when you need to call a library that does not yet have a Scheme wrapper.
+\end{note}
+
+\section{Callbacks: Passing Scheme to C}
+\index{ffi-callback}
+
+Some C APIs expect function pointers as arguments (e.g., comparators for \texttt{qsort}, event handlers, iteration callbacks). \texttt{ffi-callback} creates a C-compatible function pointer from a Scheme procedure:
+
+\begin{lstlisting}
+(define cb (ffi-callback scheme-proc '(param-types ...) 'return-type)
+\end{lstlisting}
+
+\subsection{Example: Custom Comparator}
+
+\begin{lstlisting}
+(define my-compare
+  (ffi-callback
+    (lambda (a b) (- a b))
+    '(pointer pointer)
+    'int))
+
+;; Pass my-compare to a C sort function...
+
+;; Release when done
+(ffi-callback-release my-compare)
+\end{lstlisting}
+
+\begin{warning}[Always release callbacks]
+Callbacks pin Scheme closures so the garbage collector cannot reclaim them. Always call \texttt{ffi-callback-release}\index{ffi-callback-release} when the callback is no longer needed to prevent memory leaks.
+\end{warning}
+
+\section{Closing Libraries}
+\index{ffi-close}
+
+When you are done with a library, close it to release the handle:
+
+\begin{lstlisting}[style=repl]
+> (ffi-close libm)
+\end{lstlisting}
+
+After closing, any functions bound from that library become invalid. In practice, most programs open libraries at startup and never close them (the OS reclaims everything on exit).
+
+\section{Error Handling}
+
+FFI calls can crash your program if you get the types wrong---there is no safety net between Scheme and C. Common pitfalls:
+
+\begin{itemize}
+    \item \textbf{Wrong types:} Passing an integer where a pointer is expected (or vice versa) causes undefined behavior.
+    \item \textbf{Null pointers:} C functions may return NULL; check pointer values before using them.
+    \item \textbf{Lifetime issues:} If you pass a Scheme string to C and the C code stores the pointer for later use, the Scheme GC may collect the string. Copy the data on the C side if it needs to persist.
+    \item \textbf{Thread safety:} Do not call FFI functions from multiple Kaappi fibers simultaneously unless the C library is thread-safe.
+\end{itemize}
+
+\begin{warning}[FFI bypasses safety]
+The FFI is inherently unsafe. Incorrect type declarations, buffer overflows, and use-after-free in C code can crash the Kaappi process. Test FFI bindings carefully and prefer ecosystem packages (\texttt{kaappi-sqlite}, \texttt{kaappi-pg}, etc.) when available.
+\end{warning}
+
+\section{FFI and Sandbox Mode}
+
+Kaappi's \texttt{--sandbox} mode disables the FFI entirely. This is useful for running untrusted code:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi --sandbox untrusted.scm
+\end{Verbatim}
+
+In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures raise an error when called.
+
+\section{When to Use the FFI}
+
+\begin{itemize}
+    \item \textbf{Use it} when you need a C library that has no Scheme wrapper (niche libraries, system APIs, hardware interfaces).
+    \item \textbf{Prefer ecosystem packages} (\texttt{thottam install ...}) when they exist---they handle error checking, memory management, and provide idiomatic Scheme interfaces.
+    \item \textbf{Consider writing a library} if you find yourself wrapping more than a few functions. Publish it via thottam so others benefit.
+\end{itemize}
+
+\sectionbreak
+
+You now know how to call C code from Scheme: open a shared library, bind functions with type signatures, handle strings and pointers, create callbacks, and manage cleanup. In the next chapter, we cover concurrency---fibers, channels, and threads.

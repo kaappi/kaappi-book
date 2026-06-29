@@ -1,3 +1,266 @@
 \chapter{Continuations}
+\index{continuations}\index{call/cc}
 
-Continuations are Scheme's most powerful---and most unusual---control flow mechanism. With \texttt{call/cc}, you can capture ``the rest of the computation'' as a first-class value and invoke it later. This chapter demystifies continuations with practical examples, covers \texttt{dynamic-wind}, and explains escape continuations (\texttt{call/ec}) for simpler use cases.
+Continuations are Scheme's most distinctive feature. A continuation represents ``the rest of the computation''---everything that would happen after a particular point in the program. Scheme lets you capture this as a first-class value and invoke it later, enabling non-local exits, coroutines, backtracking, and custom control structures.
+
+This chapter starts with simple escape continuations (early returns), then covers full continuations, and finishes with \texttt{dynamic-wind} for cleanup guarantees.
+
+\section{What Is a Continuation?}
+
+At every point during execution, there is a ``continuation''---the rest of the work to be done. Consider:
+
+\begin{lstlisting}
+(* 3 (+ 1 2))
+\end{lstlisting}
+
+When Scheme evaluates \texttt{(+ 1 2)}, the continuation is ``take the result and multiply it by 3.'' Normally, continuations are implicit---you never see them. Scheme's \texttt{call/cc} makes them explicit.
+
+\section{Escape Continuations with \texttt{call/ec}}
+\index{call/ec}\index{escape continuation}
+
+The most common use of continuations is an \emph{early return}---exiting a computation before it would normally finish. \texttt{call/ec} (call with escape continuation) provides this:
+
+\begin{lstlisting}[style=repl]
+> (call/ec (lambda (return)
+             (return 42)
+             (display "never reached")))
+42
+\end{lstlisting}
+
+When \texttt{return} is invoked, execution immediately jumps out of the \texttt{call/ec} form with the given value. Code after the call is skipped.
+
+\subsection{Early Return from a Loop}
+
+A common pattern: searching a list and returning the first match:
+
+\begin{lstlisting}[style=repl]
+> (define (find-negative lst)
+    (call/ec (lambda (return)
+      (for-each (lambda (x)
+                  (when (negative? x) (return x)))
+                lst)
+      #f)))
+> (find-negative '(3 1 -4 1 5))
+-4
+> (find-negative '(1 2 3))
+#f
+\end{lstlisting}
+
+Without \texttt{call/ec}, you would need recursion or a flag variable. The escape continuation gives you the equivalent of Python's \texttt{return} inside a loop.
+
+\subsection{Breaking Out of Nested Computation}
+
+\begin{lstlisting}[style=repl]
+> (define (product lst)
+    (call/ec (lambda (bail)
+      (let loop ((rest lst) (acc 1))
+        (cond
+          ((null? rest) acc)
+          ((zero? (car rest)) (bail 0))
+          (else (loop (cdr rest) (* acc (car rest)))))))))
+> (product '(1 2 3 4 5))
+120
+> (product '(1 2 0 4 5))
+0
+\end{lstlisting}
+
+If we see a zero, we bail immediately---no point multiplying the remaining elements.
+
+\begin{note}[Coming from Python]
+\texttt{call/ec} is like wrapping code in a function and using \texttt{return}. Scheme does not have a \texttt{return} statement, so \texttt{call/ec} fills that role. The important difference: it works across function boundaries (the escape continuation can be invoked from inside a lambda passed to \texttt{for-each}).
+\end{note}
+
+\section{Full Continuations with \texttt{call/cc}}
+\index{call/cc}
+
+\texttt{call/cc} (short for \texttt{call-with-current-continuation}) captures the \emph{full} continuation---not just an escape, but a snapshot of the entire execution state that can be invoked multiple times, even after the original computation has finished.
+
+\begin{lstlisting}[style=repl]
+> (call/cc (lambda (k) (k 42)))
+42
+> (+ 1 (call/cc (lambda (k) (+ 2 (k 3)))))
+4
+\end{lstlisting}
+
+In the second example, the continuation of \texttt{call/cc} is ``add 1 to the result.'' Calling \texttt{(k 3)} jumps to that point with 3, so the answer is 4. The \texttt{(+ 2 ...)} is abandoned.
+
+\subsection{Saving and Reusing a Continuation}
+
+The real power of \texttt{call/cc} is that you can save the continuation and invoke it later:
+
+\begin{lstlisting}[style=repl]
+> (define saved #f)
+> (define (capture)
+    (call/cc (lambda (k)
+      (set! saved k)
+      "first time")))
+> (capture)
+"first time"
+> (saved "second time")
+"second time"
+> (saved "third time")
+"third time"
+\end{lstlisting}
+
+Each call to \texttt{saved} re-enters the computation at the point where \texttt{call/cc} was called, as if it had returned the given value.
+
+\subsection{A Counter with Continuations}
+
+\begin{lstlisting}[style=repl]
+> (define resume #f)
+> (define (start)
+    (let ((result (call/cc (lambda (k)
+                    (set! resume k)
+                    0))))
+      (display result)
+      (display " ")
+      (when (< result 3)
+        (resume (+ result 1)))))
+> (start)
+0 1 2 3
+\end{lstlisting}
+
+Each call to \texttt{resume} re-enters the \texttt{let}, with \texttt{result} bound to the new value. This is how coroutines and generators can be implemented.
+
+\section{\texttt{call/ec} vs.\ \texttt{call/cc}}
+
+\begin{center}
+\begin{tabular}{lp{5cm}l}
+\textbf{Feature} & \textbf{\texttt{call/ec}} & \textbf{\texttt{call/cc}} \\
+\hline
+Can be invoked after proc returns & No & Yes \\
+Can be invoked multiple times & No & Yes \\
+Stack snapshot required & No & Yes \\
+Performance & Fast (no allocation) & Slow (copies stack) \\
+Use case & Early return, loop break & Coroutines, backtracking \\
+\end{tabular}
+\end{center}
+
+\begin{warning}[Prefer \texttt{call/ec}]
+Use \texttt{call/ec} unless you genuinely need to reinvoke the continuation after the procedure returns. Full \texttt{call/cc} copies the entire call stack, which is O(stack depth). For early exits and error handling, \texttt{call/ec} is dramatically cheaper.
+\end{warning}
+
+\section{\texttt{dynamic-wind}: Guaranteed Cleanup}
+\index{dynamic-wind}
+
+\texttt{dynamic-wind} ensures that setup and cleanup code run whenever control enters or leaves a region---even when continuations jump in or out:
+
+\begin{lstlisting}
+(dynamic-wind
+  before-thunk    ; called when entering
+  body-thunk      ; the main computation
+  after-thunk)    ; called when leaving
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (let ((log '()))
+    (dynamic-wind
+      (lambda () (set! log (cons 'enter log)))
+      (lambda () (set! log (cons 'body log)))
+      (lambda () (set! log (cons 'leave log))))
+    (reverse log))
+(enter body leave)
+\end{lstlisting}
+
+\subsection{Resource Cleanup}
+
+The most common use is ensuring resources are released:
+
+\begin{lstlisting}
+(define (with-open-file filename proc)
+  (let ((port (open-input-file filename)))
+    (dynamic-wind
+      (lambda () #f)
+      (lambda () (proc port))
+      (lambda () (close-input-port port)))))
+\end{lstlisting}
+
+The port is closed whether the body returns normally, raises an exception, or a continuation exits.
+
+\subsection{Re-entry Behavior}
+
+If a continuation captured inside the body is invoked from outside, the ``before'' thunk runs again. If a continuation from outside is invoked from inside, the ``after'' thunk runs:
+
+\begin{lstlisting}[style=repl]
+> (let ((log '()) (k #f))
+    (dynamic-wind
+      (lambda () (set! log (cons 'in log)))
+      (lambda ()
+        (call/cc (lambda (c) (set! k c)))
+        (set! log (cons 'body log)))
+      (lambda () (set! log (cons 'out log))))
+    (when (< (length log) 6) (k #f))
+    (reverse log))
+(in body out in body out)
+\end{lstlisting}
+
+The continuation re-enters, triggering the ``in'' thunk again, then the body runs again, then ``out.''
+
+\section{Practical Uses of Continuations}
+
+\subsection{Implementing Exceptions}
+
+Before \texttt{guard} existed, exceptions were implemented with continuations:
+
+\begin{lstlisting}
+(define (try thunk handler)
+  (call/cc (lambda (exit)
+    (with-exception-handler
+      (lambda (e) (exit (handler e)))
+      thunk))))
+\end{lstlisting}
+
+\subsection{Coroutines}
+
+A simple coroutine system using continuations:
+
+\begin{lstlisting}
+(define (make-coroutine proc)
+  (let ((resume #f))
+    (define (yield value)
+      (call/cc (lambda (k)
+        (set! resume k)
+        value)))
+    (lambda ()
+      (if resume
+          (resume #f)
+          (proc yield)))))
+\end{lstlisting}
+
+\subsection{Non-Deterministic Choice (Backtracking)}
+
+\begin{lstlisting}
+(define fail #f)
+
+(define (choose . alternatives)
+  (call/cc (lambda (return)
+    (let loop ((alts alternatives))
+      (if (null? alts)
+          (fail)
+          (let ((old-fail fail))
+            (call/cc (lambda (k)
+              (set! fail (lambda ()
+                (set! fail old-fail)
+                (k #f)))
+              (return (car alts))))
+            (loop (cdr alts))))))))
+\end{lstlisting}
+
+This creates a backtracking mechanism: \texttt{choose} returns each alternative in turn, backtracking when \texttt{fail} is called.
+
+\section{When to Use Continuations}
+
+Continuations are powerful but should be used sparingly:
+
+\begin{itemize}
+    \item \textbf{Use \texttt{call/ec}} for early returns, loop breaks, and search. This is common and cheap.
+    \item \textbf{Use \texttt{guard}} for exception handling. It is built on continuations but provides a cleaner interface.
+    \item \textbf{Use \texttt{call/cc}} only for advanced patterns: coroutines, generators, backtracking, or implementing new control structures. These are rare in application code.
+    \item \textbf{Always pair with \texttt{dynamic-wind}} when resources need cleanup across continuation invocations.
+\end{itemize}
+
+Most programs never need full \texttt{call/cc}. But knowing it exists---and that all control flow in Scheme is ultimately built on continuations---gives you a deep understanding of the language's power.
+
+\sectionbreak
+
+You now understand both escape continuations (practical, efficient) and full continuations (powerful, rare). Together with \texttt{dynamic-wind}, these tools give Scheme its unique ability to express any control flow pattern. In the next chapter, we cover records and data abstraction.

@@ -1,3 +1,328 @@
 \chapter{The Standard Library}
+\index{SRFI}\index{standard library}
 
-Beyond R7RS-small's 14 libraries, Kaappi provides 72 SRFIs (Scheme Requests for Implementation) covering data structures, string processing, sorting, random numbers, pattern matching, and more. This chapter surveys the most useful SRFIs and shows how to import them.
+Beyond the 14 R7RS standard libraries, Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each.
+
+\section{What Are SRFIs?}
+
+SRFIs are standardized library specifications for Scheme. Each SRFI has a number, a title, and a precise specification. They are the Scheme equivalent of Python's PEPs or JavaScript's TC39 proposals---except that each SRFI defines a concrete library you can import and use immediately.
+
+Import any SRFI by number:
+
+\begin{lstlisting}
+(import (srfi 1))   ; List library
+(import (srfi 69))  ; Hash tables
+(import (srfi 13))  ; String library
+\end{lstlisting}
+
+Kaappi's 72 SRFIs fall into two categories:
+
+\begin{itemize}
+    \item \textbf{8 built-in SRFIs} --- implemented in Zig for performance, always available.
+    \item \textbf{64 portable SRFIs} --- pure Scheme implementations loaded on demand from \texttt{.sld} files.
+\end{itemize}
+
+\section{SRFI-1: Extended List Library}
+\index{SRFI-1}
+
+SRFI-1 is the most commonly used extension. It provides dozens of list procedures beyond what \texttt{(scheme base)} offers:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 1))
+> (iota 5)
+(0 1 2 3 4)
+> (iota 5 1)
+(1 2 3 4 5)
+> (iota 5 0 2)
+(0 2 4 6 8)
+\end{lstlisting}
+
+\subsection{Searching and Filtering}
+
+\begin{lstlisting}[style=repl]
+> (find even? '(1 3 5 4 7))
+4
+> (any even? '(1 3 5 7))
+#f
+> (any even? '(1 3 4 7))
+#t
+> (every positive? '(1 2 3 4))
+#t
+> (partition even? '(1 2 3 4 5 6))
+(2 4 6)
+(1 3 5)
+\end{lstlisting}
+
+\subsection{Folding and Reducing}
+
+\begin{lstlisting}[style=repl]
+> (fold + 0 '(1 2 3 4 5))
+15
+> (fold-right cons '() '(a b c))
+(a b c)
+> (reduce max 0 '(3 7 2 9 4))
+9
+> (unfold (lambda (x) (> x 5))
+          (lambda (x) (* x x))
+          (lambda (x) (+ x 1))
+          1)
+(1 4 9 16 25)
+\end{lstlisting}
+
+\subsection{Zipping and Unzipping}
+
+\begin{lstlisting}[style=repl]
+> (zip '(a b c) '(1 2 3))
+((a 1) (b 2) (c 3))
+> (unzip2 '((a 1) (b 2) (c 3)))
+(a b c)
+(1 2 3)
+\end{lstlisting}
+
+\subsection{Other Highlights}
+
+\begin{lstlisting}[style=repl]
+> (take '(a b c d e) 3)
+(a b c)
+> (drop '(a b c d e) 3)
+(d e)
+> (concatenate '((1 2) (3 4) (5 6)))
+(1 2 3 4 5 6)
+> (delete-duplicates '(1 2 3 2 1 4))
+(1 2 3 4)
+\end{lstlisting}
+
+\section{SRFI-13: String Library}
+\index{SRFI-13}
+
+SRFI-13 extends Scheme's string operations significantly:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 13))
+> (string-contains "hello world" "world")
+6
+> (string-prefix? "he" "hello")
+#t
+> (string-suffix? "ld" "world")
+#t
+> (string-trim "  hello  ")
+"hello  "
+> (string-trim-both "  hello  ")
+"hello"
+> (string-join '("one" "two" "three") ", ")
+"one, two, three"
+> (string-split "a,b,c,d" #\,)
+("a" "b" "c" "d")
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{string-join} is Python's \texttt{", ".join(["one", "two", "three"])}. \texttt{string-split} is Python's \texttt{"a,b,c,d".split(",")}.
+\end{note}
+
+\section{SRFI-69: Hash Tables}
+\index{SRFI-69}\index{hash tables}
+
+Hash tables provide O(1) average key lookup---much faster than association lists for large collections:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 69))
+> (define ht (make-hash-table))
+> (hash-table-set! ht "name" "Alice")
+> (hash-table-set! ht "age" 30)
+> (hash-table-ref ht "name")
+"Alice"
+> (hash-table-ref ht "age")
+30
+> (hash-table-exists? ht "email")
+#f
+> (hash-table-ref/default ht "email" "unknown")
+"unknown"
+\end{lstlisting}
+
+\subsection{Iteration}
+
+\begin{lstlisting}[style=repl]
+> (hash-table-set! ht "city" "London")
+> (hash-table-keys ht)
+("name" "age" "city")
+> (hash-table-values ht)
+("Alice" 30 "London")
+> (hash-table-walk ht
+    (lambda (key value)
+      (display key) (display ": ")
+      (display value) (newline)))
+name: Alice
+age: 30
+city: London
+\end{lstlisting}
+
+\subsection{Building from Data}
+
+\begin{lstlisting}[style=repl]
+> (define ht (alist->hash-table
+               '(("red" . "#ff0000")
+                 ("green" . "#00ff00")
+                 ("blue" . "#0000ff"))))
+> (hash-table-ref ht "green")
+"#00ff00"
+\end{lstlisting}
+
+\section{SRFI-133: Vector Library}
+\index{SRFI-133}
+
+SRFI-133 adds higher-order operations on vectors:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 133))
+> (vector-map + #(1 2 3) #(10 20 30))
+#(11 22 33)
+> (vector-fold + 0 #(1 2 3 4 5))
+15
+> (vector-filter even? #(1 2 3 4 5 6))
+#(2 4 6)
+> (vector-any odd? #(2 4 5 6))
+#t
+> (vector-every positive? #(1 2 3 4))
+#t
+\end{lstlisting}
+
+\section{SRFI-132: Sorting}
+\index{SRFI-132}\index{sorting}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 132))
+> (list-sort < '(5 3 1 4 2))
+(1 2 3 4 5)
+> (list-sort string<? '("banana" "apple" "cherry"))
+("apple" "banana" "cherry")
+> (vector-sort! < #(5 3 1 4 2))
+#(1 2 3 4 5)
+\end{lstlisting}
+
+The comparator is a two-argument predicate. Use \texttt{<} for ascending numbers, \texttt{>} for descending, \texttt{string<?} for strings.
+
+\section{SRFI-27: Random Numbers}
+\index{SRFI-27}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 27))
+> (random-integer 100)
+42
+> (random-integer 100)
+73
+> (random-real)
+0.6234981723
+\end{lstlisting}
+
+\texttt{random-integer} returns a random integer in \texttt{[0, n)}. \texttt{random-real} returns a random real in \texttt{[0, 1)}.
+
+\section{SRFI-115: Regular Expressions}
+\index{SRFI-115}\index{regular expressions}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 115))
+> (regexp-matches '(: "hello") "hello world")
+#f
+> (regexp-search '(: "world") "hello world")
+#<regexp-match>
+> (regexp-replace '(+ digit) "age: 25" "XX")
+"age: XX"
+> (regexp-extract '(+ alpha) "foo123bar456baz")
+("foo" "bar" "baz")
+\end{lstlisting}
+
+SRFI-115 uses S-expression syntax for patterns instead of string-based regex. \texttt{(+ digit)} matches one or more digits, \texttt{(+ alpha)} matches one or more letters.
+
+\section{SRFI-158: Generators}
+\index{SRFI-158}\index{generators}
+
+Generators are lazy sequences---they produce values one at a time on demand:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 158))
+> (define g (make-range-generator 1 6))
+> (g)
+1
+> (g)
+2
+> (g)
+3
+> (generator->list (make-range-generator 0 5))
+(0 1 2 3 4)
+> (generator->list
+    (gfilter even? (make-range-generator 0 10)))
+(0 2 4 6 8)
+\end{lstlisting}
+
+Generators are useful for processing large or infinite sequences without materializing them all in memory.
+
+\section{Other Useful SRFIs}
+
+\subsection{SRFI-26: Partial Application with \texttt{cut}}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 26))
+> (map (cut + <> 10) '(1 2 3))
+(11 12 13)
+> (map (cut string-append "prefix-" <>) '("a" "b" "c"))
+("prefix-a" "prefix-b" "prefix-c")
+\end{lstlisting}
+
+\texttt{cut} creates a partial application. \texttt{<>} marks the argument slot.
+
+\subsection{SRFI-28: Basic Format Strings}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 28))
+> (format "Hello, ~a! You are ~a years old." "Alice" 30)
+"Hello, Alice! You are 30 years old."
+\end{lstlisting}
+
+\subsection{SRFI-113: Sets and Bags}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 113) (srfi 128))
+> (define s (set number-comparator 1 2 3 4 5))
+> (set-contains? s 3)
+#t
+> (set-contains? s 9)
+#f
+> (set->list (set-union s (set number-comparator 4 5 6 7)))
+(1 2 3 4 5 6 7)
+\end{lstlisting}
+
+\subsection{SRFI-189: Maybe and Either}
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 189))
+> (define result (just 42))
+> (maybe? result)
+#t
+> (maybe-ref result)
+42
+> (define empty (nothing))
+> (maybe-ref/default empty 0)
+0
+\end{lstlisting}
+
+\texttt{maybe} is like Python's \texttt{Optional} or Rust's \texttt{Option}---it represents a value that might not exist.
+
+\section{Choosing the Right Data Structure}
+
+\begin{center}
+\begin{tabular}{llll}
+\textbf{Need} & \textbf{Use} & \textbf{SRFI} & \textbf{Lookup} \\
+\hline
+Ordered sequence & List & 1 & O(n) \\
+Key-value map & Hash table & 69 & O(1) avg \\
+Sorted collection & Sorted list/vector & 132 & O(n log n) \\
+Unique elements & Set & 113 & O(log n) \\
+FIFO queue & Queue & 117 & O(1) \\
+Double-ended queue & Deque & 134 & O(1) \\
+Indexed random access & Vector & 133 & O(1) \\
+\end{tabular}
+\end{center}
+
+\sectionbreak
+
+You now have a map of Kaappi's extended standard library. The SRFIs cover nearly every common data structure and algorithm. In the next chapter, we explore calling C code from Scheme using the foreign function interface.

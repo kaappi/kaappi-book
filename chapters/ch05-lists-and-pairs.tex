@@ -1,3 +1,368 @@
 \chapter{Lists and Pairs}
+\index{lists}\index{pairs}
 
-Lists are the fundamental data structure in Scheme. Built from pairs (cons cells), they are used for everything from storing collections to representing code itself. This chapter covers \texttt{cons}, \texttt{car}, \texttt{cdr}, list construction, quoting, and common list operations.
+Lists are the most important data structure in Scheme. They are used for storing collections, building trees, representing structured data, and even encoding the source code of programs. Understanding lists is essential for everything that follows in this book.
+
+Under the hood, lists are built from a simpler structure called a \emph{pair} (also known as a \emph{cons cell}). This chapter covers pairs, list construction, list access, quoting, common operations, and recursive list processing.
+
+\section{Pairs: The Building Block}
+\index{cons}\index{pair}
+
+A pair is a value that holds two things: a \texttt{car}\index{car} (the first element) and a \texttt{cdr}\index{cdr} (the second element). You create a pair with \texttt{cons}:
+
+\begin{lstlisting}[style=repl]
+> (cons 1 2)
+(1 . 2)
+> (cons "hello" "world")
+("hello" . "world")
+\end{lstlisting}
+
+The notation \texttt{(1 . 2)} is called a \emph{dotted pair}\index{dotted pair}. The dot separates the car from the cdr. You extract the two halves with \texttt{car} and \texttt{cdr}:
+
+\begin{lstlisting}[style=repl]
+> (car (cons 1 2))
+1
+> (cdr (cons 1 2))
+2
+\end{lstlisting}
+
+\begin{note}[Why ``car'' and ``cdr''?]
+These names come from the 1950s IBM 704 computer, where they stood for ``Contents of the Address Register'' and ``Contents of the Decrement Register.'' They are historical artifacts, but every Scheme programmer knows them. Think of \texttt{car} as ``first'' and \texttt{cdr} as ``rest.''
+\end{note}
+
+\section{Lists as Chains of Pairs}
+\index{proper list}
+
+A list is a chain of pairs where each pair's cdr points to the next pair, and the last pair's cdr is the \emph{empty list} \texttt{'()}\index{empty list}:
+
+\begin{lstlisting}[style=repl]
+> (cons 1 (cons 2 (cons 3 '())))
+(1 2 3)
+\end{lstlisting}
+
+Here is the structure visualized:
+
+\begin{Verbatim}[fontsize=\small]
+  [1|*]-->[2|*]-->[3|/]
+\end{Verbatim}
+
+Each box is a pair. The left half is the car (the element), the right half is the cdr (a pointer to the next pair). The \texttt{/} represents \texttt{'()}, the end of the list.
+
+When the cdr chain ends with \texttt{'()}, we call it a \emph{proper list}. Scheme's printing conventions hide the dots for proper lists---\texttt{(1 . (2 . (3 . ())))} is displayed as \texttt{(1 2 3)}.
+
+\section{Creating Lists}
+
+\subsection{The \texttt{list} Procedure}
+
+The \texttt{list} procedure is the most convenient way to create a list:
+
+\begin{lstlisting}[style=repl]
+> (list 1 2 3 4 5)
+(1 2 3 4 5)
+> (list "a" "b" "c")
+("a" "b" "c")
+> (list)
+()
+\end{lstlisting}
+
+\subsection{Quoting}
+\index{quote}
+
+For lists of literal values, you can use a quote:
+
+\begin{lstlisting}[style=repl]
+> '(1 2 3)
+(1 2 3)
+> '(red green blue)
+(red green blue)
+> '(1 "two" #t)
+(1 "two" #t)
+\end{lstlisting}
+
+The quote \texttt{'} prevents evaluation. Without it, \texttt{(red green blue)} would try to call \texttt{red} as a procedure. With the quote, it creates a list of three symbols.
+
+\begin{warning}[Quote vs.\ list]
+\texttt{'(1 2 3)} and \texttt{(list 1 2 3)} both produce the list \texttt{(1 2 3)}, but they differ in an important way: quoted lists contain literal values only. If you need computed elements, use \texttt{list}:
+
+\begin{lstlisting}[style=repl]
+> (define x 10)
+> '(x 20 30)
+(x 20 30)
+> (list x 20 30)
+(10 20 30)
+\end{lstlisting}
+
+In the quoted version, \texttt{x} is the symbol \texttt{x}, not the value~10.
+\end{warning}
+
+\subsection{Building Lists with \texttt{cons}}
+
+The idiomatic way to build a list incrementally is to \texttt{cons} elements onto the front:
+
+\begin{lstlisting}[style=repl]
+> (cons 1 '())
+(1)
+> (cons 1 '(2 3))
+(1 2 3)
+> (cons 'a (cons 'b (cons 'c '())))
+(a b c)
+\end{lstlisting}
+
+This is O(1)---adding an element to the front of a list is instantaneous because it just creates one new pair.
+
+\section{Accessing List Elements}
+
+\subsection{\texttt{car} and \texttt{cdr}}
+
+\begin{lstlisting}[style=repl]
+> (car '(a b c))
+a
+> (cdr '(a b c))
+(b c)
+> (car (cdr '(a b c)))
+b
+> (cdr (cdr '(a b c)))
+(c)
+> (car (cdr (cdr '(a b c))))
+c
+\end{lstlisting}
+
+\texttt{car} gives you the first element. \texttt{cdr} gives you the rest of the list (everything except the first element). Both are O(1).
+
+\subsection{Shorthand Compositions}
+
+For deeply nested access, Scheme provides shorthand procedures up to four levels deep:
+
+\begin{lstlisting}[style=repl]
+> (cadr '(a b c))
+b
+> (caddr '(a b c))
+c
+> (caar '((1 2) (3 4)))
+1
+> (cadar '((1 2) (3 4)))
+2
+\end{lstlisting}
+
+\texttt{cadr} is \texttt{(car (cdr ...))}, \texttt{caddr} is \texttt{(car (cdr (cdr ...)))}, and so on. Read the letters between \texttt{c} and \texttt{r} from right to left: each \texttt{a} means \texttt{car}, each \texttt{d} means \texttt{cdr}.
+
+\subsection{\texttt{list-ref}}
+
+For positional access by index:
+
+\begin{lstlisting}[style=repl]
+> (list-ref '(a b c d e) 0)
+a
+> (list-ref '(a b c d e) 3)
+d
+\end{lstlisting}
+
+Unlike vectors, \texttt{list-ref} is O(n)---it must walk the chain from the head. If you need frequent random access, use a vector instead.
+
+\section{Common List Operations}
+
+\subsection{\texttt{length}}
+
+\begin{lstlisting}[style=repl]
+> (length '(a b c))
+3
+> (length '())
+0
+\end{lstlisting}
+
+\subsection{\texttt{append}}
+
+Concatenates lists:
+
+\begin{lstlisting}[style=repl]
+> (append '(1 2) '(3 4) '(5 6))
+(1 2 3 4 5 6)
+> (append '(a b) '())
+(a b)
+\end{lstlisting}
+
+\texttt{append} copies all lists except the last one. It is O(n) in the total length of all lists except the last.
+
+\subsection{\texttt{reverse}}
+
+\begin{lstlisting}[style=repl]
+> (reverse '(1 2 3 4 5))
+(5 4 3 2 1)
+\end{lstlisting}
+
+\subsection{\texttt{member} and \texttt{assoc}}
+\index{member}\index{assoc}
+
+\texttt{member} searches a list for a value:
+
+\begin{lstlisting}[style=repl]
+> (member 3 '(1 2 3 4 5))
+(3 4 5)
+> (member 9 '(1 2 3 4 5))
+#f
+\end{lstlisting}
+
+It returns the tail of the list starting with the match, or \texttt{\#f} if not found. This design lets you use the result as a boolean (since any non-\texttt{\#f} value is true) while also giving you the position in the list.
+
+\texttt{assoc} searches an association list (a list of pairs) by key:
+
+\begin{lstlisting}[style=repl]
+> (define phonebook
+    '(("Alice" . "555-1234")
+      ("Bob" . "555-5678")
+      ("Carol" . "555-9012")))
+> (assoc "Bob" phonebook)
+("Bob" . "555-5678")
+> (cdr (assoc "Bob" phonebook))
+"555-5678"
+> (assoc "Dave" phonebook)
+#f
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+An association list is like a Python dictionary, but with O(n) lookup. For small collections (under ~50 entries), alists are simple and effective. For larger collections, use hash tables (covered in Chapter~16).
+\end{note}
+
+\section{List Predicates}
+
+\begin{lstlisting}[style=repl]
+> (pair? '(1 2 3))
+#t
+> (pair? '())
+#f
+> (null? '())
+#t
+> (null? '(1 2 3))
+#f
+> (list? '(1 2 3))
+#t
+> (list? (cons 1 2))
+#f
+\end{lstlisting}
+
+\texttt{pair?} tests whether something is a cons cell. \texttt{null?} tests for the empty list. \texttt{list?} tests for a proper list (a chain ending in \texttt{'()}).
+
+\section{Recursive List Processing}
+\index{recursion}
+
+Lists have a natural recursive structure: a list is either empty, or it has a first element (\texttt{car}) and a rest (\texttt{cdr}) which is itself a list. This leads to a standard pattern for processing lists:
+
+\begin{lstlisting}
+(define (my-length lst)
+  (if (null? lst)
+      0
+      (+ 1 (my-length (cdr lst)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (my-length '(a b c d))
+4
+\end{lstlisting}
+
+The pattern is: check if the list is empty (base case), otherwise process the first element and recurse on the rest.
+
+Here is a function that sums a list of numbers:
+
+\begin{lstlisting}
+(define (sum lst)
+  (if (null? lst)
+      0
+      (+ (car lst) (sum (cdr lst)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (sum '(1 2 3 4 5))
+15
+\end{lstlisting}
+
+And one that keeps only elements satisfying a predicate:
+
+\begin{lstlisting}
+(define (my-filter pred lst)
+  (cond
+    ((null? lst) '())
+    ((pred (car lst))
+     (cons (car lst) (my-filter pred (cdr lst))))
+    (else
+     (my-filter pred (cdr lst)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (my-filter even? '(1 2 3 4 5 6))
+(2 4 6)
+> (my-filter string? '(1 "two" 3 "four"))
+("two" "four")
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+This recursive pattern replaces Python's \texttt{for} loop. Instead of iterating with a counter, you decompose the list into head and tail. This style takes practice, but it eliminates off-by-one errors and makes the flow of data explicit.
+\end{note}
+
+\section{Nested Lists and Trees}
+
+Lists can contain other lists, forming trees:
+
+\begin{lstlisting}[style=repl]
+> '((1 2) (3 4) (5 6))
+((1 2) (3 4) (5 6))
+> (car '((1 2) (3 4)))
+(1 2)
+> (caar '((1 2) (3 4)))
+1
+\end{lstlisting}
+
+Here is a function that flattens a nested list into a single level:
+
+\begin{lstlisting}
+(define (flatten lst)
+  (cond
+    ((null? lst) '())
+    ((pair? (car lst))
+     (append (flatten (car lst))
+             (flatten (cdr lst))))
+    (else
+     (cons (car lst) (flatten (cdr lst))))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (flatten '(1 (2 3) (4 (5 6)) 7))
+(1 2 3 4 5 6 7)
+\end{lstlisting}
+
+\section{Improper Lists and Dotted Pairs}
+\index{dotted pair}
+
+Not all pairs form proper lists. A pair whose cdr is not a list or the empty list is called an \emph{improper list} or \emph{dotted pair}:
+
+\begin{lstlisting}[style=repl]
+> (cons 1 2)
+(1 . 2)
+> (cons 1 (cons 2 3))
+(1 2 . 3)
+\end{lstlisting}
+
+Dotted pairs are useful as lightweight two-element structures---association lists use them for key-value entries. But most list-processing procedures (\texttt{length}, \texttt{map}, \texttt{for-each}) expect proper lists and will error on improper ones.
+
+\section{Performance Characteristics}
+
+Understanding list performance helps you choose the right data structure:
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{Operation} & \textbf{Complexity} & \textbf{Notes} \\
+\hline
+\texttt{cons} & O(1) & Allocates one pair \\
+\texttt{car}, \texttt{cdr} & O(1) & Pointer access \\
+\texttt{length} & O(n) & Must traverse entire list \\
+\texttt{list-ref} & O(n) & Walks from the head \\
+\texttt{append} & O(n) & Copies first argument(s) \\
+\texttt{reverse} & O(n) & Creates a new list \\
+\texttt{member}, \texttt{assoc} & O(n) & Linear search \\
+\end{tabular}
+\end{center}
+
+Lists excel at sequential processing and stack-like access (always working with the front). When you need O(1) random access, use vectors. When you need O(1) key lookup, use hash tables.
+
+\sectionbreak
+
+Lists and pairs are the backbone of Scheme programming. Nearly everything in the language---from data processing to code representation---builds on the ideas in this chapter. In the next chapter, we will define functions in earnest and explore recursion, closures, and tail calls.

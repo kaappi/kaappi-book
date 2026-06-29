@@ -1,3 +1,338 @@
 \chapter{Concurrency}
+\index{concurrency}\index{fibers}\index{threads}
 
-Kaappi provides two concurrency models: lightweight green threads (fibers) with channels for message passing, and SRFI-18 OS threads for true parallelism. This chapter covers spawning fibers, communicating via channels, and understanding the trade-offs between cooperative and preemptive concurrency.
+Modern programs often need to do multiple things at once: serve multiple network connections, process data while waiting for I/O, or distribute work across CPU cores. Kaappi provides two concurrency models: \emph{fibers} (lightweight green threads) for cooperative multitasking and \emph{SRFI-18 threads} (OS threads) for true parallelism.
+
+\section{Two Models of Concurrency}
+
+\begin{center}
+\begin{tabular}{lp{4.5cm}p{4.5cm}}
+\textbf{Aspect} & \textbf{Fibers} & \textbf{OS Threads (SRFI-18)} \\
+\hline
+Library & \texttt{(kaappi fibers)} & \texttt{(srfi 18)} \\
+Scheduling & Cooperative (voluntary yield) & Preemptive (OS scheduler) \\
+Parallelism & No (single OS thread) & Yes (multiple cores) \\
+Communication & Channels (synchronous) & Deep-copy at boundaries \\
+Overhead & Very low (~100 bytes each) & High (full VM + GC per thread) \\
+Shared state & Same heap (careful with mutation) & Separate heaps (safe) \\
+Use case & I/O concurrency, event loops & CPU-bound parallelism \\
+\end{tabular}
+\end{center}
+
+For most concurrent programs, fibers are the right choice. Use OS threads only when you need to exploit multiple CPU cores for compute-heavy work.
+
+\section{Fibers}
+\index{fibers}\index{spawn}
+
+Fibers are lightweight green threads that run cooperatively within a single OS thread. They are created with \texttt{spawn}:
+
+\begin{lstlisting}[style=repl]
+> (import (kaappi fibers))
+> (define f (spawn (lambda () (* 6 7))))
+> (fiber-join f)
+42
+\end{lstlisting}
+
+\texttt{spawn} takes a zero-argument procedure (a thunk), starts it as a new fiber, and returns a fiber object. \texttt{fiber-join}\index{fiber-join} blocks until the fiber completes and returns its result.
+
+\subsection{Cooperative Scheduling}
+
+Fibers run until they voluntarily yield control. Call \texttt{yield}\index{yield} to let other fibers run:
+
+\begin{lstlisting}[style=repl]
+> (define (counting-fiber name n)
+    (spawn (lambda ()
+      (let loop ((i 0))
+        (when (< i n)
+          (display name) (display ":")
+          (display i) (display " ")
+          (yield)
+          (loop (+ i 1)))))))
+> (define f1 (counting-fiber "A" 3))
+> (define f2 (counting-fiber "B" 3))
+> (fiber-join f1)
+> (fiber-join f2)
+A:0 B:0 A:1 B:1 A:2 B:2
+\end{lstlisting}
+
+The fibers interleave at each \texttt{yield} point.
+
+\begin{warning}[Long computations without yield]
+Since fibers are cooperative, a fiber that runs a long computation without yielding will block all other fibers. Insert \texttt{(yield)} in long loops to keep the system responsive.
+\end{warning}
+
+\subsection{Fiber Results and Errors}
+
+\texttt{fiber-join} returns the fiber's result value. If the fiber raised an exception, \texttt{fiber-join} re-raises it in the calling context:
+
+\begin{lstlisting}[style=repl]
+> (define f (spawn (lambda () (error "oops"))))
+> (guard (e (#t (error-object-message e)))
+    (fiber-join f))
+"oops"
+\end{lstlisting}
+
+\section{Channels}
+\index{channels}\index{make-channel}\index{channel-send}\index{channel-receive}
+
+Channels provide safe communication between fibers. They are synchronous (Go-style): a send blocks until a receiver is ready, and a receive blocks until a value is available.
+
+\begin{lstlisting}[style=repl]
+> (import (kaappi fibers))
+> (define ch (make-channel))
+> (spawn (lambda ()
+    (channel-send ch "hello from fiber")))
+> (channel-receive ch)
+"hello from fiber"
+\end{lstlisting}
+
+\subsection{Producer-Consumer Pattern}
+
+\begin{lstlisting}
+(import (kaappi fibers))
+
+(define ch (make-channel))
+
+;; Producer: sends numbers 0-9
+(spawn (lambda ()
+  (let loop ((i 0))
+    (when (< i 10)
+      (channel-send ch i)
+      (loop (+ i 1))))
+  (channel-send ch 'done)))
+
+;; Consumer: receives until 'done
+(let loop ()
+  (let ((msg (channel-receive ch)))
+    (unless (eq? msg 'done)
+      (display (* msg msg))
+      (display " ")
+      (loop))))
+\end{lstlisting}
+
+\begin{codeoutput}
+0 1 4 9 16 25 36 49 64 81
+\end{codeoutput}
+
+\subsection{Fan-Out: Multiple Workers}
+
+\begin{lstlisting}
+(import (kaappi fibers))
+
+(define work-ch (make-channel))
+(define result-ch (make-channel))
+
+;; Spawn 3 worker fibers
+(define workers
+  (map (lambda (id)
+    (spawn (lambda ()
+      (let loop ()
+        (let ((task (channel-receive work-ch)))
+          (unless (eq? task 'stop)
+            (channel-send result-ch
+              (list id (* task task)))
+            (loop)))))))
+    '(1 2 3)))
+
+;; Send work
+(for-each (lambda (n) (channel-send work-ch n))
+          '(10 20 30 40 50 60))
+
+;; Collect results
+(let loop ((n 6) (results '()))
+  (if (= n 0)
+      results
+      (loop (- n 1)
+            (cons (channel-receive result-ch) results))))
+\end{lstlisting}
+
+\subsection{Timeouts and Selecting}
+
+For more advanced patterns (timeouts, selecting from multiple channels), you can combine fibers with channels:
+
+\begin{lstlisting}
+;; Simple timeout pattern
+(define (with-timeout ms thunk)
+  (let ((result-ch (make-channel))
+        (timeout-ch (make-channel)))
+    (spawn (lambda ()
+      (channel-send result-ch (thunk))))
+    (spawn (lambda ()
+      ;; sleep is a hypothetical delay
+      (channel-send timeout-ch 'timeout)))
+    ;; First one to send wins
+    (channel-receive result-ch)))
+\end{lstlisting}
+
+\section{OS Threads (SRFI-18)}
+\index{SRFI-18}\index{OS threads}
+
+For true parallelism across CPU cores, use SRFI-18 OS threads. Each thread gets its own VM and garbage collector with an independent heap.
+
+\begin{warning}[Experimental feature]
+OS threads require the \texttt{--experimental-threads} flag:
+\begin{Verbatim}[fontsize=\small]
+kaappi --experimental-threads program.scm
+\end{Verbatim}
+\end{warning}
+
+\begin{lstlisting}
+(import (srfi 18))
+
+(define t (thread-start!
+  (make-thread
+    (lambda () (* 6 7)))))
+
+(thread-join! t)  ;=> 42
+\end{lstlisting}
+
+\subsection{Creating and Starting Threads}
+
+\begin{lstlisting}
+(import (srfi 18))
+
+(define (expensive-computation n)
+  (let loop ((i 0) (acc 0))
+    (if (= i n) acc
+        (loop (+ i 1) (+ acc i)))))
+
+(define t1 (thread-start!
+  (make-thread
+    (lambda () (expensive-computation 10000000))
+    "worker-1")))
+
+(define t2 (thread-start!
+  (make-thread
+    (lambda () (expensive-computation 20000000))
+    "worker-2")))
+
+(define result1 (thread-join! t1))
+(define result2 (thread-join! t2))
+\end{lstlisting}
+
+Both computations run in parallel on separate cores.
+
+\subsection{Deep-Copy Semantics}
+
+Values crossing thread boundaries are \emph{deep-copied}:
+
+\begin{itemize}
+    \item At \texttt{thread-start!}: the thunk closure (and all values it captures) is deep-copied from the parent thread to the child.
+    \item At \texttt{thread-join!}: the return value is deep-copied from the child thread back to the parent.
+\end{itemize}
+
+This means threads cannot share mutable state---there are no race conditions, no data corruption, and no need for locks in most code.
+
+\begin{note}[Coming from Python]
+Python's \texttt{multiprocessing} module works similarly: separate memory spaces, data copied between processes. Kaappi's threads are lighter (same process, shared code) but have the same safety guarantee of no shared mutable state.
+\end{note}
+
+\subsection{Mutexes and Condition Variables}
+
+SRFI-18 provides mutexes and condition variables for the rare cases where you need synchronization:
+
+\begin{lstlisting}
+(import (srfi 18))
+
+(define mtx (make-mutex))
+
+(mutex-lock! mtx)
+;; ... critical section ...
+(mutex-unlock! mtx)
+\end{lstlisting}
+
+In practice, the deep-copy model means you rarely need mutexes. Use them only if you are integrating with external resources (files, network sockets) that require coordinated access.
+
+\section{Choosing Between Fibers and Threads}
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{Scenario} & \textbf{Use} & \textbf{Why} \\
+\hline
+Multiple HTTP connections & Fibers & I/O-bound, many tasks \\
+Event loop / GUI & Fibers & Cooperative scheduling \\
+Pipeline processing & Fibers + channels & Natural producer-consumer \\
+CPU-heavy computation & OS threads & True parallelism \\
+Parallel map over data & OS threads & Multi-core utilization \\
+Simple background task & Fibers & Lower overhead \\
+\end{tabular}
+\end{center}
+
+\section{A Complete Example: Parallel Map}
+
+Here is a function that maps a procedure over a list using OS threads for parallelism:
+
+\begin{lstlisting}
+(import (srfi 18))
+
+(define (parallel-map f lst)
+  (let ((threads
+          (map (lambda (item)
+                 (thread-start!
+                   (make-thread
+                     (lambda () (f item)))))
+               lst)))
+    (map thread-join! threads)))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (parallel-map (lambda (n) (* n n)) '(1 2 3 4 5))
+(1 4 9 16 25)
+\end{lstlisting}
+
+Each element is processed on a separate thread. For CPU-intensive \texttt{f}, this achieves near-linear speedup on multi-core machines.
+
+\section{A Complete Example: Fiber Pipeline}
+
+A pipeline where data flows through multiple stages via channels:
+
+\begin{lstlisting}
+(import (kaappi fibers))
+
+(define (pipeline input-ch . stages)
+  (let loop ((ch input-ch) (procs stages))
+    (if (null? procs)
+        ch
+        (let ((out-ch (make-channel)))
+          (spawn (lambda ()
+            (let process ()
+              (let ((val (channel-receive ch)))
+                (unless (eq? val 'eof)
+                  (channel-send out-ch ((car procs) val))
+                  (process))))
+            (channel-send out-ch 'eof)))
+          (loop out-ch (cdr procs))))))
+\end{lstlisting}
+
+Usage:
+
+\begin{lstlisting}
+(define source (make-channel))
+
+(define output (pipeline source
+  (lambda (x) (* x x))       ; square
+  (lambda (x) (+ x 1))))     ; add 1
+
+;; Feed data
+(spawn (lambda ()
+  (for-each (lambda (n) (channel-send source n))
+            '(1 2 3 4 5))
+  (channel-send source 'eof)))
+
+;; Collect results
+(let loop ()
+  (let ((val (channel-receive output)))
+    (unless (eq? val 'eof)
+      (display val) (display " ")
+      (loop))))
+\end{lstlisting}
+
+\begin{codeoutput}
+2 5 10 17 26
+\end{codeoutput}
+
+Each number is squared then incremented, with each stage running as a separate fiber.
+
+\sectionbreak
+
+You now understand both of Kaappi's concurrency models: fibers for lightweight cooperative multitasking with channel-based communication, and OS threads for CPU-bound parallelism with deep-copy safety. This completes Part~IV. The appendices that follow provide quick references for the R7RS standard and the Kaappi CLI.

@@ -1,0 +1,184 @@
+\chapter{SRFI Catalog}
+\index{SRFI!catalog}
+
+All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}.
+
+\section{Data Structures}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+1 & Extended list library (fold, filter, find, partition, iota, zip, take, drop) \\
+4 & Homogeneous numeric vector datatypes \\
+69 & Basic hash tables (make, set!, ref, delete!, walk, keys, values) \\
+111 & Boxes (single-value mutable containers) \\
+113 & Sets and bags with comparator-based equality \\
+116 & Immutable list library (functional pairs) \\
+117 & Queues based on lists \\
+125 & Intermediate hash tables (richer API than SRFI-69) \\
+128 & Comparators (for use with sorted/hashed containers) \\
+132 & Sort libraries (list-sort, vector-sort, merge) \\
+133 & Vector library (vector-map, vector-fold, vector-filter, vector-any) \\
+134 & Immutable deques (double-ended queues) \\
+146 & Mappings (functional key-value maps, also hash variant) \\
+195 & Multiple-value boxes \\
+196 & Range objects (lazy integer ranges) \\
+222 & Compound objects \\
+\end{tabular}
+\end{center}
+
+\section{Strings and Text}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+6 & Basic string ports (open-input-string, open-output-string) \\
+13 & String library (contains, split, join, trim, prefix?, suffix?) \\
+14 & Character sets (char-set, char-set-contains?) \\
+28 & Basic format strings (\textasciitilde a, \textasciitilde s placeholders) \\
+48 & Intermediate format strings (numbers, padding) \\
+115 & Scheme regular expressions (S-expression syntax) \\
+130 & Cursor-based string library \\
+152 & String library (reduced, R7RS-compatible subset) \\
+166 & Formatting (pretty-print, columnar, unicode, color) \\
+175 & ASCII character library \\
+233 & INI file parser \\
+\end{tabular}
+\end{center}
+
+\section{Numbers and Bits}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+27 & Sources of random bits (random-integer, random-real) \\
+60 & Integers as bits (bitwise-and, bitwise-or, bit-count) \\
+141 & Integer division (floor/, ceiling/, truncate/, round/) \\
+143 & Fixnums (fixnum-specific arithmetic) \\
+144 & Flonums (flonum-specific arithmetic) \\
+151 & Bitwise operations (comprehensive bit manipulation) \\
+\end{tabular}
+\end{center}
+
+\section{Control Flow and Syntax}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+0 & Feature-based conditional expansion (cond-expand) \\
+2 & \texttt{and-let*} --- short-circuit \texttt{let} with guards \\
+8 & \texttt{receive} --- bind formals from multiple values \\
+11 & \texttt{let-values} and \texttt{let*-values} \\
+16 & \texttt{case-lambda} --- procedures with variable arity \\
+17 & Generalized \texttt{set!} \\
+26 & \texttt{cut} and \texttt{cute} --- partial application notation \\
+31 & \texttt{rec} --- recursive evaluation shorthand \\
+39 & Parameter objects (dynamic binding) \\
+61 & A more general \texttt{cond} clause \\
+87 & \texttt{=>} in \texttt{case} clauses \\
+145 & \texttt{assume} --- assertions with optimizer hints \\
+197 & Pipeline operator \\
+210 & Procedures and syntax for multiple values \\
+219 & Define higher-order lambda \\
+227 & Optional arguments \\
+232 & Flexible curried procedures \\
+235 & Combinators (compose, constantly, complement) \\
+\end{tabular}
+\end{center}
+
+\section{Lazy Evaluation and Generators}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+41 & Streams (lazy lists with memoization) \\
+45 & Primitives for expressing iterative lazy algorithms \\
+127 & Lazy sequences \\
+158 & Generators and accumulators (lazy pull-based iteration) \\
+\end{tabular}
+\end{center}
+
+\section{Exceptions and Conditions}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+23 & Error reporting (\texttt{error} procedure) \\
+34 & Exception handling for programs \\
+35 & Conditions (structured exception types) \\
+36 & I/O conditions \\
+189 & \texttt{maybe} and \texttt{either} --- optional values without exceptions \\
+\end{tabular}
+\end{center}
+
+\section{Time and System}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+19 & Time data types and procedures (date, time-utc) \\
+37 & \texttt{args-fold} --- program argument processor \\
+98 & Interface to access environment variables \\
+170 & POSIX API (file-info, directories, symlinks, permissions) \\
+174 & POSIX timespecs \\
+\end{tabular}
+\end{center}
+
+\section{Testing}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+64 & A Scheme API for test suites (test-begin, test-assert, test-equal) \\
+78 & Lightweight testing (check, check-report) \\
+\end{tabular}
+\end{center}
+
+\section{Concurrency}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+18 & Multithreading (threads, mutexes, condition variables) \\
+\end{tabular}
+\end{center}
+
+\section{Records}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+9 & Defining record types (define-record-type) \\
+\end{tabular}
+\end{center}
+
+\section{Iteration and Comprehensions}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+42 & Eager comprehensions (list-ec, vector-ec, sum-ec) \\
+\end{tabular}
+\end{center}
+
+\section{Miscellaneous}
+
+\begin{center}
+\begin{tabular}{rp{9cm}}
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+38 & External representation for data with shared structure \\
+43 & Vector library (R7RS-compatible, superseded by 133) \\
+\end{tabular}
+\end{center}

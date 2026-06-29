@@ -1,3 +1,243 @@
 \chapter{Error Handling}
+\index{error handling}\index{exceptions}
 
-Programs need to handle errors gracefully. Scheme provides a condition system with \texttt{guard}, \texttt{raise}, and \texttt{with-exception-handler}. This chapter covers raising and catching exceptions, defining error types, and writing robust code that fails predictably.
+Programs encounter errors: files that do not exist, invalid user input, network failures, division by zero. Scheme provides a structured exception system with \texttt{guard} for catching errors, \texttt{raise} for signaling them, and \texttt{error} for creating error objects. This chapter covers all three, plus strategies for writing robust code.
+
+\section{The \texttt{error} Procedure}
+\index{error}
+
+The simplest way to signal an error is the \texttt{error} procedure:
+
+\begin{lstlisting}[style=repl]
+> (error "something went wrong")
+; Error: something went wrong
+> (error "index out of range" 5)
+; Error: index out of range 5
+> (error "expected a string" 42 'got-number)
+; Error: expected a string 42 got-number
+\end{lstlisting}
+
+\texttt{error} creates an \emph{error object}\index{error object} and raises it as an exception. The first argument is a message string; additional arguments are \emph{irritants}---values that provide context about what went wrong.
+
+\subsection{Using \texttt{error} in Your Functions}
+
+\begin{lstlisting}[style=repl]
+> (define (safe-divide a b)
+    (if (zero? b)
+        (error "division by zero" a b)
+        (/ a b)))
+> (safe-divide 10 2)
+5
+> (safe-divide 10 0)
+; Error: division by zero 10 0
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{(error "message" value)} is like Python's \texttt{raise ValueError(f"message: \{value\}")}. The key difference is that Scheme's error objects are structured---the message and irritants are separate fields, not formatted into a string.
+\end{note}
+
+\section{Catching Errors with \texttt{guard}}
+\index{guard}
+
+\texttt{guard} is Scheme's primary exception-handling form. It catches raised exceptions and matches them against clauses, similar to \texttt{try}/\texttt{except} in Python:
+
+\begin{lstlisting}[style=repl]
+> (guard (e (#t (string-append "caught: "
+                               (error-object-message e))))
+    (error "file not found" "data.txt"))
+"caught: file not found"
+\end{lstlisting}
+
+The general form:
+
+\begin{lstlisting}
+(guard (variable
+        (test1 expr1 ...)
+        (test2 expr2 ...)
+        ...
+        (else expr ...))
+  body ...)
+\end{lstlisting}
+
+The \texttt{body} is evaluated. If an exception is raised, it is bound to \texttt{variable}, and the clauses are tested in order (like \texttt{cond}). The first matching clause's expressions are evaluated and returned. If no clause matches, the exception is re-raised.
+
+\subsection{Multiple Clauses}
+
+\begin{lstlisting}[style=repl]
+> (guard (e
+          ((string? e)
+           (string-append "string error: " e))
+          ((number? e)
+           (* e 10))
+          (else "unknown error"))
+    (raise "oops"))
+"string error: oops"
+\end{lstlisting}
+
+\subsection{Inspecting Error Objects}
+
+Error objects created by \texttt{error} can be examined with three procedures:
+
+\begin{lstlisting}[style=repl]
+> (guard (e (#t (list
+                  (error-object? e)
+                  (error-object-message e)
+                  (error-object-irritants e))))
+    (error "bad value" 42 'expected-string))
+(#t "bad value" (42 expected-string))
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{error-object?}\index{error-object?} --- tests if the value is an error object
+    \item \texttt{error-object-message}\index{error-object-message} --- extracts the message string
+    \item \texttt{error-object-irritants}\index{error-object-irritants} --- extracts the list of irritant values
+\end{itemize}
+
+\subsection{Conditional Error Handling}
+
+You can match on the error message or type to handle different errors differently:
+
+\begin{lstlisting}
+(define (safe-lookup key table)
+  (guard (e
+          ((and (error-object? e)
+                (string=? (error-object-message e)
+                          "key not found"))
+           #f)
+          (else (raise e)))  ; re-raise unknown errors
+    (lookup key table)))
+\end{lstlisting}
+
+The \texttt{(else (raise e))} clause ensures that unexpected errors are not silently swallowed.
+
+\begin{warning}[Always re-raise unknown errors]
+Do not write \texttt{(guard (e (\#t \#f)) ...)} to blindly catch everything. This hides bugs. Only catch the specific errors you know how to handle, and re-raise the rest.
+\end{warning}
+
+\section{Raising Exceptions with \texttt{raise}}
+\index{raise}
+
+\texttt{raise} signals an exception. Any value can be raised---it does not have to be an error object:
+
+\begin{lstlisting}[style=repl]
+> (guard (e (#t e))
+    (raise "a string error"))
+"a string error"
+> (guard (e (#t e))
+    (raise 42))
+42
+> (guard (e (#t e))
+    (raise '(custom error data)))
+(custom error data)
+\end{lstlisting}
+
+However, the convention is to use \texttt{error} (which creates a proper error object) for most situations. Direct \texttt{raise} with arbitrary values is useful for custom condition types.
+
+\subsection{\texttt{raise} vs.\ \texttt{error}}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Form} & \textbf{Use when} \\
+\hline
+\texttt{(error msg irritants ...)} & Signaling an error with a message---the common case \\
+\texttt{(raise value)} & Signaling a non-error condition, or raising a custom condition object \\
+\end{tabular}
+\end{center}
+
+\section{\texttt{with-exception-handler}: Low-Level Handler}
+\index{with-exception-handler}
+
+\texttt{with-exception-handler} installs an exception handler for the duration of a thunk:
+
+\begin{lstlisting}[style=repl]
+> (call/cc
+    (lambda (exit)
+      (with-exception-handler
+        (lambda (e) (exit (list 'caught e)))
+        (lambda () (raise "boom")))))
+(caught "boom")
+\end{lstlisting}
+
+This is lower-level than \texttt{guard}. The handler receives the exception and must decide what to do: it can invoke an escape continuation, re-raise, or (for continuable exceptions) return a value.
+
+In most code, \texttt{guard} is preferred because it is clearer and handles re-raising automatically. Use \texttt{with-exception-handler} only when you need the full power (e.g., logging all exceptions without catching them).
+
+\section{Continuable Exceptions}
+\index{raise-continuable}
+
+\texttt{raise-continuable} raises an exception that the handler can ``fix'' by returning a value:
+
+\begin{lstlisting}[style=repl]
+> (with-exception-handler
+    (lambda (e) (* e 10))    ; handler returns a replacement
+    (lambda () (+ 1 (raise-continuable 5))))
+51
+\end{lstlisting}
+
+The handler receives 5, returns 50, and execution continues as if \texttt{raise-continuable} had returned 50. This is an advanced feature---use it for situations where a handler can supply a default or corrected value.
+
+\section{Common Patterns}
+
+\subsection{Default Values on Error}
+
+\begin{lstlisting}
+(define (read-config-or-default filename)
+  (guard (e (#t '()))  ; return empty list on any error
+    (call-with-port (open-input-file filename)
+      (lambda (port) (read port)))))
+\end{lstlisting}
+
+\subsection{Cleanup with \texttt{dynamic-wind}}
+\index{dynamic-wind}
+
+\texttt{dynamic-wind} ensures cleanup code runs even if an exception occurs:
+
+\begin{lstlisting}
+(define (with-temp-file proc)
+  (let ((filename (make-temp-name)))
+    (dynamic-wind
+      (lambda () #f)                    ; before
+      (lambda () (proc filename))       ; body
+      (lambda () (delete-file filename))))) ; after (cleanup)
+\end{lstlisting}
+
+The ``after'' thunk runs whether the body returns normally or an exception is raised. This is similar to Python's \texttt{try}/\texttt{finally}.
+
+\subsection{Wrapping External Calls}
+
+\begin{lstlisting}
+(define (safe-json-parse str)
+  (guard (e
+          ((error-object? e)
+           (values #f (error-object-message e)))
+          (else
+           (values #f "unknown parse error")))
+    (values (json-read (open-input-string str)) #f)))
+\end{lstlisting}
+
+This returns two values: the parsed result (or \texttt{\#f} on error) and an error message (or \texttt{\#f} on success).
+
+\subsection{Asserting Preconditions}
+
+\begin{lstlisting}
+(define (vector-median v)
+  (when (zero? (vector-length v))
+    (error "cannot compute median of empty vector" v))
+  (let ((sorted (vector-sort < v)))
+    (vector-ref sorted (quotient (vector-length sorted) 2))))
+\end{lstlisting}
+
+Fail early with a clear message when preconditions are not met.
+
+\section{Error Handling Strategy}
+
+\begin{itemize}
+    \item \textbf{Fail fast.} Use \texttt{error} to signal problems as soon as they are detected. Do not pass invalid data deeper into the program hoping something will work.
+    \item \textbf{Catch at boundaries.} Handle errors at the boundary between subsystems---at the top of a request handler, at the entry point of a CLI tool, at the edge of a library call. Do not pepper every function with \texttt{guard}.
+    \item \textbf{Be specific.} Catch only the errors you can handle. Let unexpected errors propagate---they usually indicate bugs that should not be silently swallowed.
+    \item \textbf{Provide context.} Use irritants in \texttt{error} to include the values that caused the problem. ``index out of range'' is less useful than ``index out of range: 10, list length: 5.''
+\end{itemize}
+
+\sectionbreak
+
+You now know how to signal errors with \texttt{error}, catch them with \texttt{guard}, raise custom conditions with \texttt{raise}, and write robust code that fails gracefully. In the next chapter, we explore continuations---Scheme's most powerful and unusual control flow mechanism.

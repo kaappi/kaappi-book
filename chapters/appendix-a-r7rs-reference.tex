@@ -1,3 +1,226 @@
 \chapter{R7RS Quick Reference}
+\index{R7RS!quick reference}
 
-This appendix provides a concise reference to the R7RS-small standard: all syntax forms, standard libraries, and key procedures grouped by category. Use it as a lookup when you need to recall the exact signature or behavior of a built-in.
+This appendix provides a concise reference to the R7RS-small standard. Use it as a lookup when you need to recall a syntax form, procedure signature, or which library something belongs to.
+
+\section{Syntax Forms}
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
+\texttt{define} & \texttt{(define var expr)} or \texttt{(define (name params) body ...)} \\
+\texttt{lambda} & \texttt{(lambda (params) body ...)} \\
+\texttt{if} & \texttt{(if test consequent alternate)} \\
+\texttt{cond} & \texttt{(cond (test expr ...) ... (else expr ...))} \\
+\texttt{case} & \texttt{(case key ((datum ...) expr ...) ... (else expr ...))} \\
+\texttt{and} & \texttt{(and test ...)} \\
+\texttt{or} & \texttt{(or test ...)} \\
+\texttt{when} & \texttt{(when test body ...)} \\
+\texttt{unless} & \texttt{(unless test body ...)} \\
+\texttt{let} & \texttt{(let ((var expr) ...) body ...)} \\
+\texttt{let*} & \texttt{(let* ((var expr) ...) body ...)} \\
+\texttt{letrec} & \texttt{(letrec ((var expr) ...) body ...)} \\
+\texttt{letrec*} & \texttt{(letrec* ((var expr) ...) body ...)} \\
+\texttt{let-values} & \texttt{(let-values (((v ...) expr) ...) body ...)} \\
+\texttt{do} & \texttt{(do ((var init step) ...) (test result) body ...)} \\
+\texttt{case-lambda} & \texttt{(case-lambda (formals body ...) ...)} \\
+\texttt{begin} & \texttt{(begin expr ...)} \\
+\texttt{quote} & \texttt{'datum} or \texttt{(quote datum)} \\
+\texttt{quasiquote} & \texttt{`template} with \texttt{,expr} and \texttt{,@expr} \\
+\texttt{set!} & \texttt{(set! var expr)} \\
+\texttt{define-syntax} & \texttt{(define-syntax name (syntax-rules ...))} \\
+\texttt{syntax-rules} & \texttt{(syntax-rules (literals) (pattern template) ...)} \\
+\texttt{let-syntax} & \texttt{(let-syntax ((name transformer) ...) body ...)} \\
+\texttt{letrec-syntax} & \texttt{(letrec-syntax ((name transformer) ...) body ...)} \\
+\texttt{define-library} & \texttt{(define-library (name ...) declarations ...)} \\
+\texttt{import} & \texttt{(import import-set ...)} \\
+\texttt{guard} & \texttt{(guard (var (test expr ...) ...) body ...)} \\
+\texttt{define-record-type} & \texttt{(define-record-type name ctor pred field ...)} \\
+\texttt{delay} & \texttt{(delay expr)} \\
+\texttt{delay-force} & \texttt{(delay-force expr)} \\
+\texttt{parameterize} & \texttt{(parameterize ((param val) ...) body ...)} \\
+\texttt{cond-expand} & \texttt{(cond-expand (feature-req body ...) ...)} \\
+\end{tabular}
+\end{center}
+
+\section{Numeric Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{+ - * /} & Arithmetic (variadic) \\
+\texttt{= < > <= >=} & Comparison (variadic, chained) \\
+\texttt{zero? positive? negative?} & Sign predicates \\
+\texttt{odd? even?} & Parity predicates \\
+\texttt{abs} & Absolute value \\
+\texttt{max min} & Maximum/minimum (variadic) \\
+\texttt{quotient remainder modulo} & Integer division \\
+\texttt{gcd lcm} & Greatest common divisor, least common multiple \\
+\texttt{floor ceiling truncate round} & Rounding \\
+\texttt{expt sqrt} & Exponentiation, square root \\
+\texttt{exact inexact} & Convert between exact and inexact \\
+\texttt{exact? inexact?} & Test exactness \\
+\texttt{number? integer? rational?} & Type predicates \\
+\texttt{number->string string->number} & Conversion \\
+\end{tabular}
+\end{center}
+
+\section{Pair and List Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{cons car cdr} & Pair construction and access \\
+\texttt{set-car! set-cdr!} & Pair mutation \\
+\texttt{list} & Create a list from arguments \\
+\texttt{length} & List length \\
+\texttt{append} & Concatenate lists \\
+\texttt{reverse} & Reverse a list \\
+\texttt{list-ref list-tail} & Positional access \\
+\texttt{map for-each} & Apply procedure to list elements \\
+\texttt{member memv memq} & Search by \texttt{equal?}/\texttt{eqv?}/\texttt{eq?} \\
+\texttt{assoc assv assq} & Association list lookup \\
+\texttt{list-copy} & Shallow copy \\
+\texttt{pair? null? list?} & Predicates \\
+\end{tabular}
+\end{center}
+
+\section{String Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{string-length} & Number of characters \\
+\texttt{string-ref} & Character at index \\
+\texttt{substring} & Extract a portion \\
+\texttt{string-append} & Concatenate strings \\
+\texttt{string->list list->string} & Convert to/from character lists \\
+\texttt{string-copy} & Copy a string \\
+\texttt{string-upcase string-downcase} & Case conversion \\
+\texttt{string=? string<? string>?} & Comparison \\
+\texttt{number->string string->number} & Numeric conversion \\
+\texttt{symbol->string string->symbol} & Symbol conversion \\
+\texttt{string? string-contains} & Predicates and search \\
+\end{tabular}
+\end{center}
+
+\section{Character Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{char-alphabetic? char-numeric?} & Classification \\
+\texttt{char-whitespace?} & Whitespace test \\
+\texttt{char-upper-case? char-lower-case?} & Case test \\
+\texttt{char-upcase char-downcase} & Case conversion \\
+\texttt{char->integer integer->char} & Numeric conversion \\
+\texttt{char=? char<? char>?} & Comparison \\
+\end{tabular}
+\end{center}
+
+\section{Vector Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{vector make-vector} & Creation \\
+\texttt{vector-ref vector-set!} & Access and mutation \\
+\texttt{vector-length} & Size \\
+\texttt{vector->list list->vector} & Conversion \\
+\texttt{vector-copy vector-fill!} & Copy and fill \\
+\texttt{vector-map vector-for-each} & Higher-order operations \\
+\texttt{vector?} & Type predicate \\
+\end{tabular}
+\end{center}
+
+\section{I/O Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{display write newline} & Output \\
+\texttt{read read-line read-char} & Input \\
+\texttt{peek-char char-ready?} & Lookahead \\
+\texttt{write-char write-string} & Character/string output \\
+\texttt{open-input-file open-output-file} & File ports \\
+\texttt{close-input-port close-output-port} & Close ports \\
+\texttt{call-with-port} & Safe port handling \\
+\texttt{with-input-from-file} & Redirect input \\
+\texttt{with-output-to-file} & Redirect output \\
+\texttt{open-input-string open-output-string} & String ports \\
+\texttt{get-output-string} & Extract string port contents \\
+\texttt{eof-object?} & End-of-file test \\
+\texttt{current-input-port current-output-port} & Default ports \\
+\texttt{current-error-port} & Error output \\
+\end{tabular}
+\end{center}
+
+\section{Control Flow Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{apply} & Call procedure with list of arguments \\
+\texttt{values call-with-values} & Multiple return values \\
+\texttt{call/cc call/ec} & Capture continuations \\
+\texttt{dynamic-wind} & Entry/exit guarantees \\
+\texttt{raise raise-continuable} & Signal exceptions \\
+\texttt{error} & Create and raise an error object \\
+\texttt{with-exception-handler} & Install exception handler \\
+\texttt{error-object? error-object-message} & Inspect errors \\
+\texttt{error-object-irritants} & Error context values \\
+\end{tabular}
+\end{center}
+
+\section{Boolean and Equivalence}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{not} & Boolean negation \\
+\texttt{boolean?} & Type predicate \\
+\texttt{eq?} & Pointer identity \\
+\texttt{eqv?} & Value equivalence (numbers, chars) \\
+\texttt{equal?} & Deep structural equality \\
+\end{tabular}
+\end{center}
+
+\section{Type Predicates}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{number? string? char? symbol?} & Atomic types \\
+\texttt{boolean? pair? null? vector?} & Compound types \\
+\texttt{bytevector? port? procedure?} & Special types \\
+\texttt{list? eof-object? promise?} & Derived predicates \\
+\end{tabular}
+\end{center}
+
+\section{Other Procedures}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{make-parameter parameterize} & Dynamic binding \\
+\texttt{force make-promise promise?} & Lazy evaluation \\
+\texttt{eval environment} & Evaluation \\
+\texttt{load} & Load a file \\
+\texttt{exit} & Terminate the program \\
+\texttt{command-line} & Program arguments \\
+\texttt{get-environment-variable} & Read env var \\
+\texttt{current-second current-jiffy} & Time \\
+\texttt{jiffies-per-second} & Time resolution \\
+\end{tabular}
+\end{center}

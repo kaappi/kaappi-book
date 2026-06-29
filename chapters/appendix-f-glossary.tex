@@ -1,0 +1,138 @@
+\chapter{Glossary}
+\index{glossary}
+
+\begin{description}[leftmargin=2em, style=nextline]
+
+\item[alist]\index{alist}
+An \emph{association list}: a list of pairs used as a key-value map. Keys are in the \texttt{car} of each pair, values in the \texttt{cdr}. Lookup is O(n) via \texttt{assoc} or \texttt{assq}.
+
+\item[atom]\index{atom}
+A value that is not a pair: numbers, strings, symbols, characters, booleans, vectors, and bytevectors are all atoms.
+
+\item[bignum]\index{bignum}
+An arbitrary-precision integer. Kaappi automatically promotes fixnums to bignums on overflow.
+
+\item[bytevector]\index{bytevector}
+A fixed-length sequence of bytes (unsigned 8-bit integers). Used for binary data and I/O.
+
+\item[call/cc]\index{call/cc}
+Short for \texttt{call-with-current-continuation}. Captures the current continuation as a first-class procedure that can be invoked later.
+
+\item[car]\index{car}
+The first element of a pair. From ``Contents of the Address Register'' on the IBM 704.
+
+\item[cdr]\index{cdr}
+The second element of a pair. From ``Contents of the Decrement Register.'' For a proper list, the cdr is the rest of the list.
+
+\item[closure]\index{closure}
+A function bundled with the environment in which it was defined. Closures capture free variables from their enclosing scope.
+
+\item[cons cell]\index{cons cell}
+A pair: a heap-allocated object with a \texttt{car} and a \texttt{cdr}. The fundamental building block of lists.
+
+\item[continuation]\index{continuation}
+The ``rest of the computation'' from a given point in the program. Scheme allows capturing continuations as first-class values.
+
+\item[datum]\index{datum}
+Any Scheme value that can be read by the reader: a number, string, symbol, list, vector, etc. A datum is the external representation of a value.
+
+\item[dotted pair]\index{dotted pair}
+A pair whose cdr is not a list. Printed as \texttt{(a . b)}.
+
+\item[dynamic-wind]\index{dynamic-wind}
+A mechanism that guarantees setup and cleanup thunks are called when control enters or leaves a dynamic extent, even via continuations.
+
+\item[eof object]\index{eof object}
+A special value returned by input procedures when end-of-file is reached. Tested with \texttt{eof-object?}.
+
+\item[exact]\index{exact}
+A number whose value is represented precisely (integers, rationals). Contrasted with inexact (floating-point).
+
+\item[fiber]\index{fiber}
+A lightweight green thread in Kaappi, cooperatively scheduled within a single OS thread. Created with \texttt{spawn}.
+
+\item[fixnum]\index{fixnum}
+A small integer stored inline (no heap allocation) in Kaappi's NaN-boxed value representation. 63-bit range.
+
+\item[flonum]\index{flonum}
+An IEEE 754 double-precision floating-point number. Inexact by definition.
+
+\item[form]\index{form}
+A Scheme expression, particularly one with special syntax (e.g., \texttt{if}, \texttt{define}, \texttt{let}).
+
+\item[hygienic macro]\index{hygienic macro}
+A macro system where generated identifiers cannot accidentally capture variables from the macro's call site. Scheme's \texttt{syntax-rules} is hygienic.
+
+\item[identifier]\index{identifier}
+A name in Scheme source code. Can contain letters, digits, and extended characters like \texttt{-}, \texttt{?}, and \texttt{!}.
+
+\item[improper list]\index{improper list}
+A chain of pairs not terminated by the empty list. The last cdr is a non-list value.
+
+\item[inexact]\index{inexact}
+A number whose value may be approximate (floating-point). Created by decimal literals or operations that introduce rounding.
+
+\item[irritants]\index{irritants}
+Additional values attached to an error object, providing context about what went wrong.
+
+\item[lexical scope]\index{lexical scope}
+A scoping rule where a name refers to the binding in the nearest enclosing scope where it was defined. Also called static scope.
+
+\item[NaN-boxing]\index{NaN-boxing}
+Kaappi's value representation technique: all Scheme values are stored in 64-bit words using the unused bit patterns of IEEE 754 NaN values.
+
+\item[pair]\index{pair}
+See \emph{cons cell}.
+
+\item[port]\index{port}
+An abstract I/O stream. Input ports provide data to read; output ports accept data to write. Backed by files, strings, or bytevectors.
+
+\item[predicate]\index{predicate}
+A procedure that returns \texttt{\#t} or \texttt{\#f}. By convention, predicates end with \texttt{?} (e.g., \texttt{null?}, \texttt{string?}).
+
+\item[procedure]\index{procedure}
+A first-class callable value. Created by \texttt{lambda}, \texttt{define}, or built-in.
+
+\item[promise]\index{promise}
+A deferred computation created by \texttt{delay}. Its value is computed at most once, when \texttt{force} is called.
+
+\item[proper list]\index{proper list}
+A chain of pairs terminated by the empty list \texttt{'()}. The standard list type in Scheme.
+
+\item[quasiquote]\index{quasiquote}
+Template syntax using backtick (\texttt{`}) that allows selective unquoting with \texttt{,} and splicing with \texttt{,@}.
+
+\item[R7RS]\index{R7RS}
+The Revised$^7$ Report on the Algorithmic Language Scheme (2013). The current Scheme standard. ``R7RS-small'' is the core language; ``R7RS-large'' is the extended library effort.
+
+\item[record]\index{record}
+A user-defined structured data type with named fields. Created with \texttt{define-record-type}.
+
+\item[S-expression]\index{S-expression}
+The syntactic representation of Scheme code and data: atoms and nested lists in parentheses.
+
+\item[SRFI]\index{SRFI}
+Scheme Request for Implementation. A community-standard library specification. Kaappi supports 72 SRFIs.
+
+\item[symbol]\index{symbol}
+An interned identifier value. Two symbols with the same name are pointer-equal (\texttt{eq?}). Used as keys, tags, and in code representation.
+
+\item[syntax-rules]\index{syntax-rules}
+The pattern-based macro definition form in R7RS. Matches input against patterns and produces output from templates.
+
+\item[tail call]\index{tail call}
+A procedure call in tail position---the last expression evaluated before returning. Scheme guarantees tail calls use constant stack space.
+
+\item[thottam]\index{thottam}
+Kaappi's package manager for installing and managing third-party libraries.
+
+\item[thunk]\index{thunk}
+A zero-argument procedure, used to delay evaluation. \texttt{(lambda () expr)}.
+
+\item[TCO]\index{TCO}
+Tail Call Optimization. The guarantee that tail calls do not consume stack space.
+
+\item[vector]\index{vector}
+A fixed-size, mutable, indexed collection with O(1) access by position.
+
+\end{description}

@@ -1,3 +1,267 @@
 \chapter{Records and Data Abstraction}
+\index{records}\index{define-record-type}
 
-When lists are not structured enough, records provide named fields with type safety. This chapter covers \texttt{define-record-type}, constructors, predicates, accessors, and how to build clean abstractions over your data.
+As programs grow, you need structured data with named fields---not just anonymous lists where you have to remember that ``the third element is the email address.'' Scheme's \texttt{define-record-type} creates custom data types with constructors, predicates, and accessors. This chapter covers record definition, usage patterns, and how to build clean abstractions.
+
+\section{Why Records?}
+
+Consider representing a point as a list:
+
+\begin{lstlisting}[style=repl]
+> (define p (list 3 4))
+> (car p)   ; x? y? who knows?
+3
+\end{lstlisting}
+
+This works but has problems: there is no way to distinguish a point from any other two-element list, no way to tell which element is \texttt{x} and which is \texttt{y} without reading the code that created it, and no error if you accidentally pass a string where a point is expected.
+
+Records solve all three problems.
+
+\section{Defining a Record Type}
+
+\begin{lstlisting}[style=repl]
+> (define-record-type <point>
+    (make-point x y)
+    point?
+    (x point-x)
+    (y point-y))
+> (define p (make-point 3 4))
+> (point? p)
+#t
+> (point-x p)
+3
+> (point-y p)
+4
+> (point? '(3 4))
+#f
+\end{lstlisting}
+
+The \texttt{define-record-type} form takes:
+
+\begin{enumerate}
+    \item \textbf{Type name} --- \texttt{<point>} (the angle brackets are a convention, not syntax).
+    \item \textbf{Constructor} --- \texttt{(make-point x y)} specifies the constructor name and which fields it initializes.
+    \item \textbf{Predicate} --- \texttt{point?} tests whether a value is an instance of this record type.
+    \item \textbf{Field specifications} --- each is \texttt{(field-name accessor)} or \texttt{(field-name accessor mutator)}.
+\end{enumerate}
+
+\section{Accessors and Mutators}
+
+Each field gets an accessor. You can optionally add a mutator for mutable fields:
+
+\begin{lstlisting}[style=repl]
+> (define-record-type <counter>
+    (make-counter value)
+    counter?
+    (value counter-value set-counter-value!))
+> (define c (make-counter 0))
+> (counter-value c)
+0
+> (set-counter-value! c 10)
+> (counter-value c)
+10
+\end{lstlisting}
+
+Fields without a mutator are immutable---once set by the constructor, they cannot be changed:
+
+\begin{lstlisting}[style=repl]
+> (point-x p)
+3
+> ;; No set-point-x! exists --- the field is immutable
+\end{lstlisting}
+
+\begin{note}[Prefer immutable records]
+Make fields immutable by default (no mutator). Immutable data is easier to reason about, safe to share between threads, and less prone to bugs. Add mutators only when you genuinely need in-place updates.
+\end{note}
+
+\section{Records vs.\ Lists}
+
+\begin{center}
+\begin{tabular}{lp{4.5cm}p{4.5cm}}
+\textbf{Aspect} & \textbf{Lists} & \textbf{Records} \\
+\hline
+Type checking & Not possible (\texttt{pair?} matches all lists) & Unique predicate per type \\
+Field access & By position (\texttt{car}, \texttt{cadr}) & By name (\texttt{point-x}) \\
+Self-documenting & No & Yes \\
+Extensibility & Easy (just cons more) & Fixed at definition \\
+Pattern matching & Via \texttt{car}/\texttt{cdr} & Via predicate + accessors \\
+\end{tabular}
+\end{center}
+
+Use lists for homogeneous collections (a list of numbers). Use records for heterogeneous structured data (a person with a name, age, and email).
+
+\section{A Larger Example: A Task Manager}
+
+\begin{lstlisting}
+(define-record-type <task>
+  (make-task title priority done?)
+  task?
+  (title task-title)
+  (priority task-priority)
+  (done? task-done? set-task-done!))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (define tasks
+    (list (make-task "Write chapter" 'high #f)
+          (make-task "Review PR" 'medium #f)
+          (make-task "Buy milk" 'low #t)))
+> (filter (lambda (t) (not (task-done? t))) tasks)
+;; Returns the two incomplete tasks
+> (task-title (car tasks))
+"Write chapter"
+> (set-task-done! (car tasks) #t)
+> (task-done? (car tasks))
+#t
+\end{lstlisting}
+
+\section{Constructors with Fewer Fields}
+
+The constructor does not have to initialize all fields. You can list only the fields that should be set at creation time:
+
+\begin{lstlisting}
+(define-record-type <entry>
+  (make-entry key value)
+  entry?
+  (key entry-key)
+  (value entry-value)
+  (timestamp entry-timestamp set-entry-timestamp!))
+\end{lstlisting}
+
+Here, \texttt{make-entry} only takes \texttt{key} and \texttt{value}. The \texttt{timestamp} field is uninitialized until explicitly set. Accessing an uninitialized field returns an unspecified value---so be careful with this pattern.
+
+A safer approach is to always initialize every field:
+
+\begin{lstlisting}
+(define (create-entry key value)
+  (let ((e (make-entry key value)))
+    (set-entry-timestamp! e (current-second))
+    e))
+\end{lstlisting}
+
+\section{Building Abstractions with Records}
+
+Records shine when combined with procedures that form a clean interface. Here is a simple stack:
+
+\begin{lstlisting}
+(define-record-type <stack>
+  (make-stack-internal items)
+  stack?
+  (items stack-items set-stack-items!))
+
+(define (make-stack) (make-stack-internal '()))
+
+(define (stack-push! s item)
+  (set-stack-items! s (cons item (stack-items s))))
+
+(define (stack-pop! s)
+  (let ((items (stack-items s)))
+    (when (null? items)
+      (error "stack underflow"))
+    (set-stack-items! s (cdr items))
+    (car items)))
+
+(define (stack-empty? s)
+  (null? (stack-items s)))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (define s (make-stack))
+> (stack-push! s 10)
+> (stack-push! s 20)
+> (stack-push! s 30)
+> (stack-pop! s)
+30
+> (stack-pop! s)
+20
+> (stack-empty? s)
+#f
+\end{lstlisting}
+
+Users of this stack never access \texttt{stack-items} directly---they use the provided interface. The internal representation can change without breaking client code.
+
+\section{Immutable Records and Functional Updates}
+
+For immutable records, the ``update'' pattern creates a new record with one field changed:
+
+\begin{lstlisting}
+(define-record-type <person>
+  (make-person name age email)
+  person?
+  (name person-name)
+  (age person-age)
+  (email person-email))
+
+(define (person-with-age p new-age)
+  (make-person (person-name p)
+               new-age
+               (person-email p)))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (define alice (make-person "Alice" 30 "alice@example.com"))
+> (define older-alice (person-with-age alice 31))
+> (person-age alice)
+30
+> (person-age older-alice)
+31
+\end{lstlisting}
+
+The original record is unchanged. This functional update style is safe for concurrent code and easy to reason about.
+
+\begin{note}[Coming from Python]
+This pattern is like Python's \texttt{dataclasses.replace(obj, age=31)} or using \texttt{NamedTuple.\_replace()}. Scheme does not have built-in syntax for it, so you write the helper function yourself.
+\end{note}
+
+\section{Printing Records}
+
+By default, records print as an opaque representation. You can define a custom display procedure:
+
+\begin{lstlisting}
+(define (display-point p)
+  (display "(")
+  (display (point-x p))
+  (display ", ")
+  (display (point-y p))
+  (display ")"))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (display-point (make-point 3 4))
+(3, 4)
+\end{lstlisting}
+
+\section{Records and Pattern Matching}
+
+Scheme does not have built-in pattern matching on records (unlike Haskell or Rust). The idiomatic approach is to test with the predicate and destructure with accessors:
+
+\begin{lstlisting}
+(define (describe shape)
+  (cond
+    ((circle? shape)
+     (string-append "circle with radius "
+                    (number->string (circle-radius shape))))
+    ((rectangle? shape)
+     (string-append "rectangle "
+                    (number->string (rectangle-width shape))
+                    "x"
+                    (number->string (rectangle-height shape))))
+    (else "unknown shape")))
+\end{lstlisting}
+
+This works well for small type hierarchies. For larger ones, consider using a dispatch table or SRFI-9's record features.
+
+\section{When to Use Records}
+
+\begin{itemize}
+    \item \textbf{Structured data with named fields} --- configuration objects, database rows, parsed messages.
+    \item \textbf{Type-safe dispatch} --- when you need to distinguish between different kinds of values (\texttt{circle?} vs.\ \texttt{rectangle?}).
+    \item \textbf{Encapsulation} --- hide internal representation behind a constructor + accessor interface.
+    \item \textbf{Self-documenting code} --- \texttt{(person-name p)} is clearer than \texttt{(car p)}.
+\end{itemize}
+
+Do not use records when a simple list or pair suffices (e.g., a coordinate pair used only locally) or when the structure needs to vary at runtime (use association lists instead).
+
+\sectionbreak
+
+You now know how to define custom data types with records, control mutability, build clean abstractions, and choose between records and lists. This completes Part~III. In Part~IV, we explore features beyond the R7RS standard---the SRFI ecosystem, the foreign function interface, and concurrency.

@@ -1,3 +1,285 @@
 \chapter{Macros}
+\index{macros}\index{syntax-rules}
 
-Macros let you extend the language itself. Scheme's hygienic macro system, based on \texttt{syntax-rules}, allows you to define new syntactic forms that are indistinguishable from built-in ones---without the variable-capture pitfalls of traditional Lisp macros. This chapter teaches you to write pattern-based macros from simple to advanced.
+Macros are what make Lisp languages uniquely powerful. They let you extend the language itself---defining new syntactic forms that look and behave exactly like built-in ones. If you find yourself writing the same boilerplate pattern repeatedly, a macro can eliminate it.
+
+Scheme's macro system is \emph{hygienic}\index{hygienic macros}: variables introduced by a macro never accidentally capture variables from the surrounding code. This eliminates an entire class of bugs that plague macro systems in C and Common Lisp.
+
+This chapter covers \texttt{define-syntax} and \texttt{syntax-rules}---the pattern-based macro system specified by R7RS.
+
+\section{What Is a Macro?}
+
+A macro is a compile-time transformation rule. When Kaappi encounters a macro call, it does not evaluate the arguments---instead, it rewrites the entire expression according to the macro's rules, and then evaluates the result.
+
+Consider \texttt{when}:
+
+\begin{lstlisting}[style=repl]
+> (when (> 5 3)
+    (display "yes")
+    (newline))
+yes
+\end{lstlisting}
+
+\texttt{when} is not a built-in---it is a macro that expands to an \texttt{if}:
+
+\begin{lstlisting}
+(if (> 5 3)
+    (begin
+      (display "yes")
+      (newline)))
+\end{lstlisting}
+
+The macro takes the \emph{source code} \texttt{(when (> 5 3) (display "yes") (newline))} and transforms it into different source code before evaluation.
+
+\begin{note}[Coming from Python]
+Python has no equivalent feature. Decorators modify functions but cannot create new syntax. Macros operate at the level of code itself---they generate code from code.
+\end{note}
+
+\section{Your First Macro}
+
+Define a macro with \texttt{define-syntax}\index{define-syntax} and \texttt{syntax-rules}:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax my-when
+    (syntax-rules ()
+      ((my-when test body ...)
+       (if test (begin body ...)))))
+> (my-when (> 5 3)
+    (display "hello")
+    (newline))
+hello
+\end{lstlisting}
+
+Let's break this down:
+
+\begin{itemize}
+    \item \texttt{define-syntax} names the macro (\texttt{my-when}).
+    \item \texttt{syntax-rules ()} introduces the transformation rules. The \texttt{()} is a list of literal keywords (empty here).
+    \item \texttt{(my-when test body ...)} is the \emph{pattern}---it matches the macro call.
+    \item \texttt{(if test (begin body ...))} is the \emph{template}---what the macro expands to.
+    \item \texttt{...} (ellipsis) means ``zero or more of the preceding element.''
+\end{itemize}
+
+\section{Pattern Matching}
+
+\texttt{syntax-rules} patterns work by structural matching:
+
+\begin{itemize}
+    \item A bare identifier (like \texttt{test} or \texttt{body}) matches any single expression and binds it as a \emph{pattern variable}.
+    \item An identifier followed by \texttt{...} matches zero or more expressions.
+    \item Literal parentheses match literal parentheses in the input.
+    \item Identifiers listed in the literals list are matched by name, not as pattern variables.
+\end{itemize}
+
+\subsection{Multiple Clauses}
+
+A macro can have multiple patterns. The first matching pattern wins:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax my-and
+    (syntax-rules ()
+      ((my-and) #t)
+      ((my-and x) x)
+      ((my-and x rest ...)
+       (if x (my-and rest ...) #f))))
+> (my-and)
+#t
+> (my-and 1 2 3)
+3
+> (my-and 1 #f 3)
+#f
+\end{lstlisting}
+
+This is a recursive macro: the third clause expands to another call to \texttt{my-and} with fewer arguments, until it reaches a base case.
+
+\subsection{Literal Keywords}
+
+The first argument to \texttt{syntax-rules} is a list of identifiers to match literally rather than as pattern variables:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax my-if
+    (syntax-rules (then else)
+      ((my-if test then consequent else alternate)
+       (cond (test consequent)
+             (#t alternate)))))
+> (my-if (> 3 2) then "yes" else "no")
+"yes"
+\end{lstlisting}
+
+Here, \texttt{then} and \texttt{else} are literal keywords---they must appear in the call exactly as written, not as variable names.
+
+\section{The Ellipsis (\texttt{...})}
+\index{ellipsis}
+
+The ellipsis is the key to writing macros that accept variable numbers of subforms.
+
+In a pattern, \texttt{expr ...} matches zero or more expressions. In a template, \texttt{expr ...} replicates the template for each matched element:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax my-list
+    (syntax-rules ()
+      ((my-list elem ...)
+       (cons* elem ... '()))))
+\end{lstlisting}
+
+A more useful example---a macro that defines multiple variables at once:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax define-values
+    (syntax-rules ()
+      ((define-values (name ...) expr)
+       (begin
+         (define temp expr)
+         (define name (list-ref temp
+           (- (length '(name ...))
+              (length (memq 'name '(name ...))))))
+         ...))))
+\end{lstlisting}
+
+\subsection{Nested Ellipsis}
+
+Ellipsis can be nested for macros that process lists of lists:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax my-let
+    (syntax-rules ()
+      ((my-let ((var init) ...) body ...)
+       ((lambda (var ...) body ...) init ...))))
+> (my-let ((x 5) (y 10))
+    (+ x y))
+15
+\end{lstlisting}
+
+This \texttt{my-let} macro transforms into a lambda application---exactly how \texttt{let} is defined in the language.
+
+\section{Hygiene}
+\index{hygienic macros}
+
+Scheme macros are hygienic: temporary variables introduced by a macro cannot clash with variables in the calling code. Consider:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax swap!
+    (syntax-rules ()
+      ((swap! a b)
+       (let ((tmp a))
+         (set! a b)
+         (set! b tmp)))))
+> (let ((tmp 100) (x 1) (y 2))
+    (swap! x y)
+    (list tmp x y))
+(100 2 1)
+\end{lstlisting}
+
+The \texttt{tmp} inside the macro and the \texttt{tmp} in the calling code are different bindings---the macro's \texttt{tmp} is automatically renamed to avoid capture. In an unhygienic system (like C's \texttt{\#define}), this would be a bug.
+
+\begin{note}[Why hygiene matters]
+In C, the macro \texttt{\#define SWAP(a,b) \{int tmp=a; a=b; b=tmp;\}} breaks if you write \texttt{SWAP(tmp, x)} because the user's \texttt{tmp} and the macro's \texttt{tmp} collide. Scheme's system makes this impossible.
+\end{note}
+
+\section{Practical Macros}
+
+\subsection{A \texttt{unless} Macro}
+
+\begin{lstlisting}
+(define-syntax unless
+  (syntax-rules ()
+    ((unless test body ...)
+     (if (not test) (begin body ...)))))
+\end{lstlisting}
+
+\subsection{A \texttt{while} Loop}
+
+Scheme does not have a built-in \texttt{while}, but you can add one:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax while
+    (syntax-rules ()
+      ((while test body ...)
+       (let loop ()
+         (when test
+           body ...
+           (loop))))))
+> (let ((i 0))
+    (while (< i 5)
+      (display i) (display " ")
+      (set! i (+ i 1))))
+0 1 2 3 4
+\end{lstlisting}
+
+\subsection{A \texttt{dotimes} Loop}
+
+\begin{lstlisting}[style=repl]
+> (define-syntax dotimes
+    (syntax-rules ()
+      ((dotimes (var count) body ...)
+       (let loop ((var 0))
+         (when (< var count)
+           body ...
+           (loop (+ var 1)))))))
+> (dotimes (i 5)
+    (display (* i i))
+    (display " "))
+0 1 4 9 16
+\end{lstlisting}
+
+\subsection{An Assertion Macro}
+
+\begin{lstlisting}[style=repl]
+> (define-syntax assert
+    (syntax-rules ()
+      ((assert expr)
+       (unless expr
+         (error "Assertion failed" 'expr)))))
+> (assert (= (+ 1 1) 2))
+> (assert (= (+ 1 1) 3))
+; Error: Assertion failed (= (+ 1 1) 3)
+\end{lstlisting}
+
+Notice that \texttt{'expr} in the template produces the \emph{source code} of the assertion---useful for error messages.
+
+\subsection{A Timing Macro}
+
+\begin{lstlisting}
+(define-syntax time-it
+  (syntax-rules ()
+    ((time-it expr)
+     (let ((start (current-second)))
+       (let ((result expr))
+         (let ((elapsed (- (current-second) start)))
+           (display "Elapsed: ")
+           (display elapsed)
+           (display "s")
+           (newline)
+           result))))))
+\end{lstlisting}
+
+\section{Local Macros with \texttt{let-syntax}}
+\index{let-syntax}\index{letrec-syntax}
+
+You can define macros with limited scope using \texttt{let-syntax}:
+
+\begin{lstlisting}[style=repl]
+> (let-syntax ((double (syntax-rules ()
+                         ((double x) (+ x x)))))
+    (double 21))
+42
+\end{lstlisting}
+
+The macro \texttt{double} exists only within the body. For mutually recursive macros, use \texttt{letrec-syntax}.
+
+\section{When to Use Macros}
+
+Macros are powerful but should not be overused. Use a macro when:
+
+\begin{itemize}
+    \item You need to control \emph{when} or \emph{whether} arguments are evaluated (like \texttt{when}, \texttt{unless}, \texttt{and}).
+    \item You need to introduce new bindings (like \texttt{let}, \texttt{dotimes}).
+    \item You want to generate code at compile time to avoid runtime overhead.
+    \item You are building a domain-specific language (DSL) with custom syntax.
+\end{itemize}
+
+Do \emph{not} use a macro when a function would suffice. Functions are simpler, composable (you can pass them to \texttt{map}), and easier to debug. If your ``macro'' does not need to delay evaluation or introduce bindings, make it a function.
+
+\sectionbreak
+
+You now know how to extend Scheme's syntax with hygienic, pattern-based macros. This is a capability that few mainstream languages offer. In the next chapter, we cover the library system---how to organize code into modules with clean interfaces.

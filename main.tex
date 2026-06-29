@@ -57,22 +57,64 @@
 % Preface
 \chapter{Preface}
 
-This book teaches you how to program in Scheme using Kaappi, a modern implementation that conforms to the R7RS-small standard. It is written for programmers who already know at least one language---such as Python, JavaScript, or Ruby---and want to explore the elegance of Scheme without drowning in academic jargon.
+\section*{Why Scheme?}
 
-Kaappi provides a complete, batteries-included environment: a fast bytecode compiler, an interactive REPL, over 600 built-in procedures, 72 SRFIs, a package manager, and even a foreign function interface for calling C libraries. This book will guide you from your first expression all the way to writing macros, using continuations, and building real programs.
+If you already know Python, JavaScript, or Ruby, you can write programs that work. So why learn another language---especially one with all those parentheses?
+
+Scheme\index{Scheme} will change the way you think about programming. Its syntax is so minimal that you can hold the entire language in your head. There are no special forms for loops, no operator precedence rules, no class hierarchies. Instead, you get a small set of powerful ideas---first-class functions, lexical closures, recursion, and macros---that combine to express anything you need.
+
+This matters because Scheme's ideas are everywhere. Python borrowed \texttt{lambda}, list comprehensions, and garbage collection from Lisp. JavaScript's closures and first-class functions come directly from Scheme. Ruby's blocks are a limited form of Scheme's closures. Learning Scheme means understanding the foundations that these languages are built on.
+
+\section*{Why Kaappi?}
+
+Kaappi\index{Kaappi} is a modern, complete implementation of the R7RS-small\index{R7RS} standard. Unlike many Scheme implementations that focus on either academic purity or raw performance, Kaappi aims to be a practical, batteries-included language for building real programs.
+
+It ships as a statically-linked binary with no shared library dependencies---just the binary and a library archive of portable Scheme files. The interactive REPL\index{REPL} provides syntax highlighting, tab completion, and history---a comfortable environment for exploration. Beyond the standard, Kaappi includes 72 SRFIs\index{SRFI} (8 compiled into the binary, 64 as portable Scheme libraries), a C foreign function interface, green threads with channels, a package manager, and an ecosystem of libraries for web servers, databases, JSON, and more.
+
+If you have ever tried a Scheme and felt it was ``just a toy,'' Kaappi is different. You can build real applications with it.
+
+\section*{Who This Book Is For}
+
+This book is for programmers who know at least one mainstream language---Python, JavaScript, Ruby, Java, Go, or similar---and want to learn Scheme. No prior experience with Lisp or functional programming is required.
+
+This is not an academic textbook. You will not find formal semantics or denotational models here. Instead, you will find clear explanations, running code, and practical exercises. Theory is introduced only when it helps you write better programs.
+
+\section*{What You Will Need}
+
+\begin{itemize}
+    \item \textbf{Kaappi installed on your system.} Chapter~2 covers installation in detail. The short version: \texttt{curl -fsSL https://kaappi-lang.org/install.sh | bash}
+    \item \textbf{A terminal.} You will spend most of your time in the Kaappi REPL, typing expressions and seeing results immediately.
+    \item \textbf{A text editor.} Any editor works. If you use VS Code, Neovim, or Emacs, Kaappi provides an LSP server for go-to-definition, find-references, and document symbols.
+\end{itemize}
 
 \section*{How to Use This Book}
 
 The book is organized into four parts:
 
 \begin{description}[leftmargin=1em, labelindent=0em]
-    \item[Part I: Getting Started] covers installation, the REPL, and basic expressions.
-    \item[Part II: The Language] teaches the core of Scheme: data types, functions, control flow, and I/O.
-    \item[Part III: Advanced Topics] introduces macros, modules, error handling, and continuations.
-    \item[Part IV: Beyond R7RS] explores Kaappi-specific features like the FFI, fibers, and the SRFI ecosystem.
+    \item[Part I: Getting Started] covers installation, the REPL, and basic expressions. Start here.
+    \item[Part II: The Language] teaches the core of Scheme: data types, lists, functions, control flow, bindings, higher-order functions, and I/O. This is the heart of the book.
+    \item[Part III: Advanced Topics] introduces macros, the module system, error handling, continuations, and records. Read this once you are comfortable writing functions and working with lists.
+    \item[Part IV: Beyond R7RS] explores Kaappi-specific features: the SRFI ecosystem, the C foreign function interface, and concurrency with fibers and threads.
 \end{description}
 
-Each chapter builds on the previous ones, but experienced programmers can skip ahead to topics of interest. Code examples are meant to be typed into the Kaappi REPL as you read.
+Each chapter builds on the previous ones. If you are new to Scheme, work through them in order. If you already know some Scheme and want to learn what Kaappi offers beyond the standard, skip to Part~IV.
+
+The most effective way to use this book is with the Kaappi REPL open beside it. Type every example. Modify them. Break them. The REPL gives instant feedback, and that tight loop between reading and trying is how Scheme clicks.
+
+Exercises appear at the end of most chapters. They are not optional filler---they are where you solidify your understanding. Attempt them before moving on.
+
+\section*{Conventions}
+
+Throughout this book:
+
+\begin{description}[leftmargin=1em, labelindent=0em]
+    \item[Code listings] show Scheme source code with syntax highlighting. Keywords are bold.
+    \item[REPL sessions] show interactive input (lines starting with \texttt{>}) and output. Type the input lines into your Kaappi REPL to follow along.
+    \item[Notes] provide supplementary information, tips, or comparisons to Python.
+    \item[Warnings] highlight common mistakes and pitfalls.
+    \item[Exercises] are numbered per chapter and provide practice problems of increasing difficulty.
+\end{description}
 
 \cleardoublepage
 
@@ -120,6 +162,10 @@ Each chapter builds on the previous ones, but experienced programmers can skip a
 
 \input{chapters/appendix-a-r7rs-reference}
 \input{chapters/appendix-b-cli-reference}
+\input{chapters/appendix-c-srfi-catalog}
+\input{chapters/appendix-d-error-messages}
+\input{chapters/appendix-e-ecosystem}
+\input{chapters/appendix-f-glossary}
 
 % Back matter
 \backmatter

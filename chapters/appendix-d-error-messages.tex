@@ -1,0 +1,141 @@
+\chapter{Common Error Messages}
+\index{error messages}\index{troubleshooting}
+
+This appendix lists the most frequent error messages you will encounter while learning Kaappi, along with their causes and fixes.
+
+\section{Syntax and Reader Errors}
+
+\subsection{\texttt{unexpected closing parenthesis}}
+
+\textbf{Cause:} More closing \texttt{)} than opening \texttt{(}.
+
+\textbf{Fix:} Check your parenthesis balance. Use an editor with bracket matching or the REPL's multi-line mode which tracks open parens.
+
+\subsection{\texttt{unterminated string}}
+
+\textbf{Cause:} A string literal missing its closing double quote.
+
+\textbf{Fix:} Add the closing \texttt{"} or check for unescaped quotes inside the string. Use \texttt{\textbackslash"} to include a literal quote.
+
+\subsection{\texttt{invalid character in identifier}}
+
+\textbf{Cause:} An identifier contains characters not allowed by R7RS (e.g., curly braces, square brackets used improperly).
+
+\textbf{Fix:} Stick to letters, digits, and the extended characters: \texttt{! \$ \% \& * + - . / : < = > ? @ \^ \_ \textasciitilde}
+
+\section{Unbound Variable Errors}
+
+\subsection{\texttt{unbound variable: foo}}
+
+\textbf{Cause:} You referenced a name that has not been defined.
+
+\textbf{Common reasons:}
+\begin{itemize}
+    \item Typo in the variable name (e.g., \texttt{lenght} instead of \texttt{length}).
+    \item Forgot to import the library that defines it.
+    \item Used a name before its \texttt{define} (order matters in scripts).
+    \item Used a quoted symbol where you meant a variable: \texttt{'x} vs \texttt{x}.
+\end{itemize}
+
+\textbf{Fix:} Check spelling, add the appropriate \texttt{(import ...)} at the top of your file, or reorder definitions.
+
+\subsection{\texttt{unbound variable: filter} (or \texttt{fold}, \texttt{find}, etc.)}
+
+\textbf{Cause:} These are in SRFI-1, not \texttt{(scheme base)}.
+
+\textbf{Fix:} Add \texttt{(import (srfi 1))} to your script. The REPL makes them available automatically, which is why they work interactively but fail in files.
+
+\section{Type Errors}
+
+\subsection{\texttt{expected pair, got ()}}
+
+\textbf{Cause:} Called \texttt{car} or \texttt{cdr} on the empty list.
+
+\textbf{Fix:} Check for empty list with \texttt{(null? lst)} before calling \texttt{car}/\texttt{cdr}.
+
+\subsection{\texttt{expected number, got "hello"}}
+
+\textbf{Cause:} Passed a string to an arithmetic procedure.
+
+\textbf{Fix:} Use \texttt{string->number} to convert, or check your logic---you may be passing the wrong variable.
+
+\subsection{\texttt{expected procedure, got 42}}
+
+\textbf{Cause:} Tried to call a non-procedure as a function: \texttt{(42)} or \texttt{(x y)} where \texttt{x} is a number.
+
+\textbf{Fix:} The first element of a list expression must be a procedure. Check for extra parentheses or a variable that holds a value instead of a function.
+
+\subsection{\texttt{wrong number of arguments: expected 2, got 1}}
+
+\textbf{Cause:} Called a function with the wrong number of arguments.
+
+\textbf{Fix:} Check the function's signature. Use \texttt{,describe proc-name} in the REPL to see its arity.
+
+\section{Import and Library Errors}
+
+\subsection{\texttt{library not found: (mylib utils)}}
+
+\textbf{Cause:} Kaappi cannot find the file \texttt{mylib/utils.sld} on any search path.
+
+\textbf{Fix:} Ensure the \texttt{.sld} file exists at the correct path relative to your working directory, \texttt{./lib/}, or a \texttt{--lib-path} directory.
+
+\subsection{\texttt{unresolved import: display}}
+
+\textbf{Cause:} \texttt{display} is in \texttt{(scheme write)}, not \texttt{(scheme base)}.
+
+\textbf{Fix:} Add \texttt{(import (scheme write))} to your script.
+
+\subsection{\texttt{circular import detected}}
+
+\textbf{Cause:} Library A imports B, and B imports A.
+
+\textbf{Fix:} Extract shared definitions into a third library C that both A and B import.
+
+\section{Runtime Errors}
+
+\subsection{\texttt{division by zero}}
+
+\textbf{Cause:} Evaluated \texttt{(/ n 0)} or \texttt{(quotient n 0)}.
+
+\textbf{Fix:} Check the divisor before dividing: \texttt{(if (zero? b) ... (/ a b))}.
+
+\subsection{\texttt{index out of range}}
+
+\textbf{Cause:} \texttt{vector-ref}, \texttt{string-ref}, or \texttt{list-ref} called with an index beyond the length.
+
+\textbf{Fix:} Ensure \texttt{0 <= index < length}. Use \texttt{vector-length}, \texttt{string-length}, or \texttt{length} to check bounds.
+
+\subsection{\texttt{stack overflow}}
+
+\textbf{Cause:} Non-tail-recursive function with deep recursion (e.g., processing a very long list without TCO).
+
+\textbf{Fix:} Rewrite as a tail-recursive function using an accumulator or named \texttt{let}. See Chapter~6 for the tail-call pattern.
+
+\section{FFI Errors}
+
+\subsection{\texttt{FFI disabled in sandbox mode}}
+
+\textbf{Cause:} Running with \texttt{--sandbox} flag which disables the FFI.
+
+\textbf{Fix:} Remove \texttt{--sandbox} if you need FFI access.
+
+\subsection{\texttt{dlopen failed: library not found}}
+
+\textbf{Cause:} \texttt{ffi-open} cannot find the shared library file.
+
+\textbf{Fix:} Use the full path, or ensure the library is on the system's dynamic linker path (\texttt{DYLD\_LIBRARY\_PATH} on macOS, \texttt{LD\_LIBRARY\_PATH} on Linux).
+
+\section{REPL Tips for Debugging}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Command} & \textbf{Purpose} \\
+\hline
+\texttt{,type expr} & Show the type of a value \\
+\texttt{,describe name} & Show info about a binding (arity, source) \\
+\texttt{,expand expr} & Show macro expansion \\
+\texttt{,trace proc} & Trace calls to a procedure \\
+\texttt{,break proc} & Set a breakpoint \\
+\texttt{,bt} & Show backtrace after an error \\
+\end{tabular}
+\end{center}

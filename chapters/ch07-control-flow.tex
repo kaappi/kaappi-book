@@ -1,3 +1,316 @@
 \chapter{Control Flow}
+\index{control flow}
 
-Scheme's control flow is built on expressions, not statements. This chapter covers conditionals (\texttt{if}, \texttt{cond}, \texttt{case}), boolean combinators (\texttt{and}, \texttt{or}), and convenience forms (\texttt{when}, \texttt{unless}). You will also learn why only \texttt{\#f} is false in Scheme.
+In most languages, control flow is managed with statements: \texttt{if}/\texttt{else} blocks, \texttt{for} loops, \texttt{switch} statements. In Scheme, all control flow is handled by expressions that produce values. This chapter covers \texttt{if}, \texttt{cond}, \texttt{case}, boolean combinators, \texttt{when}/\texttt{unless}, sequencing with \texttt{begin}, and iteration with \texttt{do}.
+
+\section{\texttt{if}: The Fundamental Conditional}
+\index{if}
+
+The \texttt{if} expression is the most basic conditional. It has the form:
+
+\begin{lstlisting}
+(if test consequent alternate)
+\end{lstlisting}
+
+If \texttt{test} evaluates to any true value (anything that is not \texttt{\#f}), the \texttt{consequent} is evaluated and its value returned. Otherwise, \texttt{alternate} is evaluated and returned:
+
+\begin{lstlisting}[style=repl]
+> (if (> 3 2) "yes" "no")
+"yes"
+> (if (< 3 2) "yes" "no")
+"no"
+> (if (zero? 0) 'zero 'nonzero)
+zero
+\end{lstlisting}
+
+Because \texttt{if} is an expression, you can use it anywhere a value is expected:
+
+\begin{lstlisting}[style=repl]
+> (+ 1 (if #t 10 20))
+11
+> (string-append "The answer is "
+                 (if (even? 4) "even" "odd"))
+"The answer is even"
+\end{lstlisting}
+
+\subsection{One-Armed \texttt{if}}
+
+You can omit the alternate:
+
+\begin{lstlisting}[style=repl]
+> (if (> 5 3) (display "big\n"))
+big
+\end{lstlisting}
+
+When the test is false and there is no alternate, the result is unspecified. In practice, use \texttt{when} (see below) for one-armed conditionals---it communicates intent more clearly.
+
+\section{\texttt{cond}: Multiple Branches}
+\index{cond}
+
+\texttt{cond} is Scheme's equivalent of Python's \texttt{if}/\texttt{elif}/\texttt{else}. It tests multiple conditions in order:
+
+\begin{lstlisting}[style=repl]
+> (define (describe-temp celsius)
+    (cond
+      ((< celsius 0) "freezing")
+      ((< celsius 10) "cold")
+      ((< celsius 20) "mild")
+      ((< celsius 30) "warm")
+      (else "hot")))
+> (describe-temp -5)
+"freezing"
+> (describe-temp 15)
+"mild"
+> (describe-temp 35)
+"hot"
+\end{lstlisting}
+
+Each clause is \texttt{(test expr ...)}. The first clause whose test returns true has its expressions evaluated, and the last one's value is returned. The \texttt{else} clause matches if nothing else did.
+
+\subsection{The \texttt{=>} Syntax}
+
+A special clause form \texttt{(test => proc)} passes the test result to a procedure:
+
+\begin{lstlisting}[style=repl]
+> (cond
+    ((assv 2 '((1 "one") (2 "two") (3 "three")))
+     => cadr)
+    (else "not found"))
+"two"
+\end{lstlisting}
+
+Here, \texttt{assv} returns \texttt{(2 "two")} (a true value), and \texttt{=>} passes it to \texttt{cadr}, which extracts \texttt{"two"}. This avoids evaluating the lookup twice.
+
+\section{\texttt{case}: Matching Against Values}
+\index{case}
+
+\texttt{case} compares a value against sets of constants, similar to a \texttt{switch} statement in C or \texttt{match} on literals in Python:
+
+\begin{lstlisting}[style=repl]
+> (define (day-type day)
+    (case day
+      ((monday tuesday wednesday thursday friday)
+       "weekday")
+      ((saturday sunday)
+       "weekend")
+      (else "unknown")))
+> (day-type 'saturday)
+"weekend"
+> (day-type 'tuesday)
+"weekday"
+\end{lstlisting}
+
+Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}, so this works well with symbols, numbers, and characters---but not strings (use \texttt{cond} with \texttt{string=?} for strings).
+
+\begin{lstlisting}[style=repl]
+> (case (+ 2 3)
+    ((1 2 3) "small")
+    ((4 5 6) "medium")
+    (else "large"))
+"medium"
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{case} is similar to Python 3.10's \texttt{match/case} but limited to literal value matching (no pattern destructuring). For pattern matching on structure, Scheme uses recursive functions or \texttt{cond} with predicates.
+\end{note}
+
+\section{Boolean Combinators: \texttt{and} and \texttt{or}}
+\index{and}\index{or}
+
+\texttt{and} and \texttt{or} are short-circuiting expressions that return the determining value---not just \texttt{\#t} or \texttt{\#f}.
+
+\subsection{\texttt{and}}
+
+\texttt{and} evaluates its arguments left to right. If any is \texttt{\#f}, it returns \texttt{\#f} immediately. If all are true, it returns the last value:
+
+\begin{lstlisting}[style=repl]
+> (and 1 2 3)
+3
+> (and 1 #f 3)
+#f
+> (and (> 3 2) (< 5 10) "both true")
+"both true"
+> (and)
+#t
+\end{lstlisting}
+
+\subsection{\texttt{or}}
+
+\texttt{or} evaluates its arguments left to right. If any is true, it returns that value immediately. If all are \texttt{\#f}, it returns \texttt{\#f}:
+
+\begin{lstlisting}[style=repl]
+> (or #f #f 42)
+42
+> (or #f #f #f)
+#f
+> (or (memq 'b '(a b c)) 'not-found)
+(b c)
+> (or)
+#f
+\end{lstlisting}
+
+\subsection{Using \texttt{or} for Defaults}
+
+A common pattern is using \texttt{or} to provide fallback values:
+
+\begin{lstlisting}[style=repl]
+> (define (get-port config)
+    (or (assoc "port" config) 8080))
+> (get-port '())
+8080
+> (get-port '(("port" . 3000)))
+("port" . 3000)
+\end{lstlisting}
+
+\subsection{Using \texttt{and} for Guarded Access}
+
+\texttt{and} is useful for safe chaining when a value might be \texttt{\#f}:
+
+\begin{lstlisting}[style=repl]
+> (define data '(("name" . "Alice")))
+> (and (assoc "name" data)
+       (cdr (assoc "name" data)))
+"Alice"
+> (and (assoc "email" data)
+       (cdr (assoc "email" data)))
+#f
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+Scheme's \texttt{and}/\texttt{or} behave identically to Python's. \texttt{(or val default)} is like Python's \texttt{val or default}. \texttt{(and x (f x))} is like \texttt{x and f(x)}.
+\end{note}
+
+\section{\texttt{not}}
+\index{not}
+
+\texttt{not} negates a boolean value. It returns \texttt{\#t} only when given \texttt{\#f}:
+
+\begin{lstlisting}[style=repl]
+> (not #f)
+#t
+> (not #t)
+#f
+> (not 0)
+#f
+> (not '())
+#f
+\end{lstlisting}
+
+Remember: since only \texttt{\#f} is false, \texttt{(not 0)} is \texttt{\#f} (not \texttt{\#t}).
+
+\section{\texttt{when} and \texttt{unless}}
+\index{when}\index{unless}
+
+\texttt{when} is a one-armed conditional for side effects---it executes its body only if the test is true:
+
+\begin{lstlisting}[style=repl]
+> (define x 10)
+> (when (> x 5)
+    (display "x is large")
+    (newline))
+x is large
+\end{lstlisting}
+
+\texttt{unless} is the opposite---it executes when the test is false:
+
+\begin{lstlisting}[style=repl]
+> (unless (= x 0)
+    (display "x is nonzero")
+    (newline))
+x is nonzero
+\end{lstlisting}
+
+Both forms accept multiple expressions in their body (implicit \texttt{begin}). Use them instead of one-armed \texttt{if} when you want to perform actions without needing a result value.
+
+\section{\texttt{begin}: Sequencing}
+\index{begin}
+
+\texttt{begin} groups multiple expressions into one, evaluating them in order and returning the last value:
+
+\begin{lstlisting}[style=repl]
+> (begin
+    (display "first\n")
+    (display "second\n")
+    42)
+first
+second
+42
+\end{lstlisting}
+
+You rarely need explicit \texttt{begin} because most forms (\texttt{define}, \texttt{let}, \texttt{lambda}, \texttt{when}, \texttt{cond} clauses) already accept multiple body expressions. It is mainly useful inside \texttt{if} when you need multiple expressions in one branch:
+
+\begin{lstlisting}[style=repl]
+> (if (> 5 3)
+      (begin
+        (display "yes\n")
+        "positive")
+      "negative")
+yes
+"positive"
+\end{lstlisting}
+
+\section{\texttt{do}: Iterative Loops}
+\index{do}
+
+While named \texttt{let} is the most common loop form, Scheme also provides \texttt{do} for iteration with multiple loop variables:
+
+\begin{lstlisting}
+(do ((var init step) ...)
+    (test result ...)
+  body ...)
+\end{lstlisting}
+
+Each variable starts at \texttt{init} and is updated to \texttt{step} each iteration. The loop terminates when \texttt{test} becomes true, returning \texttt{result}:
+
+\begin{lstlisting}[style=repl]
+> (do ((i 0 (+ i 1))
+       (sum 0 (+ sum i)))
+      ((= i 10) sum))
+45
+\end{lstlisting}
+
+Here is \texttt{do} building a reversed list:
+
+\begin{lstlisting}[style=repl]
+> (do ((lst '(1 2 3 4 5) (cdr lst))
+       (result '() (cons (car lst) result)))
+      ((null? lst) result))
+(5 4 3 2 1)
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{do} is roughly equivalent to a Python \texttt{for} or \texttt{while} loop. However, most Scheme programmers prefer named \texttt{let} for its clarity. Use \texttt{do} when you have multiple loop variables that all change simultaneously.
+\end{note}
+
+\section{Putting It All Together}
+
+Here is a function that demonstrates several control flow forms working together:
+
+\begin{lstlisting}
+(define (fizzbuzz n)
+  (let loop ((i 1))
+    (when (<= i n)
+      (cond
+        ((and (zero? (modulo i 3))
+              (zero? (modulo i 5)))
+         (display "FizzBuzz"))
+        ((zero? (modulo i 3))
+         (display "Fizz"))
+        ((zero? (modulo i 5))
+         (display "Buzz"))
+        (else
+         (display i)))
+      (display " ")
+      (loop (+ i 1)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (fizzbuzz 15)
+1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz
+\end{lstlisting}
+
+This uses named \texttt{let} for the loop, \texttt{when} for the termination guard, \texttt{cond} for the multi-branch logic, and \texttt{and} to combine conditions.
+
+\sectionbreak
+
+You now have a complete toolkit for controlling program flow in Scheme. The key insight is that everything is an expression---conditionals produce values, boolean combinators return the determining value, and sequencing returns the last value. In the next chapter, we will look at local bindings in detail.

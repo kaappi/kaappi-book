@@ -1,3 +1,459 @@
 \chapter{Data Types}
+\index{data types}
 
-Scheme provides a rich set of data types: numbers (integers, rationals, floating-point, and complex), strings, booleans, characters, and symbols. This chapter explores each type, how to create values, and the procedures for working with them.
+Chapter~3 introduced the basic atoms in passing. This chapter examines Scheme's data types in depth: the full numeric tower, strings, characters, booleans, symbols, vectors, and bytevectors. You will learn how to create values of each type, the key procedures for working with them, and how to test what type a value is.
+
+\section{The Numeric Tower}
+\index{numbers}\index{numeric tower}
+
+Kaappi supports five kinds of numbers, organized in a hierarchy called the \emph{numeric tower}:
+
+\begin{enumerate}
+    \item \textbf{Integers} --- whole numbers, either fixnums (fast, 63-bit) or bignums (arbitrary precision)
+    \item \textbf{Rationals} --- exact fractions like \texttt{1/3} or \texttt{-7/4}
+    \item \textbf{Real numbers} --- flonums (IEEE 754 double-precision floating-point)
+    \item \textbf{Complex numbers} --- pairs of reals, like \texttt{3+4i}
+\end{enumerate}
+
+Every integer is also a rational (it is \texttt{n/1}). Every rational is also a real. Every real is also a complex (with zero imaginary part). The arithmetic procedures work uniformly across all levels.
+
+\subsection{Integers}
+\index{integers}\index{fixnum}\index{bignum}
+
+Small integers (up to 63 bits) are stored as \emph{fixnums}---unboxed values that require no heap allocation. When a fixnum overflows, Kaappi automatically promotes it to a \emph{bignum} with unlimited precision:
+
+\begin{lstlisting}[style=repl]
+> 42
+42
+> -100
+-100
+> (expt 2 100)
+1267650600228229401496703205376
+> (* 999999999999 999999999999)
+999999999998000000000001
+\end{lstlisting}
+
+There is no silent wraparound. If the result does not fit in a fixnum, it becomes a bignum transparently.
+
+\subsection{Exact Rationals}
+\index{rationals}
+
+When you divide two integers and the result is not an integer, Kaappi returns an exact rational:
+
+\begin{lstlisting}[style=repl]
+> (/ 1 3)
+1/3
+> (/ 22 7)
+22/7
+> (+ 1/3 1/6)
+1/2
+> (* 3 1/3)
+1
+\end{lstlisting}
+
+Rationals are always reduced to lowest terms. They stay exact through arbitrarily long chains of computation---no floating-point drift.
+
+\begin{note}[Coming from Python]
+Python's \texttt{/} always returns a float. To get exact fractions in Python, you need \texttt{from fractions import Fraction}. In Scheme, exact arithmetic is the default.
+\end{note}
+
+\subsection{Floating-Point Numbers}
+\index{floating-point}\index{flonum}
+
+Floating-point numbers (flonums) are written with a decimal point or in scientific notation:
+
+\begin{lstlisting}[style=repl]
+> 3.14
+3.14
+> 2.5e10
+25000000000.0
+> (/ 1.0 3.0)
+0.3333333333333333
+\end{lstlisting}
+
+\subsection{Exact vs.\ Inexact}
+\index{exact}\index{inexact}
+
+Scheme distinguishes between \emph{exact} and \emph{inexact} numbers. Integers and rationals are exact; flonums are inexact. Mixing them produces an inexact result:
+
+\begin{lstlisting}[style=repl]
+> (+ 1/3 0.1)
+0.43333333333333335
+> (exact? 1/3)
+#t
+> (inexact? 3.14)
+#t
+> (exact? 42)
+#t
+\end{lstlisting}
+
+You can convert between exact and inexact representations:
+
+\begin{lstlisting}[style=repl]
+> (inexact 1/3)
+0.3333333333333333
+> (exact 0.5)
+1/2
+\end{lstlisting}
+
+\subsection{Complex Numbers}
+\index{complex numbers}
+
+Complex numbers are written in rectangular form with \texttt{+} or \texttt{-} separating the real and imaginary parts:
+
+\begin{lstlisting}[style=repl]
+> 3+4i
+3+4i
+> (+ 1+2i 3+4i)
+4+6i
+> (magnitude 3+4i)
+5
+> (sqrt -1)
+0+1i
+\end{lstlisting}
+
+\subsection{Numeric Predicates and Comparisons}
+
+Scheme provides predicates to classify numbers and comparison procedures that work across the numeric tower:
+
+\begin{lstlisting}[style=repl]
+> (number? 42)
+#t
+> (integer? 3.0)
+#t
+> (rational? 1/3)
+#t
+> (zero? 0)
+#t
+> (positive? 5)
+#t
+> (negative? -3)
+#t
+> (= 1 1.0)
+#t
+> (< 1 2 3 4 5)
+#t
+\end{lstlisting}
+
+Note that \texttt{<}, \texttt{>}, \texttt{<=}, and \texttt{>=} accept multiple arguments and check that the entire sequence is ordered.
+
+\subsection{Common Arithmetic Procedures}
+
+\begin{lstlisting}[style=repl]
+> (+ 1 2 3)
+6
+> (- 10 3)
+7
+> (* 2 3 4)
+24
+> (/ 10 3)
+10/3
+> (quotient 10 3)
+3
+> (remainder 10 3)
+1
+> (modulo 10 3)
+1
+> (abs -7)
+7
+> (max 3 1 4 1 5)
+5
+> (min 3 1 4 1 5)
+1
+> (expt 2 10)
+1024
+> (sqrt 16)
+4
+\end{lstlisting}
+
+\section{Strings}
+\index{strings}
+
+Strings are sequences of Unicode characters, enclosed in double quotes. Kaappi stores strings as UTF-8 internally but indexes them by codepoint position:
+
+\begin{lstlisting}[style=repl]
+> "hello, world"
+"hello, world"
+> (string-length "hello")
+5
+> (string-ref "hello" 0)
+#\h
+> (string-ref "hello" 4)
+#\o
+\end{lstlisting}
+
+\subsection{String Operations}
+
+\begin{lstlisting}[style=repl]
+> (string-append "foo" "bar" "baz")
+"foobarbaz"
+> (substring "hello, world" 7 12)
+"world"
+> (string-upcase "hello")
+"HELLO"
+> (string-downcase "HELLO")
+"hello"
+> (string-contains "hello world" "world")
+6
+\end{lstlisting}
+
+\subsection{String Conversion}
+
+\begin{lstlisting}[style=repl]
+> (number->string 42)
+"42"
+> (number->string 3.14)
+"3.14"
+> (string->number "123")
+123
+> (string->number "not-a-number")
+#f
+> (symbol->string 'hello)
+"hello"
+> (string->symbol "world")
+world
+\end{lstlisting}
+
+\texttt{string->number} returns \texttt{\#f} (not an error) if the string cannot be parsed as a number. This makes it safe to use on user input.
+
+\subsection{Strings Are Immutable}
+
+In R7RS Scheme, strings are immutable by default. You cannot modify a character in place. Instead, you create new strings from existing ones:
+
+\begin{lstlisting}[style=repl]
+> (define greeting "hello")
+> (string-append (string-upcase (substring greeting 0 1))
+                 (substring greeting 1 5))
+"Hello"
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+Python strings are also immutable---operations like \texttt{upper()} return new strings. Scheme works the same way.
+\end{note}
+
+\section{Characters}
+\index{characters}
+
+Characters represent individual Unicode codepoints. They are written with a \texttt{\#\textbackslash} prefix:
+
+\begin{lstlisting}[style=repl]
+> #\a
+#\a
+> #\Z
+#\Z
+> #\space
+#\space
+> #\newline
+#\newline
+> #\tab
+#\tab
+\end{lstlisting}
+
+Characters are distinct from strings. A character is a single value; a string is a sequence of characters.
+
+\subsection{Character Predicates}
+
+\begin{lstlisting}[style=repl]
+> (char-alphabetic? #\a)
+#t
+> (char-numeric? #\5)
+#t
+> (char-whitespace? #\space)
+#t
+> (char-upper-case? #\A)
+#t
+> (char-lower-case? #\a)
+#t
+\end{lstlisting}
+
+\subsection{Character Conversion}
+
+\begin{lstlisting}[style=repl]
+> (char-upcase #\a)
+#\A
+> (char-downcase #\Z)
+#\z
+> (char->integer #\A)
+65
+> (integer->char 955)
+#\x3BB
+\end{lstlisting}
+
+The last example produces the Greek lambda character---Kaappi has full Unicode support.
+
+\section{Booleans}
+\index{booleans}
+
+Booleans were introduced in Chapter~3, but here is a summary of the key procedures:
+
+\begin{lstlisting}[style=repl]
+> (boolean? #t)
+#t
+> (boolean? 0)
+#f
+> (not #f)
+#t
+> (not 0)
+#f
+> (not '())
+#f
+\end{lstlisting}
+
+Remember: \texttt{not} returns \texttt{\#t} only when given \texttt{\#f}. Every other value---including \texttt{0}, the empty string, and the empty list---is considered true.
+
+\subsection{Boolean Combinators}
+
+\texttt{and} and \texttt{or} are short-circuiting and return the determining value (not necessarily \texttt{\#t} or \texttt{\#f}):
+
+\begin{lstlisting}[style=repl]
+> (and 1 2 3)
+3
+> (and 1 #f 3)
+#f
+> (or #f #f 42)
+42
+> (or #f #f #f)
+#f
+\end{lstlisting}
+
+\texttt{and} returns the last value if all are true, or the first false value. \texttt{or} returns the first true value, or the last value if all are false.
+
+\begin{note}[Coming from Python]
+This is exactly how Python's \texttt{and}/\texttt{or} work: \texttt{1 and 2 and 3} returns \texttt{3}, and \texttt{False or 0 or 42} returns \texttt{42}. Same semantics, different syntax.
+\end{note}
+
+\section{Symbols}
+\index{symbols}
+
+Symbols are interned identifiers. Two symbols with the same name are always the same object in memory, which makes comparison instantaneous:
+
+\begin{lstlisting}[style=repl]
+> (eq? 'hello 'hello)
+#t
+> (eq? 'hello 'world)
+#f
+> (symbol? 'foo)
+#t
+> (symbol->string 'foo)
+"foo"
+> (string->symbol "bar")
+bar
+\end{lstlisting}
+
+Symbols are commonly used as keys in association lists (alists), as tags in data structures, and as identifiers in programs that manipulate code.
+
+\begin{lstlisting}[style=repl]
+> (define colors '((red . "#ff0000")
+                   (green . "#00ff00")
+                   (blue . "#0000ff")))
+> (assq 'green colors)
+(green . "#00ff00")
+> (cdr (assq 'green colors))
+"#00ff00"
+\end{lstlisting}
+
+\section{Vectors}
+\index{vectors}
+
+Vectors are fixed-size, indexed collections---like Python lists or arrays. They provide O(1) access by index:
+
+\begin{lstlisting}[style=repl]
+> (define v (vector 10 20 30 40 50))
+> (vector-ref v 0)
+10
+> (vector-ref v 4)
+50
+> (vector-length v)
+5
+\end{lstlisting}
+
+Vector literals are written with \texttt{\#(}:
+
+\begin{lstlisting}[style=repl]
+> #(1 2 3)
+#(1 2 3)
+\end{lstlisting}
+
+Unlike Scheme lists (which are linked), vectors support efficient random access. Use vectors when you need to look up elements by position.
+
+\subsection{Modifying Vectors}
+
+Vectors are mutable---you can change individual elements:
+
+\begin{lstlisting}[style=repl]
+> (define v (vector 1 2 3))
+> (vector-set! v 1 99)
+> v
+#(1 99 3)
+\end{lstlisting}
+
+\subsection{Vector Operations}
+
+\begin{lstlisting}[style=repl]
+> (vector-map + #(1 2 3) #(10 20 30))
+#(11 22 33)
+> (vector->list #(a b c))
+(a b c)
+> (list->vector '(x y z))
+#(x y z)
+> (make-vector 5 0)
+#(0 0 0 0 0)
+\end{lstlisting}
+
+\section{Bytevectors}
+\index{bytevectors}
+
+Bytevectors are sequences of bytes (unsigned 8-bit integers). They are used for binary data, file I/O, and interfacing with C libraries:
+
+\begin{lstlisting}[style=repl]
+> (define bv #u8(72 101 108 108 111))
+> (bytevector-length bv)
+5
+> (bytevector-u8-ref bv 0)
+72
+> (utf8->string bv)
+"Hello"
+\end{lstlisting}
+
+You can create bytevectors from strings and vice versa:
+
+\begin{lstlisting}[style=repl]
+> (string->utf8 "hello")
+#u8(104 101 108 108 111)
+> (utf8->string #u8(104 101 108 108 111))
+"hello"
+\end{lstlisting}
+
+\section{Type Predicates}
+\index{predicates}
+
+Scheme provides predicates to test the type of any value. Each returns \texttt{\#t} or \texttt{\#f}:
+
+\begin{lstlisting}[style=repl]
+> (number? 42)
+#t
+> (string? "hello")
+#t
+> (char? #\a)
+#t
+> (boolean? #t)
+#t
+> (symbol? 'foo)
+#t
+> (vector? #(1 2 3))
+#t
+> (bytevector? #u8(1 2 3))
+#t
+> (pair? '(1 2 3))
+#t
+> (null? '())
+#t
+> (procedure? +)
+#t
+\end{lstlisting}
+
+These predicates are essential for writing functions that handle different types of input, and they come up frequently when processing heterogeneous data.
+
+\sectionbreak
+
+You now have a thorough understanding of Scheme's data types. The next chapter covers the most important compound data structure: lists and pairs.

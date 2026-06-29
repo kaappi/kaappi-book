@@ -1,7 +1,142 @@
 \chapter{Introduction}
+\index{Scheme}
 
-Scheme is one of the oldest and most influential programming languages in the Lisp family. Designed for clarity and minimalism, it has shaped how we think about computation, recursion, and language design itself.
+\section{What Is Scheme?}
 
-Kaappi is a modern, complete implementation of R7RS-small Scheme, written in Zig. It provides everything you need to write real programs: a fast bytecode compiler, an interactive REPL with syntax highlighting and tab completion, over 600 built-in procedures, 72 SRFIs, a C foreign function interface, green threads, and a package manager.
+Scheme is a programming language in the Lisp family, created at MIT in 1975 by Gerald Jay Sussman and Guy L.\ Steele Jr.\index{Sussman, Gerald Jay}\index{Steele, Guy L.} They wanted a language small enough to understand completely, yet powerful enough to express any computation elegantly.
 
-This chapter explains what Scheme is, why it matters, and what makes Kaappi a good choice for learning and using it.
+They succeeded. Scheme's core fits on a single page: variables, functions, conditionals, and a handful of special forms. From these primitives, everything else is built---loops, objects, modules, pattern matching, even new syntax. The language has no reserved words that you cannot redefine, no special cases for ``built-in'' constructs.
+
+Scheme's key ideas:
+
+\begin{itemize}
+    \item \textbf{Minimalism.} The language has very few rules. Once you learn them, there are no surprises.
+    \item \textbf{First-class procedures.}\index{first-class procedures} Functions are values, just like numbers and strings. You can pass them to other functions, return them, and store them in data structures.
+    \item \textbf{Lexical scope.}\index{lexical scope} A function remembers the environment where it was defined. This creates closures---one of the most powerful ideas in programming.
+    \item \textbf{Proper tail recursion.}\index{tail call optimization} Recursive functions that call themselves in tail position use constant stack space. Loops are just a pattern of recursion.
+    \item \textbf{Continuations.}\index{continuations} You can capture ``the rest of the computation'' as a value and invoke it later. This enables non-local exits, coroutines, and backtracking without special language support.
+    \item \textbf{Hygienic macros.}\index{macros} You can define new syntactic forms that look and behave like built-in ones, without variable-capture bugs.
+\end{itemize}
+
+The R7RS-small standard\index{R7RS} (2013) is the most recent revision of the language. It defines the syntax, semantics, and a set of standard libraries that any conforming implementation must provide.
+
+\section{Scheme vs.\ Python: A First Glimpse}
+
+If you know Python, Scheme will look alien at first. But the differences are more superficial than they appear. Let's compare a few simple tasks.
+
+\subsection{Hello, World}
+
+In Python:
+
+\begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
+print("Hello, world!")
+\end{lstlisting}
+
+In Scheme:
+
+\begin{lstlisting}
+(display "Hello, world!")
+(newline)
+\end{lstlisting}
+
+The parentheses mean ``apply this procedure to these arguments.'' \texttt{display} is Scheme's equivalent of Python's \texttt{print}. The procedure name comes first---always.
+
+\subsection{A Recursive Function}
+
+Factorial in Python:
+
+\begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
+def factorial(n):
+    if n == 0:
+        return 1
+    return n * factorial(n - 1)
+\end{lstlisting}
+
+Factorial in Scheme:
+
+\begin{lstlisting}
+(define (factorial n)
+  (if (= n 0)
+      1
+      (* n (factorial (- n 1)))))
+\end{lstlisting}
+
+The structure is the same---a base case and a recursive case. Scheme just uses prefix notation and parentheses instead of indentation and keywords.
+
+\subsection{Filtering a List}
+
+In Python:
+
+\begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
+evens = [x for x in range(10) if x % 2 == 0]
+\end{lstlisting}
+
+In Scheme:
+
+\begin{lstlisting}
+(define evens
+  (filter even? (iota 10)))
+\end{lstlisting}
+
+\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates.
+
+\begin{note}[Coming from Python]
+The biggest adjustment is prefix notation: the operator always comes first. Instead of \texttt{2 + 3}, you write \texttt{(+ 2 3)}. Instead of \texttt{f(x, y)}, you write \texttt{(f x y)}. There is no operator precedence to memorize---parentheses make the grouping explicit.
+\end{note}
+
+\section{What Is Kaappi?}
+\index{Kaappi}
+
+Kaappi is a complete implementation of the R7RS-small Scheme standard, written from scratch in Zig. The name is Finnish for ``cupboard''---a place where everything is stored neatly and ready to use.
+
+\subsection{Standards Conformance}
+
+Kaappi implements the full R7RS-small specification: all 14 standard libraries, all 33 syntax forms, and over 550 built-in procedures. It passes 1,391 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
+
+\subsection{How It Works}
+
+When you type a Scheme expression, Kaappi processes it through a pipeline:
+
+\begin{enumerate}
+    \item \textbf{Reader} --- parses source text into a data structure (an S-expression).
+    \item \textbf{Expander} --- processes macros, transforming syntactic sugar into core forms.
+    \item \textbf{Compiler} --- translates the expanded code into register-based bytecode through an intermediate representation with optimization passes.
+    \item \textbf{Virtual machine} --- executes the bytecode on a register-based VM with a generational garbage collector.
+\end{enumerate}
+
+This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 39,000 lines of Zig).
+
+\subsection{Batteries Included}
+
+Beyond the R7RS standard, Kaappi provides:
+
+\begin{itemize}
+    \item \textbf{72 SRFIs}\index{SRFI} --- community-standard libraries for lists, strings, hash tables, sorting, regular expressions, random numbers, and much more.
+    \item \textbf{C FFI}\index{FFI} --- call functions in C shared libraries directly from Scheme, including passing Scheme callbacks into C code.
+    \item \textbf{Green threads}\index{fibers} --- lightweight fibers with channels for concurrent programming without the complexity of OS threads.
+    \item \textbf{Package manager} --- \texttt{thottam}\index{thottam} installs and manages third-party libraries with a single command.
+    \item \textbf{Ecosystem libraries} --- HTTP clients and servers, PostgreSQL and SQLite drivers, JSON and TOML parsers, HTML templates, email, cryptography, logging, and CLI frameworks.
+    \item \textbf{Developer tools} --- an LSP server for editor integration, a stepping debugger, a profiler, and a disassembler.
+\end{itemize}
+
+\subsection{Single Binary, Multiple Platforms}
+
+Kaappi installs as a statically-linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V), and in the browser via WebAssembly.
+
+\section{Why Learn Scheme?}
+
+There are practical reasons to learn Scheme, even if you do not plan to use it as your primary language.
+
+\textbf{It teaches you to think differently.} Scheme forces you to solve problems with recursion and composition rather than mutation and iteration. Once this way of thinking clicks, you will write better code in any language---your Python will use more generators and less manual state management, your JavaScript will leverage closures instead of class hierarchies.
+
+\textbf{Macros give you superpowers.} In most languages, you are limited to the abstractions the language designers provided. In Scheme, you can extend the language itself. If you find yourself writing the same boilerplate pattern over and over, you can define a macro that eliminates it---and the macro looks just like a built-in form.
+
+\textbf{It makes you a better programmer.} Understanding lexical scope, closures, continuations, and tail recursion at a deep level gives you insight into how all languages work under the hood. Scheme strips away the incidental complexity (classes, decorators, type annotations, build systems) and lets you focus on the essential complexity of the problem you are solving.
+
+\textbf{Kaappi makes it practical.} With a package manager, database drivers, web frameworks, and a C FFI, you are not limited to academic exercises. You can build CLI tools, REST APIs, data pipelines, and automation scripts in Scheme.
+
+\section{What You Will Build}
+
+By the end of this book, you will be able to write recursive algorithms that operate in constant stack space, define hygienic macros that extend the language, organize code into reusable libraries, handle errors gracefully, call C functions from Scheme, and write concurrent programs using fibers and channels. More importantly, you will understand \emph{why} these features exist and when to reach for each one.
+
+Let's get started.

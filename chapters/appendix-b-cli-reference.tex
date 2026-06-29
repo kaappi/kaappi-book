@@ -1,3 +1,180 @@
 \chapter{Kaappi CLI Reference}
+\index{CLI reference}\index{command line}
 
-This appendix documents the \texttt{kaappi} command-line interface: all flags, subcommands (\texttt{compile}, \texttt{run}), environment variables, and REPL comma-commands. It also covers the \texttt{thottam} package manager commands.
+\section{Synopsis}
+
+\begin{Verbatim}[fontsize=\small]
+kaappi [OPTIONS] [FILE]
+kaappi compile FILE [-o OUTPUT]
+\end{Verbatim}
+
+With no arguments, launches the REPL. With a file argument, executes the Scheme source file.
+
+\section{Commands}
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+\textbf{Command} & \textbf{Description} \\
+\hline
+\texttt{kaappi FILE} & Run a Scheme source file \\
+\texttt{kaappi} & Launch the interactive REPL \\
+\texttt{kaappi compile FILE} & Compile Scheme source to a native binary via LLVM \\
+\end{tabular}
+\end{center}
+
+\section{Options}
+
+\begin{center}
+\begin{tabular}{lp{7.5cm}}
+\textbf{Flag} & \textbf{Description} \\
+\hline
+\texttt{-h}, \texttt{--help} & Show usage and available flags \\
+\texttt{--version} & Print version string \\
+\texttt{--lib-path DIR} & Add a library search path (repeatable, up to 16) \\
+\texttt{--compile FILE} & Compile to bytecode (\texttt{.sbc}) without running \\
+\texttt{-o FILE} & Output path for \texttt{--compile}, \texttt{--emit-llvm}, or \texttt{compile} \\
+\texttt{--emit-llvm} & Emit LLVM IR text (\texttt{.ll} file) \\
+\texttt{--profile} & Profile execution (per-function timing, call counts) \\
+\texttt{--profile-json FILE} & Write profiling data as JSON \\
+\texttt{--sandbox} & Sandbox mode: blocks FFI, file I/O, eval, load, env access \\
+\texttt{--timeout MS} & Execution timeout in milliseconds \\
+\texttt{--max-memory BYTES} & Maximum heap memory \\
+\texttt{--disassemble FILE} & Show compiled bytecode without running \\
+\texttt{--gc-stats} & Print GC statistics on exit \\
+\texttt{--coverage} & Report library procedure coverage \\
+\texttt{--coverage-xml FILE} & Write Cobertura XML coverage report \\
+\texttt{--completions SHELL} & Output shell completion script (bash, zsh, or fish) \\
+\texttt{--experimental-threads} & Enable OS thread support (SRFI-18) \\
+\end{tabular}
+\end{center}
+
+\section{Environment Variables}
+
+\begin{center}
+\begin{tabular}{lp{7.5cm}}
+\textbf{Variable} & \textbf{Description} \\
+\hline
+\texttt{KAAPPI\_LIB\_PATH} & Additional library search directories (colon-separated) \\
+\texttt{HOME} & Used to locate \texttt{\textasciitilde/.kaappi/lib/} and \texttt{\textasciitilde/.kaappi/history} \\
+\texttt{NO\_COLOR} & If set, disables REPL syntax highlighting \\
+\end{tabular}
+\end{center}
+
+\section{Library Search Order}
+
+When resolving \texttt{(import (lib name))}, Kaappi searches for \texttt{lib/name.sld} in:
+
+\begin{enumerate}
+    \item Current working directory (\texttt{./})
+    \item The \texttt{./lib/} subdirectory
+    \item Directories from \texttt{--lib-path} flags (in order)
+    \item Directories from \texttt{KAAPPI\_LIB\_PATH} (colon-separated)
+    \item \texttt{\textasciitilde/.kaappi/lib/} (user library directory)
+\end{enumerate}
+
+\section{REPL Comma-Commands}
+
+The REPL supports meta-commands prefixed with \texttt{,} (comma):
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Command} & \textbf{Description} \\
+\hline
+\texttt{,help} & Show all available commands \\
+\texttt{,quit} & Exit the REPL \\
+\texttt{,time expr} & Measure execution time \\
+\texttt{,type expr} & Show the type of the result \\
+\texttt{,describe name} & Show info about a binding (arity, source) \\
+\texttt{,expand expr} & Show macro expansion \\
+\texttt{,disassemble proc} & Show bytecode of a procedure \\
+\texttt{,trace proc} & Enable tracing for a procedure \\
+\texttt{,untrace proc} & Disable tracing \\
+\texttt{,break proc} & Set a breakpoint on a procedure \\
+\texttt{,break proc condition} & Set a conditional breakpoint \\
+\texttt{,unbreak proc} & Remove a breakpoint \\
+\texttt{,step} & Step into next expression (in debugger) \\
+\texttt{,next} & Step over (in debugger) \\
+\texttt{,out} & Step out of current procedure (in debugger) \\
+\texttt{,continue} & Resume execution (in debugger) \\
+\texttt{,bt} & Show backtrace \\
+\texttt{,frame N} & Select stack frame N \\
+\texttt{,locals} & Show local variables in current frame \\
+\texttt{,watch expr} & Watch an expression during stepping \\
+\texttt{,unwatch expr} & Remove a watch \\
+\texttt{,profile expr} & Profile an expression \\
+\texttt{,gc} & Force a garbage collection \\
+\texttt{,gc-stats} & Show GC statistics \\
+\texttt{,import lib} & Import a library \\
+\texttt{,load file} & Load and evaluate a file \\
+\end{tabular}
+\end{center}
+
+\section{Thottam Package Manager}
+
+\begin{Verbatim}[fontsize=\small]
+thottam COMMAND [ARGS]
+\end{Verbatim}
+
+\begin{center}
+\begin{tabular}{lp{7.5cm}}
+\textbf{Command} & \textbf{Description} \\
+\hline
+\texttt{thottam install PKG} & Install a package and its dependencies \\
+\texttt{thottam remove PKG} & Remove an installed package \\
+\texttt{thottam list} & List all installed packages \\
+\texttt{thottam update} & Update all packages to latest versions \\
+\texttt{thottam update PKG} & Update a specific package \\
+\texttt{thottam verify} & Verify integrity of installed packages \\
+\texttt{thottam search TERM} & Search packages by name or description \\
+\texttt{thottam info PKG} & Show package details (version, deps, description) \\
+\texttt{thottam --version} & Show thottam version \\
+\texttt{thottam --completions SHELL} & Output shell completions (bash, zsh, fish) \\
+\end{tabular}
+\end{center}
+
+Packages are installed to \texttt{\textasciitilde/.kaappi/lib/} with a lockfile at \texttt{\textasciitilde/.kaappi/lock.json}.
+
+\section{Native Compilation}
+
+Compile a Scheme program to a standalone native binary:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi compile program.scm -o myapp
+./myapp
+\end{Verbatim}
+
+Requirements:
+\begin{itemize}
+    \item LLVM must be available on the system (the compiler emits LLVM IR and invokes \texttt{clang})
+    \item \texttt{libkaappi\_rt.a} must be built (\texttt{zig build lib})
+\end{itemize}
+
+To inspect the generated LLVM IR without compiling:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi --emit-llvm program.scm -o program.ll
+\end{Verbatim}
+
+\section{Bytecode Caching}
+
+When Kaappi runs a file, it caches the compiled bytecode in a \texttt{.sbc} file alongside the source. On subsequent runs, if the source has not changed (by timestamp), the cached bytecode is loaded directly---skipping the reader, expander, and compiler passes.
+
+To force recompilation, delete the \texttt{.sbc} file or modify the source.
+
+\section{Sandbox Mode}
+
+\texttt{--sandbox} restricts what a program can do:
+
+\begin{itemize}
+    \item FFI is disabled (all \texttt{ffi-*} procedures raise errors)
+    \item File I/O is disabled (\texttt{open-input-file}, \texttt{open-output-file} raise errors)
+    \item \texttt{eval} and \texttt{load} are disabled
+    \item Environment variable access is blocked
+    \item OS threads are disabled
+\end{itemize}
+
+Useful for running untrusted code safely:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi --sandbox --timeout 5000 --max-memory 50000000 untrusted.scm
+\end{Verbatim}

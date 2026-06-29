@@ -1,3 +1,339 @@
 \chapter{First Steps}
+\index{expressions}
 
-With Kaappi installed, you are ready to write your first expressions. This chapter introduces prefix notation, basic arithmetic, strings, and how to interact with the REPL. If you have used Python's interactive interpreter, the Kaappi REPL will feel familiar---though the syntax is quite different.
+With Kaappi installed and the REPL ready, it is time to write your first Scheme code. This chapter covers the fundamental building blocks: expressions, basic arithmetic, variables, and defining simple functions. Open a REPL and type along---every example here is meant to be tried interactively.
+
+\section{Everything Is an Expression}
+
+In Python, you distinguish between \emph{statements} (which do things) and \emph{expressions} (which produce values). In Scheme, there is only one category: everything is an expression, and every expression produces a value.
+
+The syntax is uniform. An expression is either an atom (a number, string, or symbol standing alone) or a list enclosed in parentheses. When the evaluator sees a list, it treats the first element as the operator and the rest as operands:
+
+\begin{lstlisting}[style=repl]
+> (+ 2 3)
+5
+> (* 6 7)
+42
+> (- 100 1)
+99
+\end{lstlisting}
+
+The operator always comes first. This is called \emph{prefix notation}\index{prefix notation}. There is no infix \texttt{2 + 3} in Scheme---it is always \texttt{(+ 2 3)}.
+
+\subsection{No Precedence Rules}
+
+In Python, \texttt{2 + 3 * 4} evaluates to \texttt{14} because \texttt{*} binds tighter than \texttt{+}. In Scheme, you nest expressions explicitly:
+
+\begin{lstlisting}[style=repl]
+> (+ 2 (* 3 4))
+14
+> (* (+ 1 2) (- 10 4))
+18
+\end{lstlisting}
+
+The parentheses \emph{are} the precedence. There is nothing to memorize, and there is never ambiguity about evaluation order.
+
+\begin{note}[Coming from Python]
+If \texttt{(+ 2 3)} looks strange, think of it as a function call where the function name goes inside the parentheses: like \texttt{add(2, 3)} but without the commas and with the function name moved inside. After a few examples, the pattern becomes natural.
+\end{note}
+
+\subsection{Operators Take Multiple Arguments}
+
+Unlike most languages where \texttt{+} is binary, Scheme's arithmetic operators accept any number of arguments:
+
+\begin{lstlisting}[style=repl]
+> (+ 1 2 3 4 5)
+15
+> (* 2 3 4)
+24
+> (+)
+0
+> (*)
+1
+\end{lstlisting}
+
+With zero arguments, \texttt{+} returns 0 (the additive identity) and \texttt{*} returns 1 (the multiplicative identity).
+
+\section{Atoms}
+\index{atoms}
+
+Atoms are the simplest values in Scheme---they cannot be broken into smaller parts.
+
+\subsection{Numbers}
+\index{numbers}
+
+Kaappi supports a full numeric tower:
+
+\begin{lstlisting}[style=repl]
+> 42
+42
+> -7
+-7
+> 3.14
+3.14
+> 1/3
+1/3
+> (+ 1/3 1/6)
+1/2
+\end{lstlisting}
+
+Integers and exact rationals stay exact---there is no floating-point drift when you work with fractions. Kaappi also supports arbitrarily large integers (bignums):
+
+\begin{lstlisting}[style=repl]
+> (* 1000000000 1000000000 1000000000)
+1000000000000000000000000000
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+Python 3 also has arbitrary-precision integers, so this will feel familiar. The difference is that Scheme has exact rationals (\texttt{1/3}) as a built-in type---Python requires the \texttt{fractions} module.
+\end{note}
+
+\subsection{Strings}
+\index{strings}
+
+Strings are delimited by double quotes:
+
+\begin{lstlisting}[style=repl]
+> "hello, world"
+"hello, world"
+> (string-length "hello")
+5
+> (string-append "foo" "bar")
+"foobar"
+\end{lstlisting}
+
+Single quotes mean something entirely different in Scheme (they denote quotation, which we will cover shortly), so strings are always double-quoted.
+
+\subsection{Booleans}
+\index{booleans}
+
+The boolean values are \texttt{\#t} (true) and \texttt{\#f} (false). There is one critical rule that surprises Python programmers: \textbf{only \texttt{\#f} is false}. Everything else---including \texttt{0}, the empty string, and the empty list---is true:
+
+\begin{lstlisting}[style=repl]
+> (if 0 "truthy" "falsy")
+"truthy"
+> (if "" "truthy" "falsy")
+"truthy"
+> (if '() "truthy" "falsy")
+"truthy"
+> (if #f "truthy" "falsy")
+"falsy"
+\end{lstlisting}
+
+\begin{warning}[Only \texttt{\#f} is false]
+This is one of the most common sources of bugs when coming from Python. In Scheme, \texttt{(if 0 ...)} takes the ``then'' branch because \texttt{0} is not \texttt{\#f}. If you want to test whether a number is zero, use \texttt{(zero? n)} or \texttt{(= n 0)} explicitly.
+\end{warning}
+
+\subsection{Characters}
+\index{characters}
+
+Individual characters are written with a \texttt{\#\textbackslash} prefix:
+
+\begin{lstlisting}[style=repl]
+> #\a
+#\a
+> #\space
+#\space
+> #\newline
+#\newline
+> (char-alphabetic? #\Z)
+#t
+\end{lstlisting}
+
+Characters are distinct from single-character strings.
+
+\subsection{Symbols}
+\index{symbols}
+
+A symbol is a lightweight, interned name. Symbols are compared by identity (fast pointer comparison), not by character content like strings:
+
+\begin{lstlisting}[style=repl]
+> 'hello
+hello
+> (symbol? 'hello)
+#t
+> (eq? 'abc 'abc)
+#t
+\end{lstlisting}
+
+The \texttt{'} (single quote) is called \emph{quote}\index{quote}. It prevents the expression that follows from being evaluated. Without it, \texttt{hello} would be looked up as a variable name, causing an ``unbound variable'' error.
+
+\section{Defining Variables}
+\index{define}
+
+Use \texttt{define} to bind a name to a value:
+
+\begin{lstlisting}[style=repl]
+> (define pi 3.14159)
+> pi
+3.14159
+> (* pi 10 10)
+314.159
+\end{lstlisting}
+
+Once defined, you can use the name anywhere an expression is expected. Names in Scheme can contain characters that would be illegal in most languages: hyphens, question marks, and exclamation marks are all common:
+
+\begin{lstlisting}[style=repl]
+> (define my-favorite-number 42)
+> my-favorite-number
+42
+\end{lstlisting}
+
+\begin{note}[Naming conventions]
+Scheme uses \texttt{kebab-case} (words separated by hyphens) instead of \texttt{snake\_case} or \texttt{camelCase}. Predicates end with \texttt{?} (e.g., \texttt{zero?}, \texttt{string?}). Mutating procedures end with \texttt{!} (e.g., \texttt{set!}, \texttt{vector-set!}).
+\end{note}
+
+\section{Defining Functions}
+\index{functions}\index{lambda}
+
+To define a function, put the name and parameters in a list after \texttt{define}:
+
+\begin{lstlisting}[style=repl]
+> (define (square x) (* x x))
+> (square 7)
+49
+> (square 1.5)
+2.25
+\end{lstlisting}
+
+This is shorthand for the more explicit form using \texttt{lambda}, which creates an anonymous function:
+
+\begin{lstlisting}[style=repl]
+> (define square (lambda (x) (* x x)))
+> (square 5)
+25
+\end{lstlisting}
+
+\texttt{lambda}\index{lambda} is like Python's \texttt{lambda} keyword, but without the one-expression limitation---a Scheme lambda can contain any number of expressions in its body.
+
+Functions can take multiple parameters:
+
+\begin{lstlisting}[style=repl]
+> (define (area width height) (* width height))
+> (area 5 3)
+15
+\end{lstlisting}
+
+And they can call other functions, including themselves:
+
+\begin{lstlisting}[style=repl]
+> (define (sum-of-squares a b)
+    (+ (square a) (square b)))
+> (sum-of-squares 3 4)
+25
+\end{lstlisting}
+
+\subsection{Functions Are Values}
+
+Functions are ordinary values in Scheme. You can pass them as arguments to other functions:
+
+\begin{lstlisting}[style=repl]
+> (define (apply-twice f x) (f (f x)))
+> (apply-twice square 3)
+81
+> (apply-twice string-length "no")
+1
+\end{lstlisting}
+
+In the first call, \texttt{(square 3)} gives \texttt{9}, then \texttt{(square 9)} gives \texttt{81}. This ability to pass functions around is what makes Scheme a \emph{functional} language, and it is the foundation for many powerful patterns you will learn in later chapters.
+
+\section{Basic Conditionals}
+\index{if}\index{conditionals}
+
+The \texttt{if} expression has three parts: a test, a ``then'' expression, and an ``else'' expression:
+
+\begin{lstlisting}[style=repl]
+> (if (> 5 3) "yes" "no")
+"yes"
+> (if (< 5 3) "yes" "no")
+"no"
+\end{lstlisting}
+
+Because \texttt{if} is an expression (not a statement), it produces a value. You can use it anywhere a value is expected:
+
+\begin{lstlisting}[style=repl]
+> (define (abs x)
+    (if (< x 0) (- x) x))
+> (abs -7)
+7
+> (abs 3)
+3
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+This is like Python's ternary expression \texttt{"yes" if 5 > 3 else "no"}, but in Scheme the condition comes first. The pattern is always \texttt{(if test then else)}.
+\end{note}
+
+For multiple branches, use \texttt{cond}\index{cond}. It works like Python's \texttt{if/elif/else}:
+
+\begin{lstlisting}[style=repl]
+> (define (classify n)
+    (cond
+      ((< n 0) "negative")
+      ((= n 0) "zero")
+      (else "positive")))
+> (classify -5)
+"negative"
+> (classify 0)
+"zero"
+> (classify 42)
+"positive"
+\end{lstlisting}
+
+Each clause is \texttt{(test result)}. The \texttt{else} clause matches when none of the earlier tests are true.
+
+\section{Comments}
+\index{comments}
+
+Line comments start with a semicolon and extend to the end of the line:
+
+\begin{lstlisting}
+; This is a comment
+(define x 10) ; inline comment
+\end{lstlisting}
+
+Block comments use \texttt{\#|} and \texttt{|\#}:
+
+\begin{lstlisting}
+#|
+This is a
+multi-line comment
+|#
+\end{lstlisting}
+
+A datum comment \texttt{\#;} comments out the next expression:
+
+\begin{lstlisting}[style=repl]
+> (+ 1 #;(this is ignored) 2)
+3
+\end{lstlisting}
+
+This last form is particularly useful for temporarily disabling an argument or clause without deleting it.
+
+\section{Putting It Together}
+
+Let's write a slightly larger example that uses what we have learned. Here is a function that converts a temperature from Fahrenheit to Celsius:
+
+\begin{lstlisting}[style=repl]
+> (define (fahrenheit->celsius f)
+    (* (/ 5 9) (- f 32)))
+> (fahrenheit->celsius 212)
+100
+> (fahrenheit->celsius 32)
+0
+> (fahrenheit->celsius 72)
+160/9
+\end{lstlisting}
+
+Notice that \texttt{(fahrenheit->celsius 72)} returns the exact rational \texttt{160/9} rather than a floating-point approximation. Kaappi preserves exactness when all inputs are exact. If you want a decimal, use a floating-point literal:
+
+\begin{lstlisting}[style=repl]
+> (define (fahrenheit->celsius-approx f)
+    (* (/ 5.0 9.0) (- f 32)))
+> (fahrenheit->celsius-approx 72)
+22.22222222222222
+\end{lstlisting}
+
+\sectionbreak
+
+You now know how to evaluate expressions, work with the basic data types, define variables and functions, write conditionals, and add comments. These are the building blocks of every Scheme program. In the next chapter, we will explore Scheme's data types in depth.

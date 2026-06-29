@@ -1,3 +1,338 @@
 \chapter{Functions}
+\index{functions}
 
-Functions are the building blocks of Scheme programs. This chapter covers defining functions with \texttt{define} and \texttt{lambda}, writing recursive functions, understanding closures, and how Kaappi guarantees proper tail-call optimization so recursive functions can run in constant stack space.
+Functions are the primary organizational unit in Scheme. There are no classes, no methods, no modules in the traditional sense---just functions. This chapter covers defining functions, recursion, closures, tail-call optimization, variadic arguments, and returning multiple values.
+
+\section{Defining Functions}
+\index{define}
+
+You have seen the shorthand form for defining functions:
+
+\begin{lstlisting}[style=repl]
+> (define (square x) (* x x))
+> (square 7)
+49
+\end{lstlisting}
+
+This is syntactic sugar for binding a name to a \texttt{lambda}\index{lambda} expression:
+
+\begin{lstlisting}[style=repl]
+> (define square (lambda (x) (* x x)))
+> (square 7)
+49
+\end{lstlisting}
+
+Both forms are equivalent. The shorthand \texttt{(define (name params) body)} is more common in practice, but understanding the \texttt{lambda} form is essential because anonymous functions appear everywhere in Scheme.
+
+\subsection{Multiple Expressions in the Body}
+
+Unlike Python's \texttt{lambda} (limited to one expression), a Scheme lambda body can contain multiple expressions. The value of the last expression is returned:
+
+\begin{lstlisting}[style=repl]
+> (define (greet name)
+    (display "Hello, ")
+    (display name)
+    (newline)
+    (string-append "Greeted " name))
+> (greet "Alice")
+Hello, Alice
+"Greeted Alice"
+\end{lstlisting}
+
+The first three expressions produce side effects (printing). The last expression's value is the function's return value.
+
+\subsection{Functions with Multiple Parameters}
+
+\begin{lstlisting}[style=repl]
+> (define (hypotenuse a b)
+    (sqrt (+ (* a a) (* b b))))
+> (hypotenuse 3 4)
+5
+\end{lstlisting}
+
+\section{Anonymous Functions}
+\index{lambda}\index{anonymous functions}
+
+You do not need to name every function. \texttt{lambda} creates a function value directly:
+
+\begin{lstlisting}[style=repl]
+> ((lambda (x) (* x x)) 5)
+25
+> (map (lambda (x) (+ x 10)) '(1 2 3 4))
+(11 12 13 14)
+\end{lstlisting}
+
+Anonymous functions are particularly useful when passing short operations to higher-order functions like \texttt{map} and \texttt{filter}. You will use them constantly.
+
+\begin{note}[Coming from Python]
+\texttt{(lambda (x) (* x x))} is Scheme's equivalent of Python's \texttt{lambda x: x * x}. The difference is that Scheme's version can contain multiple expressions and arbitrary complexity---there is no need for a separate \texttt{def} just because the function has more than one line.
+\end{note}
+
+\section{Recursion}
+\index{recursion}
+
+Scheme has no \texttt{for} or \texttt{while} loops. Repetition is expressed through recursion, and the language is designed to make this efficient and natural.
+
+\subsection{Simple Recursion}
+
+The classic factorial:
+
+\begin{lstlisting}[style=repl]
+> (define (factorial n)
+    (if (= n 0)
+        1
+        (* n (factorial (- n 1)))))
+> (factorial 5)
+120
+> (factorial 20)
+2432902008176640000
+\end{lstlisting}
+
+The structure is always the same: a base case that returns a known value, and a recursive case that reduces the problem.
+
+Here is a function that computes the nth Fibonacci number:
+
+\begin{lstlisting}[style=repl]
+> (define (fib n)
+    (cond
+      ((= n 0) 0)
+      ((= n 1) 1)
+      (else (+ (fib (- n 1))
+               (fib (- n 2))))))
+> (fib 10)
+55
+\end{lstlisting}
+
+\begin{warning}[Exponential recursion]
+This naive Fibonacci is O($2^n$)---it recomputes the same subproblems repeatedly. For large \texttt{n}, use the tail-recursive version shown later in this chapter.
+\end{warning}
+
+\subsection{Recursion on Lists}
+
+Most list processing follows this pattern: check for empty (base case), process the first element, recurse on the rest:
+
+\begin{lstlisting}[style=repl]
+> (define (my-map f lst)
+    (if (null? lst)
+        '()
+        (cons (f (car lst))
+              (my-map f (cdr lst)))))
+> (my-map square '(1 2 3 4 5))
+(1 4 9 16 25)
+\end{lstlisting}
+
+\section{Tail Calls and Tail Recursion}
+\index{tail call optimization}\index{TCO}
+
+When a recursive call is the \emph{last thing} a function does---the final expression with nothing left to do after it returns---it is in \emph{tail position}. Kaappi (and all conforming Schemes) guarantee that tail calls reuse the current stack frame instead of allocating a new one.
+
+This means tail-recursive functions use constant stack space, just like a loop.
+
+\subsection{Non-Tail vs.\ Tail Recursive}
+
+The factorial above is \emph{not} tail-recursive because after the recursive call, it still needs to multiply:
+
+\begin{lstlisting}
+;; NOT tail-recursive: (* n ...) wraps the recursive call
+(define (factorial n)
+  (if (= n 0) 1
+      (* n (factorial (- n 1)))))
+\end{lstlisting}
+
+Here is the tail-recursive version using an accumulator:
+
+\begin{lstlisting}[style=repl]
+> (define (factorial n)
+    (define (loop i acc)
+      (if (= i 0)
+          acc
+          (loop (- i 1) (* acc i))))
+    (loop n 1))
+> (factorial 100)
+93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
+\end{lstlisting}
+
+The call to \texttt{loop} is the last expression---nothing wraps it---so it runs without growing the stack, even for \texttt{(factorial 1000000)}.
+
+\subsection{Named \texttt{let} for Loops}
+\index{named let}
+
+Named \texttt{let} is the idiomatic way to write a tail-recursive loop. It defines a local function and calls it immediately:
+
+\begin{lstlisting}[style=repl]
+> (let loop ((i 1))
+    (when (<= i 5)
+      (display i)
+      (display " ")
+      (loop (+ i 1))))
+1 2 3 4 5
+\end{lstlisting}
+
+\texttt{loop} is a name you choose---it is bound to a function with parameter \texttt{i}. Calling \texttt{(loop (+ i 1))} recurses with the next value. Because the call is in tail position, it runs in constant space.
+
+Here is a tail-recursive Fibonacci using named \texttt{let}:
+
+\begin{lstlisting}[style=repl]
+> (define (fib n)
+    (let loop ((i n) (a 0) (b 1))
+      (if (= i 0)
+          a
+          (loop (- i 1) b (+ a b)))))
+> (fib 50)
+12586269025
+\end{lstlisting}
+
+This version is O(n), computing \texttt{(fib 50)} instantly.
+
+\begin{note}[Coming from Python]
+Named \texttt{let} is Scheme's equivalent of a \texttt{while} loop with loop variables. The ``loop variables'' are the parameters, and each ``iteration'' is a tail call with updated values. Once you internalize this pattern, you will find it as natural as \texttt{for i in range(...)}.
+\end{note}
+
+\section{Closures}
+\index{closures}
+
+A \emph{closure} is a function that remembers the environment where it was created. Variables from the enclosing scope remain accessible even after that scope has exited.
+
+\begin{lstlisting}[style=repl]
+> (define (make-adder n)
+    (lambda (x) (+ x n)))
+> (define add5 (make-adder 5))
+> (define add10 (make-adder 10))
+> (add5 3)
+8
+> (add10 3)
+13
+\end{lstlisting}
+
+Each call to \texttt{make-adder} creates a new closure that captures its own copy of \texttt{n}. The two closures \texttt{add5} and \texttt{add10} are independent.
+
+\subsection{Closures with Mutable State}
+
+Closures can capture mutable variables, creating private state:
+
+\begin{lstlisting}[style=repl]
+> (define (make-counter)
+    (let ((n 0))
+      (lambda ()
+        (set! n (+ n 1))
+        n)))
+> (define c1 (make-counter))
+> (define c2 (make-counter))
+> (c1)
+1
+> (c1)
+2
+> (c1)
+3
+> (c2)
+1
+\end{lstlisting}
+
+Each counter has its own private \texttt{n}. This is how you encapsulate state in Scheme without classes.
+
+\begin{note}[Coming from Python]
+This is the same concept as Python closures. The difference is that Scheme uses closures as a primary organizational tool (where Python might reach for a class), and \texttt{set!}\index{set!} makes the captured variable mutable.
+\end{note}
+
+\section{Variadic Functions}
+\index{variadic functions}\index{rest arguments}
+
+Functions can accept a variable number of arguments using \emph{dot notation} in the parameter list:
+
+\begin{lstlisting}[style=repl]
+> (define (sum . numbers)
+    (let loop ((lst numbers) (acc 0))
+      (if (null? lst)
+          acc
+          (loop (cdr lst) (+ acc (car lst))))))
+> (sum 1 2 3)
+6
+> (sum 1 2 3 4 5)
+15
+\end{lstlisting}
+
+The dot before \texttt{numbers} means ``collect all remaining arguments into a list.'' You can also have required parameters before the rest:
+
+\begin{lstlisting}[style=repl]
+> (define (format-message prefix . parts)
+    (apply string-append prefix ": " parts))
+> (format-message "ERROR" "file not found")
+"ERROR: file not found"
+\end{lstlisting}
+
+\section{\texttt{apply}}
+\index{apply}
+
+\texttt{apply} calls a function with arguments from a list:
+
+\begin{lstlisting}[style=repl]
+> (apply + '(1 2 3 4 5))
+15
+> (apply max '(3 7 2 9 4))
+9
+> (apply string-append '("hello" " " "world"))
+"hello world"
+\end{lstlisting}
+
+This is essential when you have a list of arguments and need to pass them to a function that expects individual parameters.
+
+\section{Multiple Return Values}
+\index{values}\index{multiple values}
+
+Scheme functions can return multiple values using \texttt{values}:
+
+\begin{lstlisting}[style=repl]
+> (define (divide a b)
+    (values (quotient a b) (remainder a b)))
+> (divide 17 5)
+3
+2
+\end{lstlisting}
+
+To receive multiple values, use \texttt{call-with-values} or the more convenient \texttt{let-values}:
+
+\begin{lstlisting}[style=repl]
+> (let-values (((q r) (divide 17 5)))
+    (display "Quotient: ") (display q) (newline)
+    (display "Remainder: ") (display r) (newline))
+Quotient: 3
+Remainder: 2
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+This is similar to Python's tuple unpacking: \texttt{q, r = divmod(17, 5)}. Scheme's version is slightly more verbose but achieves the same result.
+\end{note}
+
+\section{Function Composition Patterns}
+
+A few patterns come up frequently when working with functions.
+
+\subsection{Functions that Return Functions}
+
+\begin{lstlisting}[style=repl]
+> (define (compose f g)
+    (lambda (x) (f (g x))))
+> (define inc-then-square (compose square (lambda (x) (+ x 1))))
+> (inc-then-square 4)
+25
+\end{lstlisting}
+
+\subsection{Partial Application}
+
+\begin{lstlisting}[style=repl]
+> (define (partial f . fixed-args)
+    (lambda rest-args
+      (apply f (append fixed-args rest-args))))
+> (define double (partial * 2))
+> (double 5)
+10
+> (define add1 (partial + 1))
+> (add1 99)
+100
+\end{lstlisting}
+
+These patterns---composition, partial application, and higher-order functions in general---are the tools Scheme gives you in place of classes and inheritance. They are simpler, more composable, and often more powerful.
+
+\sectionbreak
+
+You now understand how to define functions, write recursive algorithms with tail-call guarantees, create closures with private state, handle variable arguments, and compose functions. These are the core skills of Scheme programming. The next chapter covers control flow in depth.

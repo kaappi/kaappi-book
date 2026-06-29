@@ -1,3 +1,317 @@
 \chapter{Higher-Order Functions}
+\index{higher-order functions}
 
-Functions that take other functions as arguments or return them as results are called higher-order functions. This chapter covers \texttt{map}, \texttt{filter}, \texttt{fold}, \texttt{for-each}, and \texttt{apply}---the workhorses of functional programming in Scheme.
+A \emph{higher-order function} is a function that takes another function as an argument or returns a function as its result. You have already seen examples in earlier chapters---\texttt{map}, named \texttt{let} with a procedure argument, and closures. This chapter explores the standard higher-order functions in depth and shows how they replace loops in idiomatic Scheme.
+
+\section{\texttt{map}: Transform Every Element}
+\index{map}
+
+\texttt{map} applies a function to every element of a list, returning a new list of the results:
+
+\begin{lstlisting}[style=repl]
+> (map square '(1 2 3 4 5))
+(1 4 9 16 25)
+> (map string-length '("cat" "elephant" "ox"))
+(3 8 2)
+> (map not '(#t #f #t #f))
+(#f #t #f #t)
+\end{lstlisting}
+
+With a lambda for custom transformations:
+
+\begin{lstlisting}[style=repl]
+> (map (lambda (x) (+ x 10)) '(1 2 3))
+(11 12 13)
+> (map (lambda (s) (string-append "Hello, " s))
+       '("Alice" "Bob" "Carol"))
+("Hello, Alice" "Hello, Bob" "Hello, Carol")
+\end{lstlisting}
+
+\subsection{Multi-List \texttt{map}}
+
+\texttt{map} can take multiple lists, applying the function to corresponding elements:
+
+\begin{lstlisting}[style=repl]
+> (map + '(1 2 3) '(10 20 30))
+(11 22 33)
+> (map * '(2 3 4) '(10 10 10))
+(20 30 40)
+> (map list '(a b c) '(1 2 3))
+((a 1) (b 2) (c 3))
+\end{lstlisting}
+
+The lists must be the same length. The function receives one argument from each list.
+
+\begin{note}[Coming from Python]
+\texttt{(map f lst)} is equivalent to Python's \texttt{[f(x) for x in lst]} or \texttt{list(map(f, lst))}. Multi-list map is like \texttt{[f(a, b) for a, b in zip(lst1, lst2)]}.
+\end{note}
+
+\section{\texttt{for-each}: Side Effects Only}
+\index{for-each}
+
+\texttt{for-each} is like \texttt{map} but discards the results. Use it when you want side effects (printing, writing to a file) without building a list:
+
+\begin{lstlisting}[style=repl]
+> (for-each (lambda (name)
+              (display "Hello, ")
+              (display name)
+              (newline))
+            '("Alice" "Bob" "Carol"))
+Hello, Alice
+Hello, Bob
+Hello, Carol
+\end{lstlisting}
+
+\texttt{for-each} guarantees left-to-right evaluation order. \texttt{map} does not make this guarantee (though most implementations process left to right).
+
+\begin{note}[Coming from Python]
+\texttt{for-each} replaces a Python \texttt{for} loop where you do not need the return value:
+\begin{Verbatim}[fontsize=\small]
+for name in ["Alice", "Bob", "Carol"]:
+    print(f"Hello, {name}")
+\end{Verbatim}
+\end{note}
+
+\section{\texttt{filter}: Select Elements}
+\index{filter}
+
+\texttt{filter} keeps only the elements for which a predicate returns true:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 1))
+> (filter even? '(1 2 3 4 5 6 7 8))
+(2 4 6 8)
+> (filter positive? '(-3 -1 0 2 5 -4 7))
+(2 5 7)
+> (filter (lambda (s) (> (string-length s) 3))
+          '("hi" "hello" "hey" "good morning"))
+("hello" "good morning")
+\end{lstlisting}
+
+\begin{note}
+\texttt{filter} comes from SRFI-1 (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} to use it. The REPL makes it available automatically.
+\end{note}
+
+\subsection{\texttt{remove}: The Complement of \texttt{filter}}
+
+\texttt{remove} (also from SRFI-1) keeps elements that do \emph{not} satisfy the predicate:
+
+\begin{lstlisting}[style=repl]
+> (remove even? '(1 2 3 4 5 6))
+(1 3 5)
+> (remove null? '((1 2) () (3) () (4 5)))
+((1 2) (3) (4 5))
+\end{lstlisting}
+
+\subsection{\texttt{partition}: Split into Two Lists}
+
+\texttt{partition} returns two values: elements that pass and elements that fail:
+
+\begin{lstlisting}[style=repl]
+> (let-values (((yes no) (partition even? '(1 2 3 4 5 6))))
+    (list yes no))
+((2 4 6) (1 3 5))
+\end{lstlisting}
+
+\section{\texttt{fold}: Reduce a List to a Single Value}
+\index{fold}
+
+\texttt{fold} (also called ``reduce'' in other languages) combines all elements of a list into one value using a binary function and a starting value:
+
+\begin{lstlisting}[style=repl]
+> (fold + 0 '(1 2 3 4 5))
+15
+> (fold * 1 '(1 2 3 4 5))
+120
+> (fold max 0 '(3 7 2 9 4))
+9
+> (fold string-append "" '("a" "b" "c"))
+"cba"
+\end{lstlisting}
+
+The form is \texttt{(fold f init lst)}. The function \texttt{f} takes two arguments: the current element and the accumulator. Processing is left to right, but the accumulator is the \emph{second} argument:
+
+\begin{lstlisting}[style=repl]
+> (fold cons '() '(1 2 3 4 5))
+(5 4 3 2 1)
+\end{lstlisting}
+
+\subsection{Understanding Fold Step by Step}
+
+\texttt{(fold + 0 '(1 2 3))} evaluates as:
+
+\begin{lstlisting}
+;; Start with init = 0
+;; Step 1: (+ 1 0) = 1
+;; Step 2: (+ 2 1) = 3
+;; Step 3: (+ 3 3) = 6
+;; Result: 6
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (fold + 0 '(1 2 3))
+6
+\end{lstlisting}
+
+\subsection{\texttt{fold-right}: Right-to-Left Reduction}
+\index{fold-right}
+
+\texttt{fold-right} processes elements from right to left:
+
+\begin{lstlisting}[style=repl]
+> (fold-right cons '() '(1 2 3 4 5))
+(1 2 3 4 5)
+> (fold-right string-append "" '("a" "b" "c"))
+"abc"
+\end{lstlisting}
+
+\texttt{fold-right} with \texttt{cons} copies a list (preserving order), while \texttt{fold} with \texttt{cons} reverses it.
+
+\subsection{Expressing Other Operations as Fold}
+
+Many list operations are special cases of fold:
+
+\begin{lstlisting}[style=repl]
+> ;; sum
+> (fold + 0 '(1 2 3 4 5))
+15
+> ;; length
+> (fold (lambda (x acc) (+ acc 1)) 0 '(a b c d))
+4
+> ;; reverse
+> (fold cons '() '(1 2 3))
+(3 2 1)
+> ;; map (via fold-right)
+> (fold-right (lambda (x acc) (cons (* x x) acc))
+              '() '(1 2 3 4))
+(1 4 9 16)
+> ;; filter (via fold-right)
+> (fold-right (lambda (x acc)
+               (if (even? x) (cons x acc) acc))
+             '() '(1 2 3 4 5 6))
+(2 4 6)
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{fold} is Python's \texttt{functools.reduce}. \texttt{(fold + 0 '(1 2 3 4 5))} is \texttt{reduce(lambda acc, x: acc + x, [1,2,3,4,5], 0)}. The argument order differs slightly: Scheme's fold gives the element first, accumulator second.
+\end{note}
+
+\section{\texttt{apply}: Spreading a List as Arguments}
+\index{apply}
+
+\texttt{apply} was introduced in Chapter~6, but it is worth revisiting in the context of higher-order programming. It calls a function with elements from a list as individual arguments:
+
+\begin{lstlisting}[style=repl]
+> (apply + '(1 2 3 4 5))
+15
+> (apply max '(3 7 2 9 4 1))
+9
+> (apply string-append '("hello" " " "world"))
+"hello world"
+\end{lstlisting}
+
+You can also provide fixed arguments before the list:
+
+\begin{lstlisting}[style=repl]
+> (apply + 100 '(1 2 3))
+106
+> (apply list 'a 'b '(c d e))
+(a b c d e)
+\end{lstlisting}
+
+\section{Composing Higher-Order Functions}
+
+The real power emerges when you combine these operations into pipelines:
+
+\begin{lstlisting}[style=repl]
+> ;; Sum of squares of even numbers
+> (fold + 0
+    (map square
+      (filter even? '(1 2 3 4 5 6 7 8 9 10))))
+220
+\end{lstlisting}
+
+Read from the inside out: filter the even numbers, square each one, then sum them. In Python this would be:
+
+\begin{Verbatim}[fontsize=\small]
+sum(x**2 for x in range(1, 11) if x % 2 == 0)
+\end{Verbatim}
+
+Another example---find the longest string in a list:
+
+\begin{lstlisting}[style=repl]
+> (fold (lambda (s longest)
+          (if (> (string-length s) (string-length longest))
+              s
+              longest))
+        ""
+        '("cat" "elephant" "dog" "hippopotamus"))
+"hippopotamus"
+\end{lstlisting}
+
+\section{Writing Your Own Higher-Order Functions}
+
+You are not limited to the standard ones. Here are a few useful patterns:
+
+\subsection{Applying a Function \texttt{n} Times}
+
+\begin{lstlisting}[style=repl]
+> (define (iterate f n x)
+    (if (= n 0) x
+        (iterate f (- n 1) (f x))))
+> (iterate (lambda (x) (* x 2)) 5 1)
+32
+> (iterate cdr 3 '(a b c d e))
+(d e)
+\end{lstlisting}
+
+\subsection{Finding the First Match}
+
+\begin{lstlisting}[style=repl]
+> (define (find pred lst)
+    (cond
+      ((null? lst) #f)
+      ((pred (car lst)) (car lst))
+      (else (find pred (cdr lst)))))
+> (find even? '(1 3 5 4 7))
+4
+> (find negative? '(1 2 3))
+#f
+\end{lstlisting}
+
+\subsection{Counting Matches}
+
+\begin{lstlisting}[style=repl]
+> (define (count pred lst)
+    (fold (lambda (x acc)
+            (if (pred x) (+ acc 1) acc))
+          0 lst))
+> (count even? '(1 2 3 4 5 6))
+3
+> (count char-alphabetic?
+         (string->list "hello, world!"))
+10
+\end{lstlisting}
+
+\subsection{Zipping Two Lists}
+
+\begin{lstlisting}[style=repl]
+> (define (zip lst1 lst2)
+    (map list lst1 lst2))
+> (zip '(a b c) '(1 2 3))
+((a 1) (b 2) (c 3))
+\end{lstlisting}
+
+\section{When Not to Use Higher-Order Functions}
+
+Higher-order functions are elegant, but they are not always the best choice:
+
+\begin{itemize}
+    \item \textbf{Complex state:} When the loop body needs to maintain multiple interacting pieces of state, named \texttt{let} with explicit accumulators is often clearer than contorting a fold.
+    \item \textbf{Early termination:} \texttt{map}, \texttt{filter}, and \texttt{fold} always process the entire list. If you want to stop early (e.g., find the first match), use a recursive function or SRFI-1's \texttt{find}/\texttt{any}/\texttt{every}.
+    \item \textbf{Multiple outputs:} If you need both the filtered elements and the rejected ones, use \texttt{partition} rather than calling \texttt{filter} twice.
+\end{itemize}
+
+\sectionbreak
+
+Higher-order functions are the backbone of functional programming in Scheme. By combining \texttt{map}, \texttt{filter}, and \texttt{fold}, you can express most data transformations without writing explicit recursion. In the next chapter, we cover input and output---reading from files, writing to the console, and working with ports.

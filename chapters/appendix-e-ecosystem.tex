@@ -1,0 +1,139 @@
+\chapter{Ecosystem Packages}
+\index{ecosystem}\index{thottam!packages}
+
+Kaappi's package manager \texttt{thottam} provides access to a growing ecosystem of libraries. Install any package with:
+
+\begin{Verbatim}[fontsize=\small]
+thottam install package-name
+\end{Verbatim}
+
+After installation, import the library in your Scheme code. All packages are MIT licensed.
+
+\section{Networking and Web}
+
+\begin{center}
+\begin{tabular}{lp{5.5cm}l}
+\textbf{Package} & \textbf{Description} & \textbf{Import} \\
+\hline
+kaappi-net & TCP/UDP sockets, TLS & \texttt{(kaappi net)} \\
+kaappi-http & HTTP/HTTPS client and server & \texttt{(kaappi http)} \\
+kaappi-web & Web framework (routing, middleware, sessions) & \texttt{(kaappi web)} \\
+kaappi-template & HTML template engine with auto-escaping & \texttt{(kaappi template)} \\
+kaappi-email & SMTP email sending & \texttt{(kaappi email)} \\
+\end{tabular}
+\end{center}
+
+\section{Data Formats}
+
+\begin{center}
+\begin{tabular}{lp{5.5cm}l}
+\textbf{Package} & \textbf{Description} & \textbf{Import} \\
+\hline
+kaappi-json & JSON reading and writing & \texttt{(kaappi json)} \\
+kaappi-toml & TOML parser and emitter & \texttt{(kaappi toml)} \\
+kaappi-yaml & YAML parser and emitter & \texttt{(kaappi yaml)} \\
+kaappi-csv & RFC 4180 CSV parsing and generation & \texttt{(kaappi csv)} \\
+\end{tabular}
+\end{center}
+
+\section{Databases}
+
+\begin{center}
+\begin{tabular}{lp{5.5cm}l}
+\textbf{Package} & \textbf{Description} & \textbf{Import} \\
+\hline
+kaappi-pg & PostgreSQL client (queries, params, pools) & \texttt{(kaappi pg)} \\
+kaappi-sqlite & SQLite3 embedded database & \texttt{(kaappi sqlite)} \\
+kaappi-redis & Redis client (commands, pub/sub) & \texttt{(kaappi redis)} \\
+\end{tabular}
+\end{center}
+
+\section{Utilities}
+
+\begin{center}
+\begin{tabular}{lp{5.5cm}l}
+\textbf{Package} & \textbf{Description} & \textbf{Import} \\
+\hline
+kaappi-crypto & Hashing (SHA-256, BLAKE3), HMAC & \texttt{(kaappi crypto)} \\
+kaappi-log & Structured logging with levels & \texttt{(kaappi log)} \\
+kaappi-cli & CLI argument parsing, subcommands, help & \texttt{(kaappi cli)} \\
+kaappi-math & Extended math (statistics, linear algebra) & \texttt{(kaappi math)} \\
+\end{tabular}
+\end{center}
+
+\section{Testing}
+
+\begin{center}
+\begin{tabular}{lp{5.5cm}l}
+\textbf{Package} & \textbf{Description} & \textbf{Import} \\
+\hline
+kaappi-test & Unit testing (assertions, test suites, CI) & \texttt{(kaappi test)} \\
+kaappi-bdd & BDD-style testing (describe, it, expect) & \texttt{(kaappi bdd)} \\
+\end{tabular}
+\end{center}
+
+\section{Quick Start Examples}
+
+\subsection{Reading JSON}
+
+\begin{lstlisting}
+(import (kaappi json))
+
+(define data (json-read (open-input-file "config.json")))
+(display (hash-table-ref data "name"))
+\end{lstlisting}
+
+\subsection{HTTP Request}
+
+\begin{lstlisting}
+(import (kaappi http))
+
+(define response (http-get "https://api.example.com/data"))
+(display (response-body response))
+\end{lstlisting}
+
+\subsection{PostgreSQL Query}
+
+\begin{lstlisting}
+(import (kaappi pg))
+
+(define conn (pg-connect "host=localhost dbname=mydb"))
+(define rows (pg-query conn "SELECT name, age FROM users"))
+(for-each (lambda (row)
+            (display (vector-ref row 0))
+            (newline))
+          rows)
+(pg-close conn)
+\end{lstlisting}
+
+\subsection{CLI Tool}
+
+\begin{lstlisting}
+(import (kaappi cli))
+
+(define app
+  (cli "mytool"
+    (version "1.0.0")
+    (description "A helpful tool")
+    (flag "verbose" "v" "Enable verbose output")
+    (argument "file" "Input file")))
+
+(define opts (cli-parse app (command-line)))
+\end{lstlisting}
+
+\section{Managing Packages}
+
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\textbf{Command} & \textbf{Description} \\
+\hline
+\texttt{thottam install pkg} & Install a package \\
+\texttt{thottam remove pkg} & Remove a package \\
+\texttt{thottam list} & List installed packages \\
+\texttt{thottam update} & Update all packages to latest versions \\
+\texttt{thottam verify} & Verify integrity of installed packages \\
+\texttt{thottam search term} & Search for packages by name \\
+\end{tabular}
+\end{center}
+
+Packages are installed to \texttt{\textasciitilde/.kaappi/lib/} and are immediately importable from any Scheme file.
