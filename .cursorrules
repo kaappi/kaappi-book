@@ -1,0 +1,12 @@
+This is a XeLaTeX book project about the Kaappi Scheme programming language.
+
+- Build: `make` (XeLaTeX, 3 passes). Quick: `make once`. Output: `build/main.pdf`
+- Target audience: programmers who know Python but not Scheme
+- Document class: memoir (11pt, twoside, openright)
+- Fonts: EB Garamond (body), Source Sans 3 (headings), Fira Code (code)
+- All packages and styles are in `preamble/`; never add packages in chapter files
+- Chapter files live in `chapters/` and are included from `main.tex`
+- Code examples use `\begin{lstlisting}` (Scheme syntax configured globally)
+- Custom environments: `note`, `warning`, `exercise`, `codeoutput`
+- Reference sources: `/Users/bmuthuka/kaappi/kaappi` (source), `/Users/bmuthuka/kaappi/kaappi.github.io` (docs)
+- Write clearly for beginners; show runnable code; compare to Python when helpful
