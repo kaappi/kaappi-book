@@ -218,6 +218,67 @@ This returns two values: the parsed result (or \texttt{\#f} on error) and an err
 
 Fail early with a clear message when preconditions are not met.
 
+\section{Custom Error Types}
+\index{custom error types}
+
+For larger programs, you may want to distinguish between different kinds of errors. One approach is to use records as error objects and raise them with \texttt{raise}:
+
+\begin{lstlisting}
+(define-record-type <http-error>
+  (make-http-error status message)
+  http-error?
+  (status http-error-status)
+  (message http-error-message))
+
+(define (fetch url)
+  (let ((response (http-get url)))
+    (unless (= (response-status response) 200)
+      (raise (make-http-error
+               (response-status response)
+               (response-body response))))
+    (response-body response)))
+\end{lstlisting}
+
+Catch them with \texttt{guard} using the record predicate:
+
+\begin{lstlisting}[style=repl]
+> (guard (e
+          ((http-error? e)
+           (string-append "HTTP "
+             (number->string (http-error-status e))
+             ": " (http-error-message e)))
+          ((error-object? e)
+           (error-object-message e)))
+    (fetch "https://example.com/missing"))
+"HTTP 404: Not Found"
+\end{lstlisting}
+
+This pattern gives you type-safe error dispatch---the \texttt{guard} clauses test each error type in order, and unrecognized errors fall through to the next clause or propagate up.
+
+\section{Error Handling in Libraries}
+
+When writing a library, follow these conventions so that callers can handle your errors cleanly:
+
+\begin{itemize}
+    \item \textbf{Use \texttt{error} with a consistent prefix.} Start every error message with the library or procedure name: \texttt{(error "json-read: unexpected token" ch)}. This makes it immediately clear where the error originated.
+    \item \textbf{Include the relevant values as irritants.} The caller needs context to diagnose the problem. Include the input that caused the error, the expected type, and the actual value.
+    \item \textbf{Document which errors your procedures raise.} If \texttt{json-read} can raise a parse error, say so in the documentation. Callers should not have to read your source code to know what to catch.
+    \item \textbf{Do not catch errors you cannot handle.} If a low-level I/O function fails inside your library, let that error propagate. Only catch errors that your library can meaningfully recover from.
+\end{itemize}
+
+\begin{lstlisting}
+(define (parse-config filename)
+  (guard (e
+          ((and (error-object? e)
+                (string-contains
+                  (error-object-message e) "No such file"))
+           (error "parse-config: file not found" filename)))
+    (call-with-port (open-input-file filename)
+      (lambda (port) (json-read port)))))
+\end{lstlisting}
+
+This wraps the low-level ``No such file'' error in a domain-specific message while preserving the original filename as an irritant.
+
 \section{Error Handling Strategy}
 
 \begin{itemize}
@@ -225,7 +286,20 @@ Fail early with a clear message when preconditions are not met.
     \item \textbf{Catch at boundaries.} Handle errors at the boundary between subsystems---at the top of a request handler, at the entry point of a CLI tool, at the edge of a library call. Do not pepper every function with \texttt{guard}.
     \item \textbf{Be specific.} Catch only the errors you can handle. Let unexpected errors propagate---they usually indicate bugs that should not be silently swallowed.
     \item \textbf{Provide context.} Use irritants in \texttt{error} to include the values that caused the problem. ``index out of range'' is less useful than ``index out of range: 10, list length: 5.''
+    \item \textbf{Log, then re-raise.} When you need to observe errors without handling them, install a handler that logs and re-raises:
 \end{itemize}
+
+\begin{lstlisting}
+(define (with-error-logging thunk)
+  (guard (e (#t (display "ERROR: " (current-error-port))
+               (display (if (error-object? e)
+                            (error-object-message e)
+                            e)
+                        (current-error-port))
+               (newline (current-error-port))
+               (raise e)))
+    (thunk)))
+\end{lstlisting}
 
 \section*{Exercises}
 

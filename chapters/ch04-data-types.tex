@@ -18,6 +18,23 @@ Kaappi supports four kinds of numbers, organized in a hierarchy called the \emph
 
 Every integer is also a rational (it is \texttt{n/1}). Every rational is also a real. Every real is also a complex (with zero imaginary part). The arithmetic procedures work uniformly across all levels.
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+\draw[thick, rounded corners] (-3.6,-0.7) rectangle (3.6,0.7);
+\node[anchor=north east] at (3.5,0.6) {\textsf{complex}};
+\node[anchor=south, font=\ttfamily\scriptsize] at (2.6,-0.55) {3+4i};
+\draw[thick, rounded corners] (-2.8,-0.45) rectangle (2.2,0.45);
+\node[anchor=north east] at (2.1,0.35) {\textsf{real}};
+\node[anchor=south, font=\ttfamily\scriptsize] at (1.4,-0.3) {3.14};
+\draw[thick, rounded corners] (-2,-0.2) rectangle (0.9,0.2);
+\node[anchor=north east] at (0.8,0.12) {\textsf{rational}};
+\node[font=\ttfamily\scriptsize] at (-0.1,0) {\textsf{1/3}};
+\draw[thick, rounded corners, fill=notebg] (-1.8,-0.05) rectangle (-0.7,0.05);
+\node[font=\ttfamily\scriptsize] at (-1.25,0) {42};
+\node[anchor=south, font=\textsf\scriptsize] at (-1.25,0.07) {integer};
+\end{tikzpicture}
+\end{center}
+
 \subsection{Integers}
 \index{integers}\index{fixnum}\index{bignum}
 

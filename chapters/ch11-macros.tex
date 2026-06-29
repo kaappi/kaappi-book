@@ -30,7 +30,20 @@ yes
       (newline)))
 \end{lstlisting}
 
-The macro takes the \emph{source code} \texttt{(when (> 5 3) (display "yes") (newline))} and transforms it into different source code before evaluation.
+The macro takes the \emph{source code} and transforms it into different source code before evaluation:
+
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={rectangle, draw, rounded corners, font=\ttfamily\scriptsize,
+                text width=5.8cm, align=left, inner sep=4pt},
+    arr/.style={->, >=stealth, thick},
+    lbl/.style={font=\sffamily\scriptsize, fill=white, inner sep=1pt}
+]
+\node[box] (src) {(when (> 5 3)\\~~(display "yes")\\~~(newline))};
+\node[box, below=1.2cm of src] (exp) {(if (> 5 3)\\~~(begin\\~~~~(display "yes")\\~~~~(newline)))};
+\draw[arr] (src) -- (exp) node[lbl, midway] {macro expansion};
+\end{tikzpicture}
+\end{center}
 
 \begin{note}[Coming from Python]
 Python has no equivalent feature. Decorators modify functions but cannot create new syntax. Macros operate at the level of code itself---they generate code from code.

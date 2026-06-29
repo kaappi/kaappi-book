@@ -22,6 +22,26 @@ Use case & I/O concurrency, event loops & CPU-bound parallelism \\
 
 For most concurrent programs, fibers are the right choice. Use OS threads only when you need to exploit multiple CPU cores for compute-heavy work.
 
+\begin{center}
+\begin{tikzpicture}[
+    fiber/.style={rectangle, draw, rounded corners, minimum width=3em, minimum height=2em,
+                  font=\sffamily\small},
+    chan/.style={rectangle, draw, thick, minimum width=2em, minimum height=1.5em,
+                font=\sffamily\scriptsize},
+    arr/.style={->, >=stealth, thick},
+    lbl/.style={font=\sffamily\scriptsize}
+]
+\node[fiber] (f1) {Fiber 1};
+\node[chan, right=1cm of f1] (ch) {channel};
+\node[fiber, right=1cm of ch] (f2) {Fiber 2};
+\node[fiber, below=0.6cm of f2] (f3) {Fiber 3};
+\draw[arr] (f1) -- (ch) node[lbl, above, midway] {send};
+\draw[arr] (ch) -- (f2) node[lbl, above, midway] {recv};
+\draw[arr] (ch) |- (f3) node[lbl, right, near end] {recv};
+\node[below=1.4cm of ch, font=\sffamily\scriptsize\itshape] {shared heap, cooperative scheduling};
+\end{tikzpicture}
+\end{center}
+
 \section{Fibers}
 \index{fibers}\index{spawn}
 

@@ -19,7 +19,21 @@ Scheme's key ideas:
     \item \textbf{Hygienic macros.}\index{macros} You can define new syntactic forms that look and behave like built-in ones, without variable-capture bugs.
 \end{itemize}
 
-The R7RS-small standard\index{R7RS} (2013) is the most recent revision of the language. It defines the syntax, semantics, and a set of standard libraries that any conforming implementation must provide.
+The language has been standardized several times over its five-decade history:
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{Year} & \textbf{Standard} & \textbf{Significance} \\
+\hline
+1975 & Original paper & Sussman \& Steele at MIT \\
+1991 & R4RS & First widely adopted standard \\
+1998 & R5RS & The ``classic'' standard; still popular \\
+2007 & R6RS & Larger standard; controversial in the community \\
+2013 & R7RS-small\index{R7RS} & Current standard; returns to minimalism \\
+\end{tabular}
+\end{center}
+
+R7RS-small is what this book teaches. It defines the syntax, semantics, and a set of standard libraries that any conforming implementation must provide.
 
 \section{Scheme vs.\ Python: A First Glimpse}
 
@@ -81,6 +95,52 @@ In Scheme:
 
 \texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates.
 
+\subsection{Closures}
+
+A function that returns a function---a \emph{closure}---works the same way in both languages.
+
+In Python:
+
+\begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
+def make_adder(n):
+    return lambda x: x + n
+
+add5 = make_adder(5)
+add5(3)  # => 8
+\end{lstlisting}
+
+In Scheme:
+
+\begin{lstlisting}
+(define (make-adder n)
+  (lambda (x) (+ x n)))
+
+(define add5 (make-adder 5))
+(add5 3)  ; => 8
+\end{lstlisting}
+
+The inner function remembers \texttt{n} from its enclosing scope. This pattern is fundamental in Scheme---it replaces classes, objects, and much of what other languages need special syntax for.
+
+\subsection{Error Handling}
+
+In Python:
+
+\begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
+try:
+    result = risky_operation()
+except ValueError as e:
+    result = default_value
+\end{lstlisting}
+
+In Scheme:
+
+\begin{lstlisting}
+(guard (e ((error-object? e) default-value))
+  (risky-operation))
+\end{lstlisting}
+
+Scheme's \texttt{guard} is structurally similar to Python's \texttt{try}/\texttt{except}, but it is an expression that produces a value.
+
 \begin{note}[Coming from Python]
 The biggest adjustment is prefix notation: the operator always comes first. Instead of \texttt{2 + 3}, you write \texttt{(+ 2 3)}. Instead of \texttt{f(x, y)}, you write \texttt{(f x y)}. There is no operator precedence to memorize---parentheses make the grouping explicit.
 \end{note}
@@ -98,8 +158,27 @@ Kaappi implements the full R7RS-small specification: all 14 standard libraries, 
 
 When you type a Scheme expression, Kaappi processes it through a pipeline:
 
+\begin{center}
+\begin{tikzpicture}[
+    stage/.style={rectangle, draw, rounded corners, minimum height=2em, minimum width=4.5em,
+                  font=\sffamily\small, text centered},
+    arr/.style={->, >=stealth, thick},
+    lbl/.style={font=\scriptsize, above, midway}
+]
+\node[stage] (src) {Source};
+\node[stage, right=0.8cm of src] (read) {Reader};
+\node[stage, right=0.8cm of read] (exp) {Expander};
+\node[stage, right=0.8cm of exp] (comp) {Compiler};
+\node[stage, right=0.8cm of comp] (vm) {VM};
+\draw[arr] (src) -- (read) node[lbl] {text};
+\draw[arr] (read) -- (exp) node[lbl] {S-expr};
+\draw[arr] (exp) -- (comp) node[lbl] {core};
+\draw[arr] (comp) -- (vm) node[lbl] {bytecode};
+\end{tikzpicture}
+\end{center}
+
 \begin{enumerate}
-    \item \textbf{Reader} --- parses source text into a data structure (an S-expression\index{S-expression}).
+    \item \textbf{Reader}\index{S-expression} --- parses source text into a data structure (an S-expression).
     \item \textbf{Expander} --- processes macros, transforming syntactic sugar into core forms.
     \item \textbf{Compiler} --- translates the expanded code into register-based bytecode through an intermediate representation with optimization passes.
     \item \textbf{Virtual machine}\index{virtual machine} --- executes the bytecode on a register-based VM with a generational garbage collector\index{garbage collector}.
@@ -135,6 +214,14 @@ There are practical reasons to learn Scheme, even if you do not plan to use it a
 \textbf{It makes you a better programmer.} Understanding lexical scope, closures, continuations, and tail recursion at a deep level gives you insight into how all languages work under the hood. Scheme strips away the incidental complexity (classes, decorators, type annotations, build systems) and lets you focus on the essential complexity of the problem you are solving.
 
 \textbf{Kaappi makes it practical.} With a package manager, database drivers, web frameworks, and a C FFI, you are not limited to academic exercises. You can build CLI tools, REST APIs, data pipelines, and automation scripts in Scheme.
+
+\section{How This Book Differs}
+
+Most Scheme books fall into one of two camps: academic textbooks that use Scheme to teach computer science concepts (like SICP), or reference manuals that document every procedure without showing how to build real programs.
+
+This book is neither. It is a \emph{practical programming guide} aimed at working developers. Every concept is motivated by a concrete problem, demonstrated with running code, and followed by exercises you can type into the REPL. Theory appears only when it helps you write better programs.
+
+The book is also specific to Kaappi. While the core language is standard R7RS, the later chapters cover Kaappi-specific features---the FFI, fibers, the package manager, and the ecosystem libraries---that let you build real applications.
 
 \section{What You Will Build}
 

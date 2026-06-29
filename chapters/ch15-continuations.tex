@@ -14,7 +14,24 @@ At every point during execution, there is a ``continuation''---the rest of the w
 (* 3 (+ 1 2))
 \end{lstlisting}
 
-When Scheme evaluates \texttt{(+ 1 2)}, the continuation is ``take the result and multiply it by 3.'' Normally, continuations are implicit---you never see them. Scheme's \texttt{call/cc} makes them explicit.
+When Scheme evaluates \texttt{(+ 1 2)}, the continuation is ``take the result and multiply it by 3'':
+
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={rectangle, draw, rounded corners, font=\ttfamily\small, inner sep=5pt},
+    hole/.style={rectangle, draw, dashed, rounded corners, minimum width=1.5em,
+                 minimum height=1.2em, font=\ttfamily\small},
+    arr/.style={->, >=stealth, thick}
+]
+\node[box] (expr) {(* 3 (+ 1 2))};
+\node[right=2.5cm of expr] (eq) {\Large =};
+\node[box, right=0.8cm of eq] (cont) {(* 3 \phantom{XX})};
+\node[hole] at ([xshift=0.6em]cont.center) {\textbf{?}};
+\node[below=0.3cm of cont, font=\small\itshape] {continuation: (* 3 \rule{1em}{0.4pt})};
+\end{tikzpicture}
+\end{center}
+
+The dashed box is the ``hole'' where the value of \texttt{(+ 1 2)} will be plugged in. Normally, continuations are implicit---you never see them. Scheme's \texttt{call/cc} makes them explicit.
 
 \section{Escape Continuations with \texttt{call/ec}}
 \index{call/ec}\index{escape continuation}

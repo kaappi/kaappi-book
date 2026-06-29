@@ -119,19 +119,43 @@ The following C types are supported in parameter and return type positions:
 
 \section{A Complete Example: SQLite}
 
-Here is a more realistic example that uses SQLite's C API:
+Here is a more realistic example that uses SQLite's C API to create a table, insert a row, and query it:
 
 \begin{lstlisting}
 (import (kaappi ffi))
 
-(define libsqlite (ffi-open "libsqlite3.dylib"))
+(define lib (ffi-open "libsqlite3.dylib"))
 
+;; Bind the functions we need
 (define sqlite3-open
-  (ffi-fn libsqlite "sqlite3_open" '(string pointer) 'int))
+  (ffi-fn lib "sqlite3_open" '(string pointer) 'int))
 (define sqlite3-close
-  (ffi-fn libsqlite "sqlite3_close" '(pointer) 'int))
+  (ffi-fn lib "sqlite3_close" '(pointer) 'int))
+(define sqlite3-exec
+  (ffi-fn lib "sqlite3_exec"
+    '(pointer string pointer pointer pointer) 'int))
 (define sqlite3-errmsg
-  (ffi-fn libsqlite "sqlite3_errmsg" '(pointer) 'string))
+  (ffi-fn lib "sqlite3_errmsg" '(pointer) 'string))
+\end{lstlisting}
+
+\begin{lstlisting}
+;; Open a database (returns a pointer via out-param)
+(define db-ptr (make-ffi-pointer))
+(sqlite3-open ":memory:" db-ptr)
+(define db (ffi-pointer-ref db-ptr))
+
+;; Execute SQL statements
+(define (exec sql)
+  (let ((rc (sqlite3-exec db sql #f #f #f)))
+    (unless (= rc 0)
+      (error "SQLite error" (sqlite3-errmsg db)))))
+
+(exec "CREATE TABLE greetings (lang TEXT, msg TEXT)")
+(exec "INSERT INTO greetings VALUES ('en', 'Hello')")
+(exec "INSERT INTO greetings VALUES ('fi', 'Moi')")
+
+;; Clean up
+(sqlite3-close db)
 \end{lstlisting}
 
 \begin{note}
@@ -191,6 +215,17 @@ FFI calls can crash your program if you get the types wrong---there is no safety
 \begin{warning}[FFI bypasses safety]
 The FFI is inherently unsafe. Incorrect type declarations, buffer overflows, and use-after-free in C code can crash the Kaappi process. Test FFI bindings carefully and prefer ecosystem packages (\texttt{kaappi-sqlite}, \texttt{kaappi-pg}, etc.) when available.
 \end{warning}
+
+\subsection{Debugging FFI Problems}
+
+When FFI calls misbehave, use this checklist:
+
+\begin{enumerate}
+    \item \textbf{Verify the library loaded.} If \texttt{ffi-open} returns without error, the library is found. If it raises an error, check the file name and path. On macOS, use \texttt{otool -L} to inspect a binary's dependencies; on Linux, use \texttt{ldd}.
+    \item \textbf{Check the symbol name.} C++ name-mangling, static linking, and version suffixes can cause \texttt{ffi-fn} to fail. Use \texttt{nm -gU libfoo.dylib | grep function\_name} to confirm the symbol exists.
+    \item \textbf{Match types exactly.} A function declared as returning \texttt{int} but actually returning \texttt{size\_t} may work on some platforms and silently corrupt values on others. Consult the C header file.
+    \item \textbf{Test in isolation.} Bind one function at a time in the REPL. Call it with known inputs and compare against expected outputs before integrating into a larger program.
+\end{enumerate}
 
 \section{FFI and Sandbox Mode}
 \index{sandbox}\index{--sandbox}

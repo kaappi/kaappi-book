@@ -43,11 +43,25 @@ A list is a chain of pairs where each pair's cdr points to the next pair, and th
 
 Here is the structure visualized:
 
-\begin{Verbatim}[fontsize=\small]
-  [1|*]-->[2|*]-->[3|/]
-\end{Verbatim}
+\begin{center}
+\begin{tikzpicture}[
+    cell/.style={rectangle split, rectangle split horizontal, rectangle split parts=2,
+                 draw, minimum height=1.2em, minimum width=2em, font=\ttfamily\small},
+    ptr/.style={->, >=stealth, thick}
+]
+\node[cell] (a) {\nodepart{one}1\nodepart{two}\phantom{X}};
+\node[cell, right=1.2cm of a] (b) {\nodepart{one}2\nodepart{two}\phantom{X}};
+\node[cell, right=1.2cm of b] (c) {\nodepart{one}3\nodepart{two}\phantom{X}};
+\node[right=0.6cm of c.two east, font=\ttfamily\small] (nil) {'()};
+\draw[ptr] (a.two east) -- (b.one west);
+\draw[ptr] (b.two east) -- (c.one west);
+\draw[ptr] (c.two east) -- (nil.west);
+\node[below=0.3em of a.one south, font=\scriptsize] {car};
+\node[below=0.3em of a.two south, font=\scriptsize] {cdr};
+\end{tikzpicture}
+\end{center}
 
-Each box is a pair. The left half is the car (the element), the right half is the cdr (a pointer to the next pair). The \texttt{/} represents \texttt{'()}, the end of the list.
+Each box is a pair. The left half is the car (the element), the right half is the cdr (a pointer to the next pair).
 
 When the cdr chain ends with \texttt{'()}, we call it a \emph{proper list}. Scheme's printing conventions hide the dots for proper lists---\texttt{(1 . (2 . (3 . ())))} is displayed as \texttt{(1 2 3)}.
 
@@ -349,6 +363,26 @@ Not all pairs form proper lists. A pair whose cdr is not a list or the empty lis
 > (cons 1 (cons 2 3))
 (1 2 . 3)
 \end{lstlisting}
+
+Compare the two structures:
+
+\begin{center}
+\begin{tikzpicture}[
+    cell/.style={rectangle split, rectangle split horizontal, rectangle split parts=2,
+                 draw, minimum height=1.2em, minimum width=2em, font=\ttfamily\small},
+    ptr/.style={->, >=stealth, thick}
+]
+\node[font=\sffamily\small\bfseries] at (-0.5,0.8) {Proper list:};
+\node[cell] (a) at (0,0) {\nodepart{one}1\nodepart{two}\phantom{X}};
+\node[cell, right=1cm of a] (b) {\nodepart{one}2\nodepart{two}\phantom{X}};
+\node[right=0.5cm of b.two east, font=\ttfamily\small] (nil) {'()};
+\draw[ptr] (a.two east) -- (b.one west);
+\draw[ptr] (b.two east) -- (nil.west);
+
+\node[font=\sffamily\small\bfseries] at (-0.5,-1.2) {Dotted pair:};
+\node[cell] (c) at (0,-2) {\nodepart{one}1\nodepart{two}2};
+\end{tikzpicture}
+\end{center}
 
 Dotted pairs are useful as lightweight two-element structures---association lists use them for key-value entries. But most list-processing procedures (\texttt{length}, \texttt{map}, \texttt{for-each}) expect proper lists and will error on improper ones.
 
