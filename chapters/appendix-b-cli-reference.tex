@@ -53,7 +53,7 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \begin{tabular}{lp{7.5cm}}
 \textbf{Variable} & \textbf{Description} \\
 \hline
-\texttt{KAAPPI\_LIB\_PATH} & Additional library search directories (colon-separated) \\
+\texttt{KAAPPI\_LIB\_DIR} & Directory containing \texttt{libkaappi\_rt.a} (used by \texttt{kaappi compile}) \\
 \texttt{HOME} & Used to locate \texttt{\textasciitilde/.kaappi/lib/} and \texttt{\textasciitilde/.kaappi/history} \\
 \texttt{NO\_COLOR} & If set, disables REPL syntax highlighting \\
 \end{tabular}
@@ -67,13 +67,12 @@ When resolving \texttt{(import (lib name))}, Kaappi searches for \texttt{lib/nam
     \item Current working directory (\texttt{./})
     \item The \texttt{./lib/} subdirectory
     \item Directories from \texttt{--lib-path} flags (in order)
-    \item Directories from \texttt{KAAPPI\_LIB\_PATH} (colon-separated)
     \item \texttt{\textasciitilde/.kaappi/lib/} (user library directory)
 \end{enumerate}
 
 \section{REPL Comma-Commands}
 
-The REPL supports meta-commands prefixed with \texttt{,} (comma):
+The REPL supports meta-commands prefixed with \texttt{,} (comma). The variable \texttt{\_} holds the last result.
 
 \begin{center}
 \begin{tabular}{lp{7cm}}
@@ -83,28 +82,44 @@ The REPL supports meta-commands prefixed with \texttt{,} (comma):
 \texttt{,quit} & Exit the REPL \\
 \texttt{,time expr} & Measure execution time \\
 \texttt{,type expr} & Show the type of the result \\
-\texttt{,describe name} & Show info about a binding (arity, source) \\
+\texttt{,describe sym} & Show procedure arity and type \\
+\texttt{,apropos str}\index{apropos} & Search bindings by substring \\
+\texttt{,env [prefix]} & List bindings (optionally filtered by prefix) \\
 \texttt{,expand expr} & Show macro expansion \\
-\texttt{,disassemble proc} & Show bytecode of a procedure \\
-\texttt{,trace proc} & Enable tracing for a procedure \\
-\texttt{,untrace proc} & Disable tracing \\
-\texttt{,break proc} & Set a breakpoint on a procedure \\
-\texttt{,break proc condition} & Set a conditional breakpoint \\
-\texttt{,unbreak proc} & Remove a breakpoint \\
-\texttt{,step} & Step into next expression (in debugger) \\
-\texttt{,next} & Step over (in debugger) \\
-\texttt{,out} & Step out of current procedure (in debugger) \\
-\texttt{,continue} & Resume execution (in debugger) \\
-\texttt{,bt} & Show backtrace \\
-\texttt{,frame N} & Select stack frame N \\
-\texttt{,locals} & Show local variables in current frame \\
-\texttt{,watch expr} & Watch an expression during stepping \\
-\texttt{,unwatch expr} & Remove a watch \\
-\texttt{,profile expr} & Profile an expression \\
-\texttt{,gc} & Force a garbage collection \\
-\texttt{,gc-stats} & Show GC statistics \\
-\texttt{,import lib} & Import a library \\
-\texttt{,load file} & Load and evaluate a file \\
+\texttt{,dis expr} & Disassemble a procedure \\
+\texttt{,profile expr} & Profile timing, calls, and allocations \\
+\texttt{,break name} & Set a breakpoint on a function \\
+\texttt{,condition id expr} & Set a conditional breakpoint \\
+\texttt{,breakpoints} & List active breakpoints \\
+\texttt{,delete all} & Clear all breakpoints \\
+\texttt{,step expr} & Evaluate with single-stepping \\
+\texttt{,gc} & Show GC statistics \\
+\texttt{,version} & Show Kaappi version \\
+\texttt{,load file} & Load and run a Scheme file \\
+\texttt{,import lib} & Import a library (e.g., \texttt{,import (srfi 1)}) \\
+\end{tabular}
+\end{center}
+
+\section{Interactive Debugger}
+\index{debugger}
+
+When a breakpoint fires, Kaappi enters an interactive \texttt{debug>} prompt with its own command set:
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+\textbf{Command} & \textbf{Short} & \textbf{Description} \\
+\hline
+\texttt{step} & \texttt{s} & Step into next expression \\
+\texttt{next} & \texttt{n} & Step over \\
+\texttt{finish} & \texttt{out} & Step out of current procedure \\
+\texttt{continue} & \texttt{c} & Continue to next breakpoint \\
+\texttt{locals} & \texttt{l} & Show local variables \\
+\texttt{backtrace} & \texttt{bt} & Show call stack \\
+\texttt{up} & & Inspect caller frame \\
+\texttt{down} & & Inspect callee frame \\
+\texttt{watch var} & & Break on variable change \\
+\texttt{unwatch var} & & Remove a watch \\
+\texttt{quit} & \texttt{q} & Exit debugger \\
 \end{tabular}
 \end{center}
 
@@ -124,8 +139,7 @@ thottam COMMAND [ARGS]
 \texttt{thottam update} & Update all packages to latest versions \\
 \texttt{thottam update PKG} & Update a specific package \\
 \texttt{thottam verify} & Verify integrity of installed packages \\
-\texttt{thottam search TERM} & Search packages by name or description \\
-\texttt{thottam info PKG} & Show package details (version, deps, description) \\
+\texttt{thottam --locked} & Refuse to install packages not in the lockfile \\
 \texttt{thottam --version} & Show thottam version \\
 \texttt{thottam --completions SHELL} & Output shell completions (bash, zsh, fish) \\
 \end{tabular}

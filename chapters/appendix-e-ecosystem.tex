@@ -15,10 +15,10 @@ After installation, import the library in your Scheme code. All packages are MIT
 \begin{tabular}{lp{5.5cm}l}
 \textbf{Package} & \textbf{Description} & \textbf{Import} \\
 \hline
-kaappi-net\index{kaappi-net} & TCP/UDP sockets, TLS & \texttt{(kaappi net)} \\
+kaappi-net\index{kaappi-net} & TCP client/server, TLS client & \texttt{(kaappi net)} \\
 kaappi-http\index{kaappi-http} & HTTP/HTTPS client and server & \texttt{(kaappi http)} \\
-kaappi-web\index{kaappi-web} & Web framework (routing, middleware, sessions) & \texttt{(kaappi web)} \\
-kaappi-template & HTML template engine with auto-escaping & \texttt{(kaappi template)} \\
+kaappi-web\index{kaappi-web} & Web framework (routing, middleware, JSON helpers) & \texttt{(kaappi web)} \\
+kaappi-template & Text and HTML template engine with auto-escaping & \texttt{(kaappi template)} \\
 kaappi-email & SMTP email sending & \texttt{(kaappi email)} \\
 \end{tabular}
 \end{center}
@@ -54,7 +54,7 @@ kaappi-redis & Redis client (commands, pub/sub) & \texttt{(kaappi redis)} \\
 \begin{tabular}{lp{5.5cm}l}
 \textbf{Package} & \textbf{Description} & \textbf{Import} \\
 \hline
-kaappi-crypto\index{kaappi-crypto} & Hashing (SHA-256, BLAKE3), HMAC & \texttt{(kaappi crypto)} \\
+kaappi-crypto\index{kaappi-crypto} & Hashing (SHA-256, SHA-512, MD5), HMAC & \texttt{(kaappi crypto)} \\
 kaappi-log & Structured logging with levels & \texttt{(kaappi log)} \\
 kaappi-cli & CLI argument parsing, subcommands, help & \texttt{(kaappi cli)} \\
 kaappi-math & Extended math (statistics, linear algebra) & \texttt{(kaappi math)} \\
@@ -133,7 +133,6 @@ kaappi-bdd & BDD-style testing (describe, it, expect) & \texttt{(kaappi bdd)} \\
 \texttt{thottam list} & List installed packages \\
 \texttt{thottam update} & Update all packages to latest versions \\
 \texttt{thottam verify} & Verify integrity of installed packages \\
-\texttt{thottam search term} & Search for packages by name \\
 \end{tabular}
 \end{center}
 

@@ -23,7 +23,7 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 125 & Intermediate hash tables (richer API than SRFI-69) \\
 128 & Comparators (for use with sorted/hashed containers) \\
 132 & Sort libraries (list-sort, vector-sort, merge) \\
-133 & Vector library (vector-map, vector-fold, vector-filter, vector-any) \\
+133\textbf{*} & Vector library (vector-map, vector-fold, vector-filter, vector-any) \\
 134 & Immutable deques (double-ended queues) \\
 146 & Mappings (functional key-value maps, also hash variant) \\
 195 & Multiple-value boxes \\
@@ -39,7 +39,7 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \textbf{SRFI} & \textbf{Description} \\
 \hline
 6 & Basic string ports (open-input-string, open-output-string) \\
-13 & String library (contains, split, join, trim, prefix?, suffix?) \\
+13\textbf{*} & String library (contains, split, join, trim, prefix?, suffix?) \\
 14 & Character sets (char-set, char-set-contains?) \\
 28 & Basic format strings (\textasciitilde a, \textasciitilde s placeholders) \\
 48 & Intermediate format strings (numbers, padding) \\
@@ -76,10 +76,10 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 0 & Feature-based conditional expansion (cond-expand) \\
 2 & \texttt{and-let*} --- short-circuit \texttt{let} with guards \\
 8 & \texttt{receive} --- bind formals from multiple values \\
-11\textbf{*} & \texttt{let-values} and \texttt{let*-values} \\
-16\textbf{*} & \texttt{case-lambda} --- procedures with variable arity \\
+11 & \texttt{let-values} and \texttt{let*-values} \\
+16 & \texttt{case-lambda} --- procedures with variable arity \\
 17 & Generalized \texttt{set!} \\
-26\textbf{*} & \texttt{cut} and \texttt{cute} --- partial application notation \\
+26 & \texttt{cut} and \texttt{cute} --- partial application notation \\
 31 & \texttt{rec} --- recursive evaluation shorthand \\
 39\textbf{*} & Parameter objects (dynamic binding) \\
 61 & A more general \texttt{cond} clause \\
@@ -129,8 +129,8 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \hline
 19 & Time data types and procedures (date, time-utc) \\
 37 & \texttt{args-fold} --- program argument processor \\
-98\textbf{*} & Interface to access environment variables \\
-170 & POSIX API (file-info, directories, symlinks, permissions) \\
+98 & Interface to access environment variables \\
+170\textbf{*} & POSIX API (file-info, directories, symlinks, permissions) \\
 174 & POSIX timespecs \\
 \end{tabular}
 \end{center}
@@ -152,7 +152,7 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \begin{tabular}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
-18 & Multithreading (threads, mutexes, condition variables) \\
+18\textbf{*} & Multithreading (threads, mutexes, condition variables) \\
 \end{tabular}
 \end{center}
 
