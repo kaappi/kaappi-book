@@ -101,7 +101,7 @@ Here, \texttt{assv} returns \texttt{(2 "two")} (a true value), and \texttt{=>} p
 "weekday"
 \end{lstlisting}
 
-Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?}, so this works well with symbols, numbers, and characters---but not strings (use \texttt{cond} with \texttt{string=?} for strings).
+Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?}, which tests equality for numbers, characters, booleans, and symbols (but not strings---two strings with the same content may not be \texttt{eqv?}). For matching against strings, use \texttt{cond} with \texttt{string=?} instead.
 
 \begin{lstlisting}[style=repl]
 > (case (+ 2 3)
@@ -156,13 +156,16 @@ A common pattern is using \texttt{or} to provide fallback values:
 
 \begin{lstlisting}[style=repl]
 > (define (get-port config)
-    (let ((entry (assoc "port" config)))
-      (if entry (cdr entry) 8080)))
+    (or (cond ((assoc "port" config) => cdr)
+              (else #f))
+        8080))
 > (get-port '())
 8080
 > (get-port '(("port" . 3000)))
 3000
 \end{lstlisting}
+
+If the \texttt{cond} finds a \texttt{"port"} entry, it extracts the value with \texttt{cdr}; otherwise it returns \texttt{\#f}. The \texttt{or} then provides the default when the result is \texttt{\#f}.
 
 \subsection{Using \texttt{and} for Guarded Access}
 
@@ -198,7 +201,9 @@ Scheme's \texttt{and}/\texttt{or} behave identically to Python's. \texttt{(or va
 #f
 \end{lstlisting}
 
-Remember: since only \texttt{\#f} is false, \texttt{(not 0)} is \texttt{\#f} (not \texttt{\#t}).
+\begin{warning}[Zero is true in Scheme]
+Since only \texttt{\#f} is false in Scheme, \texttt{(not 0)} is \texttt{\#f}---not \texttt{\#t}. This is the opposite of Python, where \texttt{not 0} is \texttt{True}. The same applies to the empty list, the empty string, and every other value: only \texttt{\#f} is false.
+\end{warning}
 
 \section{\texttt{when} and \texttt{unless}}
 \index{when}\index{unless}
@@ -315,22 +320,17 @@ This uses named \texttt{let} for the loop, \texttt{when} for the termination gua
 
 \section*{Exercises}
 
-\begin{exercise}[FizzBuzz with \code{cond}]
-Write a function \code{fizzbuzz} that prints the numbers from 1 to 100, but replaces multiples of 3 with \code{"Fizz"}, multiples of 5 with \code{"Buzz"}, and multiples of both with \code{"FizzBuzz"}. Use \code{cond} for the branching logic and named \code{let} for the loop. Each output should appear on its own line.
+\begin{exercise}[Configurable FizzBuzz]
+The chapter showed a standard FizzBuzz implementation. Generalize it: write a function \code{fizzbuzz-custom} that takes an upper bound \code{n} and an association list of \code{(divisor . word)} pairs. For each number from 1 to \code{n}, print the concatenation of all matching words, or the number itself if no divisor matches:
 
 \begin{lstlisting}[style=repl]
-> (fizzbuzz)
-1
-2
-Fizz
-4
-Buzz
-...
-14
-FizzBuzz
+> (fizzbuzz-custom 15 '((3 . "Fizz") (5 . "Buzz")))
+1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz
+> (fizzbuzz-custom 10 '((2 . "Even") (3 . "Tri")))
+1 Even Tri Even 5 EvenTri 7 Even Tri Even
 \end{lstlisting}
 
-This is the classic interview question---but in Scheme, \code{cond} makes the intent clearer than a chain of \texttt{if}/\texttt{elif} in Python.
+Use named \code{let} for the outer loop, and \code{fold} or a helper function to check each rule. This exercises \code{cond}, \code{when}, named \code{let}, and string operations together.
 \end{exercise}
 
 \begin{exercise}[Letter Grades]

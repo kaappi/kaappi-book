@@ -63,7 +63,7 @@ Here is the structure visualized:
 
 Each box is a pair. The left half is the car (the element), the right half is the cdr (a pointer to the next pair).
 
-When the cdr chain ends with \texttt{'()}, we call it a \emph{proper list}. Scheme's printing conventions hide the dots for proper lists---\texttt{(1 . (2 . (3 . ())))} is displayed as \texttt{(1 2 3)}.
+When the cdr chain ends with \texttt{'()}, we call it a \emph{proper list}. Scheme hides the dots when printing proper lists---\texttt{(1 . (2 . (3 . ())))} is displayed as \texttt{(1 2 3)}.
 
 \section{Creating Lists}
 
@@ -109,6 +109,10 @@ The quote \texttt{'} prevents evaluation. Without it, \texttt{(red green blue)} 
 
 In the quoted version, \texttt{x} is the symbol \texttt{x}, not the value~10.
 \end{warning}
+
+\begin{note}[Quasiquoting]
+Scheme also supports \emph{quasiquoting}\index{quasiquote} for building lists with a mix of literal and computed elements. We will cover this in Chapter~\ref{ch:macros} (Macros).
+\end{note}
 
 \subsection{Building Lists with \texttt{cons}}
 
@@ -259,7 +263,7 @@ An association list\index{alist} is like a Python dictionary, but with O(n) look
 #f
 \end{lstlisting}
 
-\texttt{pair?} tests whether something is a cons cell. \texttt{null?} tests for the empty list. \texttt{list?} tests for a proper list (a chain ending in \texttt{'()}).
+\texttt{pair?} tests whether something is a cons cell. \texttt{null?} tests for the empty list. \texttt{list?} tests for a proper list (a chain ending in \texttt{'()}). Note that \texttt{(list? (cons 1 2))} returns \texttt{\#f} because the cdr is \texttt{2}---not a pair or \texttt{'()}---so the chain does not terminate properly.
 
 \section{Recursive List Processing}
 \index{recursion}
@@ -457,21 +461,21 @@ Write \code{my-map} that applies a function to each element of a list:
 Follow the standard recursive pattern: base case for the empty list, then \code{cons} the transformed first element onto the recursion over the rest.
 \end{exercise}
 
-\begin{exercise}[Flattening Nested Lists]
-Write a function \code{flatten} that takes an arbitrarily nested list structure and returns a flat list of all the non-list elements:
+\begin{exercise}[Deep Reverse]
+Write a function \code{deep-reverse} that reverses a list at every level of nesting. Unlike the plain \code{reverse} from Exercise~2, this function must also reverse any sublists it encounters:
 
 \begin{lstlisting}[style=repl]
-> (flatten '(1 (2 3) (4 (5 (6))) 7))
-(1 2 3 4 5 6 7)
-> (flatten '((((deep)))))
-(deep)
-> (flatten '(1 2 3))
-(1 2 3)
-> (flatten '())
+> (deep-reverse '(1 2 3))
+(3 2 1)
+> (deep-reverse '(1 (2 3) (4 (5 6)) 7))
+(7 ((6 5) 4) (3 2) 1)
+> (deep-reverse '((a b) (c d)))
+((d c) (b a))
+> (deep-reverse '())
 ()
 \end{lstlisting}
 
-This requires two recursive cases: when the \code{car} is itself a pair (recurse into it) and when it is an atom (keep it). An example was shown earlier in this chapter---try writing it from memory before looking back.
+This requires two recursive cases: when the \code{car} is itself a pair (deep-reverse it before collecting), and when it is an atom (keep it as-is). Use an accumulator for the outer reversal.
 \end{exercise}
 
 Lists and pairs are the backbone of Scheme programming. Nearly everything in the language---from data processing to code representation---builds on the ideas in this chapter. In the next chapter, we will define functions in earnest and explore recursion, closures, and tail calls.

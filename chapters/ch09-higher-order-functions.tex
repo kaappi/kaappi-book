@@ -4,12 +4,17 @@
 
 A \emph{higher-order function} is a function that takes another function as an argument or returns a function as its result. You have already seen examples in earlier chapters---\texttt{map}, named \texttt{let} with a procedure argument, and closures. This chapter explores the standard higher-order functions in depth and shows how they replace loops in idiomatic Scheme.
 
+\begin{note}[SRFI-1 imports]
+Several procedures in this chapter---\texttt{filter}, \texttt{remove}, \texttt{partition}, \texttt{fold}, and \texttt{fold-right}---come from SRFI-1\index{SRFI-1} (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} at the top. The REPL makes them available automatically.
+\end{note}
+
 \section{\texttt{map}: Transform Every Element}
 \index{map}
 
 \texttt{map} applies a function to every element of a list, returning a new list of the results:
 
 \begin{lstlisting}[style=repl]
+> (define (square x) (* x x))
 > (map square '(1 2 3 4 5))
 (1 4 9 16 25)
 > (map string-length '("cat" "elephant" "ox"))
@@ -79,7 +84,6 @@ for name in ["Alice", "Bob", "Carol"]:
 \texttt{filter} keeps only the elements for which a predicate returns true:
 
 \begin{lstlisting}[style=repl]
-> (import (srfi 1))
 > (filter even? '(1 2 3 4 5 6 7 8))
 (2 4 6 8)
 > (filter positive? '(-3 -1 0 2 5 -4 7))
@@ -88,10 +92,6 @@ for name in ["Alice", "Bob", "Carol"]:
           '("hi" "hello" "hey" "good morning"))
 ("hello" "good morning")
 \end{lstlisting}
-
-\begin{note}
-\texttt{filter} comes from SRFI-1\index{SRFI-1} (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} to use it. The REPL makes it available automatically.
-\end{note}
 
 \subsection{\texttt{remove}: The Complement of \texttt{filter}}
 \index{remove}
@@ -130,6 +130,15 @@ for name in ["Alice", "Bob", "Carol"]:
 9
 > (fold string-append "" '("a" "b" "c"))
 "cba"
+\end{lstlisting}
+
+Why did \texttt{string-append} produce \texttt{"cba"} instead of \texttt{"abc"}? Because \texttt{fold} passes each element as the \emph{first} argument and the accumulator as the \emph{second}:
+
+\begin{lstlisting}
+;; (fold string-append "" '("a" "b" "c"))
+;; Step 1: (string-append "a" "")  = "a"
+;; Step 2: (string-append "b" "a") = "ba"
+;; Step 3: (string-append "c" "ba") = "cba"
 \end{lstlisting}
 
 The form is \texttt{(fold f init lst)}. The function \texttt{f} takes two arguments: the current element and the accumulator. Processing is left to right, but the accumulator is the \emph{second} argument:
@@ -358,7 +367,7 @@ Hint: for \code{my-length}, the accumulator is a counter. For \code{my-reverse},
 Write a function \code{process-words} that takes a list of strings and:
 \begin{enumerate}
 \item Filters out words shorter than 4 characters
-\item Sorts the remaining words alphabetically (use \code{sort} from SRFI-132, or \code{list-sort})
+\item Sorts the remaining words alphabetically (use \code{list-sort} from SRFI-132: \code{(import (srfi 132))})
 \item Capitalizes each word (upper-case the first letter, lower-case the rest)
 \end{enumerate}
 
@@ -385,20 +394,22 @@ The chapter showed a one-liner using multi-list \code{map}. Can you also write i
 \end{exercise}
 
 \begin{exercise}[\code{take} and \code{drop}]
-Implement \code{take} and \code{drop}, which return the first $n$ elements or skip the first $n$ elements of a list:
+Implement \code{take} and \code{drop}, which return the first $n$ elements or skip the first $n$ elements of a list. Use the SRFI-1 argument order (list first, count second):
 
 \begin{lstlisting}[style=repl]
-> (take 3 '(a b c d e))
+> (take '(a b c d e) 3)
 (a b c)
-> (drop 3 '(a b c d e))
+> (drop '(a b c d e) 3)
 (d e)
-> (take 0 '(1 2 3))
+> (take '(1 2 3) 0)
 ()
-> (drop 10 '(1 2 3))
+> (drop '(1 2 3) 10)
 ()
 \end{lstlisting}
 
-Use recursion or named \code{let}. Handle the case where $n$ exceeds the list length gracefully. Verify that \code{(append (take n lst) (drop n lst))} reconstructs the original list.
+Use recursion or named \code{let}. Handle the case where $n$ exceeds the list length gracefully. Verify that \code{(append (take lst n) (drop lst n))} reconstructs the original list.
+
+SRFI-1 provides built-in \code{take} and \code{drop}---the purpose here is to practice the recursive pattern.
 \end{exercise}
 
 Higher-order functions are the backbone of functional programming in Scheme. By combining \texttt{map}, \texttt{filter}, and \texttt{fold}, you can express most data transformations without writing explicit recursion. In the next chapter, we cover input and output---reading from files, writing to the console, and working with ports.

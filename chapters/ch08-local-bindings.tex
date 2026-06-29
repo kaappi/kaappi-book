@@ -196,13 +196,15 @@ Both produce 45. Use whichever reads better for your situation.
 Inside a \texttt{lambda}, \texttt{let}, or \texttt{define} body, you can use \texttt{define} to create local bindings:
 
 \begin{lstlisting}[style=repl]
-> (define (quadratic a b c x)
-    (define discriminant (- (* b b) (* 4 a c)))
-    (define term1 (- b))
-    (define term2 (sqrt (abs discriminant)))
-    (/ (+ term1 term2) (* 2 a)))
-> (quadratic 1 -3 2 0)
-2
+> (define (circle-stats radius)
+    (define pi 3.141592653589793)
+    (define r-squared (* radius radius))
+    (define area (* pi r-squared))
+    (define circumference (* 2 pi radius))
+    (values area circumference))
+> (circle-stats 5)
+78.53981633974483
+31.41592653589793
 \end{lstlisting}
 
 Internal \texttt{define}s are equivalent to \texttt{letrec*}---they can refer to each other and allow mutual recursion. This is the most common way to define local helper functions:
@@ -328,6 +330,25 @@ Write a function \code{euclidean-gcd} that computes the greatest common divisor 
 \end{lstlisting}
 
 The algorithm is: if \code{b} is zero, the GCD is \code{a}; otherwise, replace \code{(a, b)} with \code{(b, a mod b)} and repeat. In Python: \texttt{while b: a, b = b, a \% b}. The named \code{let} version maps each ``iteration'' to a tail call.
+
+Kaappi provides a built-in \code{gcd} procedure---the purpose here is to practice named \code{let}.
+\end{exercise}
+
+\begin{exercise}[Mutual Recursion with \code{letrec}]
+Write a function \code{balanced-parens?} that checks whether a string of parentheses is balanced (e.g., \code{"(()())"} is balanced, \code{"(()"} is not). Use \code{letrec} to define two mutually recursive helpers: \code{expect-open} looks for an opening paren or end of input, and \code{expect-close} tracks the nesting depth:
+
+\begin{lstlisting}[style=repl]
+> (balanced-parens? "(()())")
+#t
+> (balanced-parens? "(()")
+#f
+> (balanced-parens? "")
+#t
+> (balanced-parens? ")(")
+#f
+\end{lstlisting}
+
+Hint: convert the string to a list of characters with \code{string->list}, then walk the list recursively. One approach uses a single recursive function with a depth counter, but the exercise asks for \code{letrec} with two cooperating functions to practice mutual recursion.
 \end{exercise}
 
 You now have a complete understanding of how Scheme manages local scope. Every variable's lifetime and visibility is explicit, which eliminates an entire class of scoping bugs. In the next chapter, we turn to higher-order functions---procedures that take functions as arguments or return them as results.

@@ -118,7 +118,7 @@ Most list processing follows this pattern: check for empty (base case), process 
         '()
         (cons (f (car lst))
               (my-map f (cdr lst)))))
-> (my-map square '(1 2 3 4 5))
+> (my-map square '(1 2 3 4 5))  ; square was defined above
 (1 4 9 16 25)
 \end{lstlisting}
 
@@ -290,7 +290,7 @@ Scheme functions can return multiple values using \texttt{values}:
 2
 \end{lstlisting}
 
-To receive multiple values, use \texttt{call-with-values}\index{call-with-values} or the more convenient \texttt{let-values}:
+To receive multiple values, use \texttt{call-with-values}\index{call-with-values} or the more convenient \texttt{let-values}\index{let-values} (covered in detail in Chapter~\ref{ch:bindings}):
 
 \begin{lstlisting}[style=repl]
 > (let-values (((q r) (divide 17 5)))
@@ -382,7 +382,7 @@ Write \code{my-compose} that takes two functions \code{f} and \code{g} and retur
 "HELLO!"
 \end{lstlisting}
 
-Bonus: extend \code{my-compose} to accept any number of functions using rest arguments and \code{fold}.
+Bonus (after reading Chapter~\ref{ch:hof}): extend \code{my-compose} to accept any number of functions using rest arguments and \code{fold}.
 \end{exercise}
 
 \begin{exercise}[Variadic Maximum]
