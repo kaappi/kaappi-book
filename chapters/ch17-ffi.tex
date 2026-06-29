@@ -223,6 +223,8 @@ FFI calls can crash your program if you get the types wrong---there is no safety
 The FFI is inherently unsafe. Incorrect type declarations, buffer overflows, and use-after-free in C code can crash the Kaappi process. Test FFI bindings carefully and prefer ecosystem packages (\texttt{kaappi-sqlite}, \texttt{kaappi-pg}, etc.) when available.
 \end{warning}
 
+The FFI error messages you are most likely to encounter, with their fixes, are listed in Appendix~\ref{app:errors}.
+
 \subsection{Debugging FFI Problems}
 
 When FFI calls misbehave, use this checklist:
@@ -243,7 +245,7 @@ Kaappi's \texttt{--sandbox} mode disables the FFI entirely. This is useful for r
 kaappi --sandbox untrusted.scm
 \end{lstlisting}
 
-In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures raise an error when called.
+In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures raise an error when called. See Appendix~\ref{app:cli} for the full set of command-line options, including \texttt{--sandbox}.
 
 \section{When to Use the FFI}
 
@@ -251,6 +253,15 @@ In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures 
     \item \textbf{Use it} when you need a C library that has no Scheme wrapper (niche libraries, system APIs, hardware interfaces).
     \item \textbf{Prefer ecosystem packages} (\texttt{thottam install ...}) when they exist---they handle error checking, memory management, and provide idiomatic Scheme interfaces.
     \item \textbf{Consider writing a library} if you find yourself wrapping more than a few functions. Publish it via thottam so others benefit.
+\end{itemize}
+
+\section*{Summary}
+
+\begin{itemize}
+    \item The \texttt{(kaappi ffi)} library calls C functions in shared libraries at runtime.
+    \item \texttt{ffi-open} loads a shared library and \texttt{ffi-fn} binds a C function to a Scheme procedure given its type signature.
+    \item The FFI supports integer, floating-point, string, and pointer types, and can pass Scheme procedures to C as callbacks.
+    \item The FFI is inherently unsafe and is disabled by \texttt{--sandbox}; prefer ecosystem packages when they exist.
 \end{itemize}
 
 \section*{Exercises}
@@ -308,6 +319,6 @@ Test it by binding and calling \code{ceil} from libm:
 Verify that the library is closed after the call returns. What happens if you try to use a function bound from a closed library?
 \end{exercise}
 
-You now know how to call C code from Scheme: open a shared library, bind functions with type signatures, handle strings and pointers, create callbacks, and manage cleanup. In the next chapter, we cover concurrency---fibers, channels, and threads.
+In the next chapter, we cover concurrency---fibers, channels, and threads.
 
 \chapterend

@@ -357,6 +357,15 @@ Usage:
 
 Each number is squared then incremented, with each stage running as a separate fiber.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item Kaappi offers two concurrency models: lightweight cooperative fibers and preemptive OS threads.
+    \item Fibers are scheduled cooperatively and communicate through channels, supporting producer-consumer, fan-out, and racing patterns.
+    \item OS threads (SRFI-18) use deep-copy semantics and synchronize with mutexes and condition variables.
+    \item Use fibers for I/O-bound concurrency and threads for CPU-bound parallelism.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Three-Stage Fiber Pipeline]
@@ -441,6 +450,6 @@ Test it by creating a pool of 3 workers and submitting 10 jobs:
 Why would you use a fixed pool of workers instead of spawning one fiber per job? (Hint: think about what happens with 10,000 jobs that each open a network connection.) This is analogous to Python's \code{concurrent.futures.ThreadPoolExecutor}.
 \end{exercise}
 
-You now understand both of Kaappi's concurrency models: fibers for lightweight cooperative multitasking with channel-based communication, and OS threads for CPU-bound parallelism with deep-copy safety. This completes Part~IV. The appendices that follow provide quick references for the R7RS standard and the Kaappi CLI.
+This completes Part~IV. The appendices that follow provide quick references for the R7RS standard and the Kaappi CLI.
 
 \chapterend

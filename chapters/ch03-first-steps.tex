@@ -337,6 +337,16 @@ Notice that \texttt{(fahrenheit->celsius 72)} returns the exact rational \texttt
 22.22222222222222
 \end{lstlisting}
 
+\section*{Summary}
+
+\begin{itemize}
+    \item Scheme programs are built entirely from expressions in prefix notation, so there are no operator-precedence rules to memorize.
+    \item The atomic data types are numbers, strings, booleans, characters, and symbols.
+    \item \texttt{define} binds both variables and named functions, and functions are themselves first-class values.
+    \item \texttt{if} and \texttt{cond} select between alternatives based on a condition.
+    \item Code can be documented with line comments (\texttt{;}) and block comments.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Predict and Check]
@@ -431,6 +441,6 @@ Write a function \code{(describe-temp t)} that takes a temperature in Celsius an
 Hint: you will need both \code{<} and \code{<=} (or \code{>=}) to express the boundary conditions.
 \end{exercise}
 
-You now know how to evaluate expressions, work with the basic data types, define variables and functions, write conditionals, and add comments. These are the building blocks of every Scheme program. In the next chapter, we will explore Scheme's data types in depth.
+In the next chapter, we will explore Scheme's data types in depth.
 
 \chapterend

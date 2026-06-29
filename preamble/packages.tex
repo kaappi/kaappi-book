@@ -38,7 +38,9 @@
 
 % Index
 \usepackage{imakeidx}
-\makeindex[columns=2, title=Index, intoc]
+% noautomatic: leave index generation to latexmk/the Makefile (avoids
+% imakeidx's restricted shell-escape call failing under -output-directory).
+\makeindex[columns=2, title=Index, intoc, noautomatic]
 
 % TOC depth
 \setcounter{tocdepth}{2}

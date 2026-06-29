@@ -358,6 +358,16 @@ Usage:
 > (number-lines "input.txt" "output.txt")
 \end{lstlisting}
 
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{display} produces human-readable output, while \texttt{write} produces machine-readable output that \texttt{read} can parse back.
+    \item \texttt{read-line} reads a line of text and \texttt{read} reads a single Scheme datum.
+    \item All I/O flows through ports; \texttt{call-with-port} and the \texttt{with-*-to-file} forms open and close them safely.
+    \item String ports perform in-memory I/O, including capturing output as a string.
+    \item Input procedures return the EOF object when input is exhausted.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[A Simple \code{cat}]
@@ -412,6 +422,6 @@ Use string ports to implement \code{serialize} and \code{deserialize} functions 
 \code{serialize} should use \code{open-output-string} and \code{write}. \code{deserialize} should use \code{open-input-string} and \code{read}. Test with various types: numbers, strings, booleans, nested lists, and symbols. Why is \code{write} (not \code{display}) essential for round-tripping?
 \end{exercise}
 
-You now understand Scheme's port-based I/O system: console output with \texttt{display}/\texttt{write}/\texttt{newline}, input with \texttt{read-line}/\texttt{read}, file operations with \texttt{call-with-port}, and string ports for in-memory I/O. This completes Part~II of the book. In Part~III, we move to advanced topics, starting with Scheme's powerful macro system (Chapter~\ref{ch:macros}).
+This completes Part~II of the book. In Part~III, we move to advanced topics, starting with Scheme's powerful macro system (Chapter~\ref{ch:macros}).
 
 \chapterend

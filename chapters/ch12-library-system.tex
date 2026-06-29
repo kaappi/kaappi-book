@@ -60,6 +60,10 @@ Beyond these, Kaappi provides 72 SRFIs importable as \texttt{(srfi N)}:
 
 Sometimes you want to import only specific names, avoid conflicts, or add a prefix. Import modifiers give you fine-grained control.
 
+\begin{note}[Coming from Python]
+Scheme's \texttt{import} brings names in \emph{unqualified} by default---closer to Python's \texttt{from module import *} than to \texttt{import module}. There is no \texttt{module.name} access; every imported binding becomes a plain top-level name. The modifiers below recover the control Python gives you: \texttt{only} is like \texttt{from m import a, b}; \texttt{rename} is like \texttt{from m import a as b}; and \texttt{prefix} gives you qualified-looking names such as \texttt{ht:ref}.
+\end{note}
+
 \subsection{\texttt{only}: Import Specific Names}
 \index{only}
 
@@ -109,6 +113,10 @@ Modifiers can be nested:
 (import (prefix (only (srfi 1) fold filter partition) list:))
 ;; Now available as: list:fold, list:filter, list:partition
 \end{lstlisting}
+
+\begin{warning}[Name conflicts are resolved silently]
+If two imported libraries export the same name, Kaappi does not raise an error---the \emph{last} import wins, and the earlier binding is silently shadowed. That makes accidental clashes easy to miss. When two libraries you need both export the same name, make your intent explicit with \texttt{only}, \texttt{except}, \texttt{prefix}, or \texttt{rename}.
+\end{warning}
 
 \section{Writing Your Own Library}
 \index{define-library}\index{.sld files}
@@ -287,7 +295,16 @@ After installation, you can import the library directly:
 (import (kaappi json))
 \end{lstlisting}
 
-Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, which is always on the search path. We will use several ecosystem packages in Part~IV.
+Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, which is always on the search path. We will use several ecosystem packages in Part~IV; Appendix~\ref{app:ecosystem} catalogs the packages available through thottam.
+
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{import} brings library bindings into scope, and the modifiers \texttt{only}, \texttt{except}, \texttt{prefix}, and \texttt{rename} control exactly what is imported.
+    \item \texttt{define-library} declares a library with explicit \texttt{export} and \texttt{import} sets.
+    \item Libraries are found through the search path, and \texttt{include} and \texttt{cond-expand} support file inclusion and conditional code.
+    \item The \texttt{thottam} package manager publishes and installs third-party packages.
+\end{itemize}
 
 \section*{Exercises}
 
@@ -335,6 +352,6 @@ Write a library \code{(mylib greeting)} that uses \code{cond-expand} to export a
 \end{lstlisting}
 \end{exercise}
 
-You now know how to organize Scheme code into libraries with explicit interfaces, control imports with modifiers, structure multi-file projects, and use third-party packages. In the next chapter (Chapter~\ref{ch:errors}), we cover error handling and exception management.
+In the next chapter (Chapter~\ref{ch:errors}), we cover error handling and exception management.
 
 \chapterend

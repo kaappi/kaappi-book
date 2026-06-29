@@ -336,6 +336,17 @@ A few patterns come up frequently when working with functions.
 
 These patterns---composition, partial application, and higher-order functions in general---are the tools Scheme gives you in place of classes and inheritance. They are simpler, more composable, and often more powerful.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item Define named functions with \texttt{define} and anonymous ones with \texttt{lambda}; both create the same kind of procedure.
+    \item Recursion is Scheme's primary looping mechanism, and tail-recursive calls run in constant space.
+    \item Named \texttt{let} expresses loops as local tail recursion.
+    \item Closures capture their defining environment, enabling private, mutable state.
+    \item Variadic functions use a rest parameter, and \texttt{apply} spreads a list into individual arguments.
+    \item Procedures can return several results with \texttt{values} and \texttt{call-with-values}.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Tail-Recursive Summation]
@@ -417,6 +428,6 @@ The naive Fibonacci function shown earlier in this chapter is O($2^n$). Rewrite 
 Hint: at each step, the new \code{a} becomes the old \code{b}, and the new \code{b} becomes \code{a + b}. This mirrors the named \code{let} version from the tail-call section---try writing it from scratch without looking back.
 \end{exercise}
 
-You now understand how to define functions, write recursive algorithms with tail-call guarantees, create closures with private state, handle variable arguments, and compose functions. These are the core skills of Scheme programming. The next chapter covers control flow in depth.
+The next chapter covers control flow in depth.
 
 \chapterend

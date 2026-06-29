@@ -100,9 +100,13 @@ The book is organized into four parts:
 
 Each chapter builds on the previous ones. If you are new to Scheme, work through them in order. If you already know some Scheme and want to learn what Kaappi offers beyond the standard, skip to Part~IV.
 
+The appendices are reference material to dip into as needed: an R7RS quick reference, a command-line reference, the full SRFI catalog, common error messages and their fixes, the ecosystem package list, a glossary, and pointers for further reading. If you hit an unfamiliar term while reading, the Glossary (Appendix~\ref{app:glossary}) is the fastest place to look it up.
+
 The most effective way to use this book is with the Kaappi REPL open beside it. Type every example. Modify them. Break them. The REPL gives instant feedback, and that tight loop between reading and trying is how Scheme clicks.
 
 Exercises appear at the end of most chapters. They are not optional filler---they are where you solidify your understanding. Attempt them before moving on.
+
+This book does not print exercise solutions, and that is deliberate. Scheme makes it easy to check your own work: type your answer into the REPL, compare its output against the expected result shown in the exercise, and refine until they match. Many exercises are open-ended---there is no single correct answer, and the point is to build fluency rather than match a key. If you get truly stuck, reread the relevant section with the REPL open and experiment until the behavior makes sense.
 
 \section*{Conventions}
 
@@ -113,6 +117,7 @@ Throughout this book:
     \item[REPL sessions] show interactive input (lines starting with \texttt{>}) and output. Type the input lines into your Kaappi REPL to follow along.
     \item[Notes] provide supplementary information, tips, or comparisons to Python.
     \item[Warnings] highlight common mistakes and pitfalls.
+    \item[Summaries] recap a chapter's key points in a short bulleted list at the end, just before the exercises.
     \item[Exercises] are numbered per chapter and provide practice problems of increasing difficulty.
 \end{description}
 
@@ -125,12 +130,16 @@ Throughout this book:
 % Part I: Getting Started
 \part{Getting Started}
 
+This part takes you from nothing to a working setup. You will see what Scheme and Kaappi are, install the interpreter, get comfortable in the REPL, and write your first expressions and functions. By the end you will be ready to explore the language in depth.
+
 \input{chapters/ch01-introduction}
 \input{chapters/ch02-installation}
 \input{chapters/ch03-first-steps}
 
 % Part II: The Language
 \part{The Language}
+
+This is the heart of the book. These chapters cover the core of Scheme---data types, lists and pairs, functions, control flow, local bindings, higher-order functions, and input and output---introducing one concept at a time. Work through them in order, since each chapter builds directly on the ones before it.
 
 \input{chapters/ch04-data-types}
 \input{chapters/ch05-lists-and-pairs}
@@ -143,6 +152,8 @@ Throughout this book:
 % Part III: Advanced Topics
 \part{Advanced Topics}
 
+With the fundamentals in hand, this part turns to Scheme's more powerful tools: macros that extend the language's own syntax, the library system for organizing code into modules, structured error handling, user-defined record types, and continuations. Read it once you are comfortable writing functions and working with lists.
+
 \input{chapters/ch11-macros}
 \input{chapters/ch12-library-system}
 \input{chapters/ch13-error-handling}
@@ -152,6 +163,8 @@ Throughout this book:
 % Part IV: Beyond R7RS
 \part{Beyond R7RS}
 
+This part explores what Kaappi adds on top of the standard: its catalog of SRFI libraries, the C foreign function interface for calling native code, and concurrency with fibers and threads. If you already know Scheme, this is a good place to start.
+
 \input{chapters/ch16-standard-library}
 \input{chapters/ch17-ffi}
 \input{chapters/ch18-concurrency}
@@ -159,6 +172,8 @@ Throughout this book:
 % Appendices
 \appendix
 \part{Appendices}
+
+The appendices are reference material to reach for as you read or keep handy while you program: a quick R7RS reference, the command-line interface, the full SRFI catalog, common error messages, the ecosystem packages, a glossary, and pointers for further study.
 
 \input{chapters/appendix-a-r7rs-reference}
 \input{chapters/appendix-b-cli-reference}

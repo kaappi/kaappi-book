@@ -2,7 +2,7 @@
 \index{SRFI}\index{standard library}
 \label{ch:stdlib}
 
-Beyond the 15 R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each.
+Beyond the 15 R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all 72 SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
 
 \section{What Are SRFIs?}
 
@@ -332,6 +332,15 @@ Indexed random access & Vector & 133 & O(1) \\
 \end{tabular}
 \end{center}
 
+\section*{Summary}
+
+\begin{itemize}
+    \item SRFIs are community-standard libraries; Kaappi ships 72 of them, each imported with \texttt{(import (srfi N))}.
+    \item SRFI-1 extends list processing, SRFI-13 extends strings, and SRFI-69 provides hash tables.
+    \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random numbers), and SRFI-115 (regular expressions) cover common needs.
+    \item SRFI-158 provides generators, and other SRFIs add sets and bags, format strings, and the Maybe and Either types.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Student Records with SRFI-1]
@@ -401,6 +410,6 @@ Using SRFI-158, create a procedure \code{(make-fib-generator)} that returns a ge
 Hint: use \code{make-unfold-generator} or build one manually with a closure that tracks two state variables. In Python, this would be a function with \code{yield}.
 \end{exercise}
 
-You now have a map of Kaappi's extended standard library. The SRFIs cover nearly every common data structure and algorithm. In the next chapter, we explore calling C code from Scheme using the foreign function interface.
+In the next chapter, we explore calling C code from Scheme using the foreign function interface.
 
 \chapterend

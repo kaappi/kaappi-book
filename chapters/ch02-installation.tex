@@ -292,7 +292,16 @@ List installed packages:
 thottam list
 \end{Verbatim}
 
-The ecosystem includes libraries for HTTP, web frameworks, PostgreSQL, SQLite, Redis, JSON, TOML, YAML, CSV, email, cryptography, logging, testing, and CLI tools. We will use several of these in later chapters.
+The ecosystem includes libraries for HTTP, web frameworks, PostgreSQL, SQLite, Redis, JSON, TOML, YAML, CSV, email, cryptography, logging, testing, and CLI tools. We will use several of these in later chapters; Appendix~\ref{app:ecosystem} lists them with brief descriptions.
+
+\section*{Summary}
+
+\begin{itemize}
+    \item Install Kaappi with the one-line script, a manual binary download, or a source build, and confirm it with \texttt{kaappi --version}.
+    \item The REPL provides multi-line input, line editing, tab completion, syntax highlighting, history, and the \texttt{\_} result variable.
+    \item Run programs from files with \texttt{kaappi file.scm}; editors integrate through Kaappi's LSP server.
+    \item The \texttt{thottam} package manager installs third-party libraries into \texttt{\textasciitilde/.kaappi/lib/}, which is always on the search path.
+\end{itemize}
 
 \section*{Exercises}
 
@@ -346,6 +355,6 @@ The REPL provides special commands prefixed with a comma. Type \code{,help} at t
 What does \code{,env} show before and after you define \code{x}? What other comma-commands look useful for debugging?
 \end{exercise}
 
-You now have Kaappi installed, know how to use the REPL, can run script files, and are aware of the editor and package ecosystem. In the next chapter, we will start writing Scheme in earnest.
+Appendix~\ref{app:cli} is a complete reference for the command-line interface---commands, options, environment variables, and REPL comma-commands---when you need to look something up. In the next chapter, we will start writing Scheme in earnest.
 
 \chapterend

@@ -36,6 +36,7 @@ build/                Output directory (gitignored)
 - Every concept must have a runnable Kaappi code example
 - Compare to Python equivalents when it clarifies (e.g., "like Python's list comprehension")
 - Keep code examples under 20 lines; split longer demos into steps
+- End each chapter with a `\section*{Summary}` (a short `itemize` of key takeaways) placed immediately before the Exercises section
 - Exercises go at the end of chapters inside `\begin{exercise}...\end{exercise}`
 
 ## LaTeX Conventions
@@ -61,6 +62,7 @@ build/                Output directory (gitignored)
 - Inline code: `\code{define}` or `\lstinline{(+ 1 2)}`
 - Informational callout: `\begin{note}[Title]...\end{note}`
 - Pitfall/danger: `\begin{warning}[Title]...\end{warning}`
+- Chapter summary: `\section*{Summary}` containing an `itemize` of key takeaways, immediately before `\section*{Exercises}`
 - Practice problems: `\begin{exercise}[Title]...\end{exercise}` (auto-numbered per chapter)
 - REPL output display: `\begin{codeoutput}[Title]...\end{codeoutput}`
 - Section transition: `\sectionbreak`

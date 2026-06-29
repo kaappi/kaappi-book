@@ -2,7 +2,7 @@
 \index{error handling}\index{exceptions}
 \label{ch:errors}
 
-Programs encounter errors: files that do not exist, invalid user input, network failures, division by zero. Scheme provides a structured exception system with \texttt{guard} for catching errors, \texttt{raise} for signaling them, and \texttt{error} for creating error objects. This chapter covers all three, plus strategies for writing robust code.
+Programs encounter errors: files that do not exist, invalid user input, network failures, division by zero. Scheme provides a structured exception system with \texttt{guard} for catching errors, \texttt{raise} for signaling them, and \texttt{error} for creating error objects. This chapter covers all three, plus strategies for writing robust code. When you hit an error you do not recognize, Appendix~\ref{app:errors} lists the most common messages along with their causes and fixes.
 
 \section{The \texttt{error} Procedure}
 \index{error}
@@ -303,6 +303,15 @@ This wraps the low-level file-not-found error in a domain-specific message while
     (thunk)))
 \end{lstlisting}
 
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{error} signals a condition with a message and irritants, while \texttt{raise} signals any object.
+    \item \texttt{guard} catches exceptions with \texttt{cond}-style clauses, and \texttt{with-exception-handler} is the underlying primitive.
+    \item Records make good custom error types, letting handlers distinguish one kind of error from another.
+    \item Common patterns include supplying default values on error, guaranteeing cleanup, and asserting preconditions.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Safe Division]
@@ -361,6 +370,6 @@ Write a \code{with-default} procedure that takes a default value and a thunk. It
 \end{lstlisting}
 \end{exercise}
 
-You now know how to signal errors with \texttt{error}, catch them with \texttt{guard}, raise custom conditions with \texttt{raise}, and write robust code that fails gracefully. In the next chapter (Chapter~\ref{ch:records}), we define custom data types with records.
+In the next chapter (Chapter~\ref{ch:records}), we define custom data types with records.
 
 \chapterend

@@ -1,26 +1,27 @@
 MAIN = main
 JOBNAME = kaappi-book
 BUILD_DIR = build
-LATEX = xelatex
-LATEX_FLAGS = -output-directory=$(BUILD_DIR) -jobname=$(JOBNAME) -interaction=nonstopmode -halt-on-error
+COMMON_FLAGS = -output-directory=$(BUILD_DIR) -jobname=$(JOBNAME) -interaction=nonstopmode -halt-on-error
+LATEXMK = latexmk
+LATEXMK_FLAGS = -xelatex $(COMMON_FLAGS)
+XELATEX = xelatex
 
 .PHONY: all clean view once
 
-all: $(BUILD_DIR)/$(JOBNAME).pdf
-
-$(BUILD_DIR)/$(JOBNAME).pdf: $(MAIN).tex preamble/*.tex chapters/*.tex
+# Full build: latexmk runs XeLaTeX (and makeindex) as many times as needed
+# to resolve the TOC, index, and cross-references.
+all:
 	@mkdir -p $(BUILD_DIR)
-	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
-	-cd $(BUILD_DIR) && makeindex $(JOBNAME).idx
-	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
-	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
+	$(LATEXMK) $(LATEXMK_FLAGS) $(MAIN).tex
 
+# Quick iteration: a single XeLaTeX pass (TOC/index/refs may be stale).
 once:
 	@mkdir -p $(BUILD_DIR)
-	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
+	$(XELATEX) $(COMMON_FLAGS) $(MAIN).tex
+
+view: all
+	open $(BUILD_DIR)/$(JOBNAME).pdf
 
 clean:
+	-$(LATEXMK) -C $(COMMON_FLAGS) $(MAIN).tex >/dev/null 2>&1
 	rm -rf $(BUILD_DIR)/*
-
-view: $(BUILD_DIR)/$(JOBNAME).pdf
-	open $(BUILD_DIR)/$(JOBNAME).pdf

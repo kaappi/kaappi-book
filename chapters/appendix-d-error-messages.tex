@@ -1,5 +1,6 @@
 \chapter{Common Error Messages}
 \index{error messages}\index{troubleshooting}
+\label{app:errors}
 
 This appendix lists the most frequent error messages you will encounter while learning Kaappi, along with their causes and fixes.
 
@@ -109,7 +110,7 @@ This appendix lists the most frequent error messages you will encounter while le
 
 \textbf{Cause:} Non-tail-recursive function with deep recursion (e.g., processing a very long list without TCO).
 
-\textbf{Fix:} Rewrite as a tail-recursive function using an accumulator or named \texttt{let}. See Chapter~6 for the tail-call pattern.
+\textbf{Fix:} Rewrite as a tail-recursive function using an accumulator or named \texttt{let}. See Chapter~\ref{ch:functions} for the tail-call pattern.
 
 \section{FFI Errors}
 

@@ -211,7 +211,7 @@ Many list operations are special cases of fold:
 \section{\texttt{apply}: Spreading a List as Arguments}
 \index{apply}
 
-\texttt{apply} was introduced in Chapter~6, but it is worth revisiting in the context of higher-order programming. It calls a function with elements from a list as individual arguments:
+\texttt{apply} was introduced in Chapter~\ref{ch:functions}, but it is worth revisiting in the context of higher-order programming. It calls a function with elements from a list as individual arguments:
 
 \begin{lstlisting}[style=repl]
 > (apply + '(1 2 3 4 5))
@@ -324,6 +324,16 @@ Higher-order functions are elegant, but they are not always the best choice:
     \item \textbf{Multiple outputs:} If you need both the filtered elements and the rejected ones, use \texttt{partition} rather than calling \texttt{filter} twice.
 \end{itemize}
 
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{map} transforms every element of a list, while \texttt{for-each} applies a procedure for its side effects.
+    \item \texttt{filter}, \texttt{remove}, and \texttt{partition} select elements by a predicate.
+    \item \texttt{fold} reduces a list to a single value and can express \texttt{map}, \texttt{filter}, \texttt{length}, and more.
+    \item \texttt{apply} spreads a list as arguments, and higher-order functions compose into data-processing pipelines.
+    \item Higher-order functions usually replace explicit recursion, though sometimes plain recursion is clearer.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Extracting Data with \code{map} and \code{filter}]
@@ -412,6 +422,6 @@ Use recursion or named \code{let}. Handle the case where $n$ exceeds the list le
 SRFI-1 provides built-in \code{take} and \code{drop}---the purpose here is to practice the recursive pattern.
 \end{exercise}
 
-Higher-order functions are the backbone of functional programming in Scheme. By combining \texttt{map}, \texttt{filter}, and \texttt{fold}, you can express most data transformations without writing explicit recursion. In the next chapter, we cover input and output---reading from files, writing to the console, and working with ports.
+In the next chapter, we cover input and output---reading from files, writing to the console, and working with ports.
 
 \chapterend

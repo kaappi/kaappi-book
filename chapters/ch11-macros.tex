@@ -290,6 +290,10 @@ You can define macros with limited scope using \texttt{let-syntax}:
 
 The macro \texttt{double} exists only within the body. For mutually recursive macros, use \texttt{letrec-syntax}.
 
+\begin{warning}[Macro arguments may be evaluated more than once]
+A \texttt{syntax-rules} macro substitutes its arguments as \emph{code}, not as computed values. If a pattern variable appears several times in the template, its argument expression runs once for each occurrence. A \texttt{square} macro whose body is \texttt{(* x x)} expands \texttt{(square (read))} into \texttt{(* (read) (read))}, reading its input twice. When an argument may have side effects or is expensive, bind it once with \texttt{let} inside the macro before reusing it.
+\end{warning}
+
 \section{When to Use Macros}
 
 Macros are powerful but should not be overused. Use a macro when:
@@ -302,6 +306,16 @@ Macros are powerful but should not be overused. Use a macro when:
 \end{itemize}
 
 Do \emph{not} use a macro when a function would suffice. Functions are simpler, composable (you can pass them to \texttt{map}), and easier to debug. If your ``macro'' does not need to delay evaluation or introduce bindings, make it a function.
+
+\section*{Summary}
+
+\begin{itemize}
+    \item Macros transform code at expansion time, before evaluation, letting you add new syntactic forms.
+    \item \texttt{syntax-rules} matches input against patterns and rewrites it using output templates.
+    \item The ellipsis (\texttt{...}) matches and expands sequences of forms and can be nested.
+    \item Scheme macros are hygienic, so introduced identifiers never accidentally capture the user's variables.
+    \item \texttt{let-syntax} defines local macros; reach for macros only when a function cannot do the job.
+\end{itemize}
 
 \section*{Exercises}
 
@@ -359,6 +373,6 @@ Write a \code{with-logging} macro that prints an entry message before evaluating
 As a bonus, make it print the elapsed time in the exit message using \code{current-second}.
 \end{exercise}
 
-You now know how to extend Scheme's syntax with hygienic, pattern-based macros. This is a capability that few mainstream languages offer. In the next chapter (Chapter~\ref{ch:libraries}), we cover the library system---how to organize code into modules with clean interfaces.
+In the next chapter (Chapter~\ref{ch:libraries}), we cover the library system---how to organize code into modules with clean interfaces.
 
 \chapterend

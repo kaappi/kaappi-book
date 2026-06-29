@@ -2,7 +2,7 @@
 \index{data types}
 \label{ch:data-types}
 
-Chapter~3 introduced the basic atoms in passing. This chapter examines Scheme's data types in depth: the full numeric tower, strings, characters, booleans, symbols, vectors, and bytevectors. You will learn how to create values of each type, the key procedures for working with them, and how to test what type a value is.
+Chapter~\ref{ch:first-steps} introduced the basic atoms in passing. This chapter examines Scheme's data types in depth: the full numeric tower, strings, characters, booleans, symbols, vectors, and bytevectors. You will learn how to create values of each type, the key procedures for working with them, and how to test what type a value is.
 
 \section{The Numeric Tower}
 \index{numbers}\index{numeric tower}
@@ -315,7 +315,7 @@ The last example produces the Greek lambda character---Kaappi has full Unicode s
 \section{Booleans}
 \index{booleans}
 
-Booleans were introduced in Chapter~3, but here is a summary of the key procedures:
+Booleans were introduced in Chapter~\ref{ch:first-steps}, but here is a summary of the key procedures:
 
 \begin{lstlisting}[style=repl]
 > (boolean? #t)
@@ -487,6 +487,16 @@ Scheme provides predicates to test the type of any value. Each returns \texttt{\
 
 These predicates are essential for writing functions that handle different types of input, and they come up frequently when processing heterogeneous data.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item Scheme's numeric tower spans integers, exact rationals, real (floating-point) numbers, and complex numbers, with a key distinction between exact and inexact values.
+    \item Strings are immutable sequences of Unicode characters, and characters are a distinct type.
+    \item Symbols are interned names, and the only booleans are \texttt{\#t} and \texttt{\#f}.
+    \item Vectors are fixed-length, mutable, constant-time-indexed sequences; bytevectors hold raw bytes.
+    \item Type predicates such as \texttt{number?}, \texttt{string?}, and \texttt{vector?} test a value's type.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Exploring the Numeric Tower]
@@ -546,6 +556,6 @@ Create a vector containing the first 10 perfect squares (1, 4, 9, \ldots, 100) u
 Then try building the same vector a different way: use \code{make-vector} to create a 10-element vector, then use \code{vector-set!} in a recursive helper function to fill each position with \code{(* i i)}.
 \end{exercise}
 
-You now have a thorough understanding of Scheme's data types. The next chapter covers the most important compound data structure: lists and pairs.
+The next chapter covers the most important compound data structure: lists and pairs.
 
 \chapterend

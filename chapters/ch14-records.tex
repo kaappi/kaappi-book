@@ -92,6 +92,10 @@ Pattern matching & Via \texttt{car}/\texttt{cdr} & Via predicate + accessors \\
 
 Use lists for homogeneous collections (a list of numbers). Use records for heterogeneous structured data (a person with a name, age, and email).
 
+\begin{note}[Coming from Python]
+\texttt{define-record-type} plays the role of a Python \texttt{class} or \texttt{@dataclass}: a named type with named fields, a constructor, and a predicate (like \texttt{isinstance}). One difference to watch for: unlike a \texttt{@dataclass}, two records with identical field values are \emph{not} automatically equal---\texttt{(equal? a b)} is \texttt{\#f} unless \texttt{a} and \texttt{b} are the very same object. Write your own comparison procedure when you need value equality.
+\end{note}
+
 \section{A Larger Example: A Task Manager}
 
 \begin{lstlisting}
@@ -288,6 +292,16 @@ This works well for small type hierarchies. For larger ones, consider a dispatch
 
 Do not use records when a simple list or pair suffices (e.g., a coordinate pair used only locally) or when the structure needs to vary at runtime (use association lists instead).
 
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{define-record-type} creates a distinct type with a constructor, a predicate, accessors, and optional mutators.
+    \item Records provide named fields and type safety, unlike positional lists.
+    \item A constructor need not accept every field, which supports records with defaults.
+    \item Functional updates produce new records instead of mutating, enabling immutable designs.
+    \item Records combine naturally with pattern matching for clear data manipulation.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Book Records]
@@ -350,6 +364,6 @@ Build a priority queue abstraction using records. Define a \code{<pqueue>} recor
 \end{lstlisting}
 \end{exercise}
 
-You now know how to define custom data types with records, control mutability, build clean abstractions, and choose between records and lists. In the next chapter (Chapter~\ref{ch:continuations}), we explore continuations---Scheme's most powerful and unusual control flow mechanism.
+In the next chapter (Chapter~\ref{ch:continuations}), we explore continuations---Scheme's most powerful and unusual control flow mechanism.
 
 \chapterend

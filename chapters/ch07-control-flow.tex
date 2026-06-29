@@ -318,6 +318,16 @@ Here is a function that demonstrates several control flow forms working together
 
 This uses named \texttt{let} for the loop, \texttt{when} for the termination guard, \texttt{cond} for the multi-branch logic, and \texttt{and} to combine conditions.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{if} is the fundamental two-way conditional; \texttt{cond} and \texttt{case} handle multiple branches.
+    \item \texttt{and} and \texttt{or} short-circuit and return the determining value, which is handy for defaults and guards.
+    \item \texttt{when} and \texttt{unless} run a body under a single condition with no else branch.
+    \item \texttt{begin} sequences expressions, and \texttt{do} expresses iterative loops.
+    \item Because conditionals are expressions, they produce values rather than merely directing control.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Configurable FizzBuzz]
@@ -380,6 +390,6 @@ Rewrite the following \code{do} loop as an equivalent named \code{let}. Both sho
 Which version do you find more readable? Most Scheme programmers prefer named \code{let}---practice translating between the two forms until both feel natural.
 \end{exercise}
 
-You now have a complete toolkit for controlling program flow in Scheme. The key insight is that everything is an expression---conditionals produce values, boolean combinators return the determining value, and sequencing returns the last value. In the next chapter, we will look at local bindings in detail.
+In the next chapter, we will look at local bindings in detail.
 
 \chapterend

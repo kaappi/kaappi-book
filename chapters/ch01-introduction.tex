@@ -229,6 +229,15 @@ By the end of this book, you will be able to write recursive algorithms that ope
 
 Let's get started.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item Scheme is a minimalist Lisp dialect built from a few powerful ideas: first-class functions, lexical closures, recursion, and macros.
+    \item Many features of Python, JavaScript, and Ruby---closures, \texttt{lambda}, garbage collection---trace back to Lisp and Scheme.
+    \item Kaappi is a practical, batteries-included implementation of R7RS-small, written in Zig and shipped as a single statically-linked binary.
+    \item Beyond the standard, Kaappi adds 72 SRFIs, a C foreign function interface, green-threaded concurrency, and a package manager.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Try the Playground]
@@ -236,7 +245,7 @@ Visit \texttt{https://kaappi-lang.org/playground/} in your browser. Try evaluati
 \end{exercise}
 
 \begin{exercise}[Install Kaappi]
-Install Kaappi on your system using the install script or a manual download (see Chapter~2 for details). Run \code{kaappi --version} in your terminal and confirm you see a version string like \code{Kaappi Scheme v0.5.0}. Then evaluate a simple expression:
+Install Kaappi on your system using the install script or a manual download (see Chapter~\ref{ch:installation} for details). Run \code{kaappi --version} in your terminal and confirm you see a version string like \code{Kaappi Scheme v0.5.0}. Then evaluate a simple expression:
 
 \begin{lstlisting}[style=repl]
 > (+ 1 2 3)
@@ -249,5 +258,7 @@ If you see \code{6}, your installation is working.
 \begin{exercise}[Scheme's Influence on Python]
 Many features that Python programmers take for granted were pioneered by Lisp and Scheme. Research and list at least three Python features that trace their origins to Lisp or Scheme. Hints: think about garbage collection, first-class functions (lambda), list comprehensions (derived from \code{map} and \code{filter}), decorators (higher-order functions), and generators (related to continuations). For each one, write a sentence explaining the connection.
 \end{exercise}
+
+The next chapter covers installing Kaappi and getting comfortable in the REPL.
 
 \chapterend

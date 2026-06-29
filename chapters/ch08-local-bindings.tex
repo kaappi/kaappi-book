@@ -137,7 +137,7 @@ The right-hand side expressions in \texttt{letrec} must not evaluate the variabl
 \section{Named \texttt{let}: Loops Revisited}
 \index{named let}
 
-Named \texttt{let} was introduced in Chapter~6. Here we examine it more carefully as a binding form.
+Named \texttt{let} was introduced in Chapter~\ref{ch:functions}. Here we examine it more carefully as a binding form.
 
 \begin{lstlisting}
 (let name ((var init) ...)
@@ -258,7 +258,7 @@ Min: 1
 Max: 9
 \end{lstlisting}
 
-\section{Summary: Choosing the Right Binding Form}
+\section{Choosing the Right Binding Form}
 
 \begin{center}
 \begin{tabular}{lp{8cm}}
@@ -273,6 +273,16 @@ Internal \texttt{define} & Local helper functions; equivalent to \texttt{letrec*
 \texttt{let-values} & Binding multiple return values \\
 \end{tabular}
 \end{center}
+
+\section*{Summary}
+
+\begin{itemize}
+    \item \texttt{let} binds variables in parallel, while \texttt{let*} binds them sequentially.
+    \item \texttt{letrec} and \texttt{letrec*} let bindings refer to one another, as for mutually recursive local functions.
+    \item Named \texttt{let} is a concise loop, and internal \texttt{define}s behave like \texttt{letrec*}.
+    \item \texttt{let} is syntactic sugar for an immediately applied \texttt{lambda}.
+    \item \texttt{let-values} binds the results of an expression that returns multiple values.
+\end{itemize}
 
 \section*{Exercises}
 
@@ -351,6 +361,6 @@ Write a function \code{balanced-parens?} that checks whether a string of parenth
 Hint: convert the string to a list of characters with \code{string->list}, then walk the list recursively. One approach uses a single recursive function with a depth counter, but the exercise asks for \code{letrec} with two cooperating functions to practice mutual recursion.
 \end{exercise}
 
-You now have a complete understanding of how Scheme manages local scope. Every variable's lifetime and visibility is explicit, which eliminates an entire class of scoping bugs. In the next chapter, we turn to higher-order functions---procedures that take functions as arguments or return them as results.
+In the next chapter, we turn to higher-order functions---procedures that take functions as arguments or return them as results.
 
 \chapterend

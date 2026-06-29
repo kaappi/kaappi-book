@@ -242,7 +242,7 @@ It returns the tail of the list starting with the match, or \texttt{\#f} if not 
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
-An association list\index{alist} is like a Python dictionary, but with O(n) lookup. For small collections (under ~50 entries), alists are simple and effective. For larger collections, use hash tables (covered in Chapter~16).
+An association list\index{alist} is like a Python dictionary, but with O(n) lookup. For small collections (under ~50 entries), alists are simple and effective. For larger collections, use hash tables (covered in Chapter~\ref{ch:stdlib}).
 \end{note}
 
 \section{List Predicates}
@@ -410,6 +410,16 @@ Understanding list performance helps you choose the right data structure:
 
 Lists excel at sequential processing and stack-like access (always working with the front). When you need O(1) random access, use vectors. When you need O(1) key lookup, use hash tables.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item A pair (cons cell) holds two values---its \texttt{car} and \texttt{cdr}---and lists are chains of pairs ending in the empty list.
+    \item Build lists with \texttt{list}, \texttt{cons}, or quoting, and access them with \texttt{car}, \texttt{cdr}, and \texttt{list-ref}.
+    \item Common operations include \texttt{length}, \texttt{append}, \texttt{reverse}, \texttt{member}, and \texttt{assoc}.
+    \item Most list algorithms are expressed by recursion over the \texttt{car}/\texttt{cdr} structure.
+    \item Lists offer constant-time prepend but linear-time access and length, which guides when to use them.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Building Lists by Hand]
@@ -478,6 +488,6 @@ Write a function \code{deep-reverse} that reverses a list at every level of nest
 This requires two recursive cases: when the \code{car} is itself a pair (deep-reverse it before collecting), and when it is an atom (keep it as-is). Use an accumulator for the outer reversal.
 \end{exercise}
 
-Lists and pairs are the backbone of Scheme programming. Nearly everything in the language---from data processing to code representation---builds on the ideas in this chapter. In the next chapter, we will define functions in earnest and explore recursion, closures, and tail calls.
+In the next chapter, we will define functions in earnest and explore recursion, closures, and tail calls.
 
 \chapterend

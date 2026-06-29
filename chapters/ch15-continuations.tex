@@ -310,6 +310,15 @@ Continuations are powerful but should be used sparingly:
 
 Most programs never need full \texttt{call/cc}. But knowing it exists---and that all control flow in Scheme is ultimately built on continuations---gives you a deep understanding of the language's power.
 
+\section*{Summary}
+
+\begin{itemize}
+    \item A continuation captures ``the rest of the computation'' as a first-class value.
+    \item \texttt{call/ec} captures an escape continuation for early return and breaking out of loops---efficient and common.
+    \item \texttt{call/cc} captures a full, reusable continuation, enabling coroutines and backtracking---powerful but rarely needed.
+    \item \texttt{dynamic-wind} runs setup and teardown code even when control jumps into or out of its body.
+\end{itemize}
+
 \section*{Exercises}
 
 \begin{exercise}[Find-First with call/ec]
@@ -377,6 +386,6 @@ done
 This mirrors Python's \texttt{yield} statement but is built entirely from \code{call/cc}.
 \end{exercise}
 
-You now understand both escape continuations (practical, efficient) and full continuations (powerful, rare). Together with \texttt{dynamic-wind}, these tools give Scheme its unique ability to express any control flow pattern. This completes Part~III. In Part~IV, we explore features beyond the R7RS standard---the SRFI ecosystem, the foreign function interface, and concurrency.
+This completes Part~III. In Part~IV, we explore features beyond the R7RS standard---the SRFI ecosystem, the foreign function interface, and concurrency.
 
 \chapterend
