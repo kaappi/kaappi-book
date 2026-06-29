@@ -223,7 +223,7 @@ Fail early with a clear message when preconditions are not met.
 \section{Custom Error Types}
 \index{custom error types}
 
-For larger programs, you may want to distinguish between different kinds of errors. One approach is to use records as error objects and raise them with \texttt{raise}. We use \texttt{define-record-type} here, which is covered in full in Chapter~\ref{ch:records}---for now, just note the pattern: a type name, a constructor, a predicate, and field specifications:
+For larger programs, you may want to distinguish between different kinds of errors. One approach is to use records as error objects and raise them with \texttt{raise}. We use \texttt{define-record-type} (covered in Chapter~\ref{ch:records}) to define a custom error type with a type name, a constructor, a predicate, and field specifications:
 
 \begin{lstlisting}
 (define-record-type <http-error>
@@ -370,6 +370,6 @@ Write a \code{with-default} procedure that takes a default value and a thunk. It
 \end{lstlisting}
 \end{exercise}
 
-In the next chapter (Chapter~\ref{ch:records}), we define custom data types with records.
+In the next chapter (Chapter~\ref{ch:continuations}), we explore continuations---Scheme's most powerful and unusual control flow mechanism.
 
 \chapterend
