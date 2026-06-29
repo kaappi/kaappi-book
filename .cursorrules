@@ -1,12 +1,99 @@
-This is a XeLaTeX book project about the Kaappi Scheme programming language.
+# Kaappi Book Project
 
-- Build: `make` (XeLaTeX, 3 passes). Quick: `make once`. Output: `build/main.pdf`
-- Target audience: programmers who know Python but not Scheme
-- Document class: memoir (11pt, twoside, openright)
-- Fonts: EB Garamond (body), Source Sans 3 (headings), Fira Code (code)
-- All packages and styles are in `preamble/`; never add packages in chapter files
-- Chapter files live in `chapters/` and are included from `main.tex`
-- Code examples use `\begin{lstlisting}` (Scheme syntax configured globally)
-- Custom environments: `note`, `warning`, `exercise`, `codeoutput`
-- Reference sources: `/Users/bmuthuka/kaappi/kaappi` (source), `/Users/bmuthuka/kaappi/kaappi.github.io` (docs)
-- Write clearly for beginners; show runnable code; compare to Python when helpful
+A XeLaTeX book teaching the Kaappi Scheme programming language to beginners who already know Python.
+
+## Build
+
+- Full build: `make` (3 XeLaTeX passes for TOC/index)
+- Quick iteration: `make once` (single pass)
+- View result: `make view` (opens `build/main.pdf`)
+- Clean: `make clean`
+- Engine: XeLaTeX only (required by fontspec)
+
+## Project Layout
+
+```
+main.tex              Document root (title page, preface, \input chapter files)
+preamble/
+  colors.tex          Color definitions (grayscale palette, darkbrown accent)
+  packages.tex        All \usepackage calls (microtype, enumitem, listings, hyperref, etc.)
+  fonts.tex           fontspec config: EB Garamond (body), Source Sans 3 (headings), Fira Code (mono)
+  fonts-memoir.tex    Memoir heading font overrides
+  decorations.tex     Lambda ornament, section/chapter break rules
+  layout.tex          6x9" page geometry, margins, chapter style, page style, typography tuning
+  styles.tex          Custom mdframed environments (note, warning, exercise, codeoutput)
+  listings.tex        Scheme language definition, lstlisting styles (scheme, repl), \code{} macro
+chapters/             One .tex file per chapter, \input'd from main.tex
+fonts/                Bundled .ttf files (EB Garamond, Source Sans 3, Fira Code)
+build/                Output directory (gitignored)
+```
+
+## Writing Guidelines
+
+- Target audience: programmers who know Python/JS/Ruby but not Scheme or Lisp
+- Use active voice, short sentences, no academic jargon
+- Introduce one concept at a time; build on previous chapters
+- Every concept must have a runnable Kaappi code example
+- Compare to Python equivalents when it clarifies (e.g., "like Python's list comprehension")
+- Keep code examples under 20 lines; split longer demos into steps
+- Exercises go at the end of chapters inside `\begin{exercise}...\end{exercise}`
+
+## LaTeX Conventions
+
+- Never add \usepackage in chapter files; edit `preamble/packages.tex`
+- Never use \lstset in chapter files; global config lives in `preamble/listings.tex`
+- Scheme code blocks:
+  ```latex
+  \begin{lstlisting}
+  (define (factorial n)
+    (if (= n 0) 1 (* n (factorial (- n 1)))))
+  \end{lstlisting}
+  ```
+- REPL sessions (shows > prompt):
+  ```latex
+  \begin{lstlisting}[style=repl]
+  > (+ 1 2)
+  3
+  > (string-append "hello" " " "world")
+  "hello world"
+  \end{lstlisting}
+  ```
+- Inline code: `\code{define}` or `\lstinline{(+ 1 2)}`
+- Informational callout: `\begin{note}[Title]...\end{note}`
+- Pitfall/danger: `\begin{warning}[Title]...\end{warning}`
+- Practice problems: `\begin{exercise}[Title]...\end{exercise}` (auto-numbered per chapter)
+- REPL output display: `\begin{codeoutput}[Title]...\end{codeoutput}`
+- Section transition: `\sectionbreak`
+- Chapter ending ornament: `\chapterend`
+- Cross-references: use `\label{sec:topic}` and `\ref{sec:topic}`
+- Index entries: `\index{continuations}` near first significant mention
+
+## Kaappi Reference Sources
+
+When writing about Kaappi features, consult these authoritative sources:
+
+- **Source code**: `/Users/bmuthuka/kaappi/kaappi` (Zig implementation, ~39k LOC)
+  - `src/` — core runtime (reader, compiler, VM, GC, primitives, REPL)
+  - `lib/` — portable Scheme SRFI libraries (.sld files)
+  - `docs/dev/` — architecture, IR, LLVM backend docs
+  - `CONFORMANCE.md` — R7RS compliance details
+- **Website docs**: `/Users/bmuthuka/kaappi/kaappi.github.io`
+  - `docs/guide/tutorial.md` — beginner tutorial (12 sections)
+  - `docs/guide/language.md` — language quick reference with examples
+  - `docs/procedures/` — 600+ procedure reference by category
+  - `docs/guide/srfi-support.md` — SRFI availability table
+  - `docs/guide/cli.md` — CLI flags and subcommands
+  - `docs/cookbook/` — practical recipes (REST API, JSON, testing, CLI tools)
+
+## Key Kaappi Facts
+
+- R7RS-small compliant (1,391 tests pass), 554 built-in procedures, 33 syntax forms
+- 72 SRFIs (8 built-in in Zig, 64 portable Scheme)
+- Written in Zig 0.16+; runs on macOS ARM64, Linux x86_64/ARM64/RISC-V, WASM
+- Compilation pipeline: Reader → Expander → IR → Bytecode → Register VM (+ optional LLVM native)
+- Generational mark-and-sweep GC
+- C FFI via `(kaappi ffi)`: ffi-open, ffi-fn, ffi-callback
+- Green threads via `(kaappi fibers)`: spawn, yield, channels
+- SRFI-18 OS threads (experimental)
+- Package manager: thottam
+- Install: `curl -fsSL https://kaappi-lang.org/install.sh | bash`
