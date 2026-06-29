@@ -1,5 +1,6 @@
 \chapter{The Standard Library}
 \index{SRFI}\index{standard library}
+\label{ch:stdlib}
 
 Beyond the 14 R7RS standard libraries, Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each.
 
@@ -323,6 +324,75 @@ Indexed random access & Vector & 133 & O(1) \\
 \end{tabular}
 \end{center}
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Student Records with SRFI-1]
+Given a list of student records represented as association lists:
+
+\begin{lstlisting}
+(define students
+  '(("Alice" . 85) ("Bob" . 42) ("Carol" . 91)
+    ("Dave" . 55)  ("Eve" . 73) ("Frank" . 38)))
+\end{lstlisting}
+
+Using SRFI-1 functions:
+\begin{enumerate}
+    \item Use \code{partition} to split the students into those who passed (score $\geq$ 60) and those who failed.
+    \item Use \code{zip} to combine a list of names with a list of letter grades you assign.
+    \item Use \code{unfold} to generate a list of threshold boundaries \code{(0 10 20 ... 100)} without manually writing them out.
+\end{enumerate}
+\end{exercise}
+
+\begin{exercise}[Word Frequency Counter]
+Write a procedure \code{(word-frequencies str)} that takes a string of words (separated by spaces) and returns a SRFI-69 hash table mapping each word to its count. Then write \code{(top-words ht n)} that returns the \code{n} most frequent words as a sorted list of \code{(word . count)} pairs.
+
+\begin{lstlisting}[style=repl]
+> (define ht (word-frequencies
+    "the cat sat on the mat the cat"))
+> (hash-table-ref ht "the")
+3
+> (hash-table-ref ht "cat")
+2
+> (top-words ht 2)
+(("the" . 3) ("cat" . 2))
+\end{lstlisting}
+
+Hint: use \code{string-split} from SRFI-13 to tokenize, and \code{list-sort} from SRFI-132 for sorting. In Python this would be \code{collections.Counter(s.split())}.
+\end{exercise}
+
+\begin{exercise}[Email Validation with Regexps]
+Using SRFI-115, write a procedure \code{(parse-email str)} that checks whether a string looks like an email address and extracts the local part and domain. Return \code{\#f} if the string is not a valid email, or a list \code{(local domain)} if it is.
+
+\begin{lstlisting}[style=repl]
+> (parse-email "alice@example.com")
+("alice" "example.com")
+> (parse-email "not-an-email")
+#f
+\end{lstlisting}
+
+Use \code{regexp-matches} with submatch groups. A simple pattern is: one or more alphanumeric or dot/hyphen/underscore characters, then \code{@}, then one or more alphanumeric or dot/hyphen characters. You do not need to handle every edge case of RFC 5322.
+\end{exercise}
+
+\begin{exercise}[Fibonacci Generator]
+Using SRFI-158, create a procedure \code{(make-fib-generator)} that returns a generator producing the Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, \ldots
+
+\begin{lstlisting}[style=repl]
+> (define fibs (make-fib-generator))
+> (fibs)
+0
+> (fibs)
+1
+> (fibs)
+1
+> (fibs)
+2
+> (generator->list (gtake (make-fib-generator) 10))
+(0 1 1 2 3 5 8 13 21 34)
+\end{lstlisting}
+
+Hint: use \code{make-unfold-generator} or build one manually with a closure that tracks two state variables. In Python, this would be a function with \code{yield}.
+\end{exercise}
 
 You now have a map of Kaappi's extended standard library. The SRFIs cover nearly every common data structure and algorithm. In the next chapter, we explore calling C code from Scheme using the foreign function interface.
+
+\chapterend

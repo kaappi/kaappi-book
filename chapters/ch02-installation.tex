@@ -1,5 +1,6 @@
 \chapter{Installation and Setup}
 \index{installation}
+\label{ch:installation}
 
 This chapter gets Kaappi running on your system, introduces the interactive REPL, and shows you how to run script files. By the end, you will have a working environment for the rest of the book.
 
@@ -108,7 +109,7 @@ Check that Kaappi is installed correctly:
 kaappi --version
 \end{Verbatim}
 
-You should see output like \texttt{Kaappi Scheme v0.8.0}. Next, test that evaluation works:
+You should see output like \texttt{Kaappi Scheme v0.5.0}. Next, test that evaluation works:
 
 \begin{Verbatim}[fontsize=\small]
 echo '(+ 1 2)' | kaappi
@@ -132,7 +133,7 @@ kaappi
 You will see a welcome banner and a prompt:
 
 \begin{lstlisting}[style=repl]
-Kaappi Scheme v0.8.0
+Kaappi Scheme v0.5.0
 Type ,help for commands, ,quit to exit.
 
 > (+ 2 3)
@@ -293,6 +294,51 @@ thottam list
 
 The ecosystem includes libraries for HTTP, web frameworks, PostgreSQL, SQLite, Redis, JSON, TOML, YAML, CSV, email, cryptography, logging, testing, and CLI tools. We will use several of these in later chapters.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Explore the REPL]
+Launch the Kaappi REPL and experiment with its interactive features. Try each of the following:
+
+\begin{enumerate}
+    \item Type \code{string-} and press Tab to see all string procedures. Pick one you have not used before and call it with an argument.
+    \item Define a variable, press Up to recall the definition, then edit it and press Enter to redefine it.
+    \item Enter an incomplete expression (e.g., type \code{(define (greet name)} and press Enter) to see the continuation prompt. Complete the function body on the next line.
+\end{enumerate}
+\end{exercise}
+
+\begin{exercise}[Your First Script File]
+Create a file called \texttt{greet.scm} with the following content, then run it with \code{kaappi greet.scm}:
+
+\begin{lstlisting}
+(import (scheme base) (scheme write))
+
+(define (greet name)
+  (display "Hello, ")
+  (display name)
+  (display "!")
+  (newline))
+
+(greet "World")
+(greet "Kaappi")
+\end{lstlisting}
+
+Verify that it prints two greeting lines. Then modify it to greet your own name.
+\end{exercise}
+
+\begin{exercise}[REPL Comma-Commands]
+The REPL provides special commands prefixed with a comma. Type \code{,help} at the REPL prompt to see the full list. Try each of the following and observe what happens:
+
+\begin{lstlisting}[style=repl]
+> ,help
+> ,env
+> (define x 42)
+> ,env
+> ,quit
+\end{lstlisting}
+
+What does \code{,env} show before and after you define \code{x}? What other comma-commands look useful for debugging?
+\end{exercise}
 
 You now have Kaappi installed, know how to use the REPL, can run script files, and are aware of the editor and package ecosystem. In the next chapter, we will start writing Scheme in earnest.
+
+\chapterend

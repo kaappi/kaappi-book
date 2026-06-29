@@ -1,7 +1,11 @@
 \chapter{SRFI Catalog}
 \index{SRFI!catalog}
 
-All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}.
+All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}. Chapter~16 covers the most commonly used SRFIs in depth.
+
+\begin{note}[Built-in vs.\ Portable]
+Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \textbf{*} below) for performance. The remaining 64 are portable Scheme \texttt{.sld} files loaded on demand. Both are imported the same way: \code{(import (srfi N))}.
+\end{note}
 
 \section{Data Structures}
 
@@ -9,9 +13,9 @@ All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(impo
 \begin{tabular}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
-1 & Extended list library (fold, filter, find, partition, iota, zip, take, drop) \\
+1\textbf{*} & Extended list library (fold, filter, find, partition, iota, zip, take, drop) \\
 4 & Homogeneous numeric vector datatypes \\
-69 & Basic hash tables (make, set!, ref, delete!, walk, keys, values) \\
+69\textbf{*} & Basic hash tables (make, set!, ref, delete!, walk, keys, values) \\
 111 & Boxes (single-value mutable containers) \\
 113 & Sets and bags with comparator-based equality \\
 116 & Immutable list library (functional pairs) \\
@@ -72,12 +76,12 @@ All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(impo
 0 & Feature-based conditional expansion (cond-expand) \\
 2 & \texttt{and-let*} --- short-circuit \texttt{let} with guards \\
 8 & \texttt{receive} --- bind formals from multiple values \\
-11 & \texttt{let-values} and \texttt{let*-values} \\
-16 & \texttt{case-lambda} --- procedures with variable arity \\
+11\textbf{*} & \texttt{let-values} and \texttt{let*-values} \\
+16\textbf{*} & \texttt{case-lambda} --- procedures with variable arity \\
 17 & Generalized \texttt{set!} \\
-26 & \texttt{cut} and \texttt{cute} --- partial application notation \\
+26\textbf{*} & \texttt{cut} and \texttt{cute} --- partial application notation \\
 31 & \texttt{rec} --- recursive evaluation shorthand \\
-39 & Parameter objects (dynamic binding) \\
+39\textbf{*} & Parameter objects (dynamic binding) \\
 61 & A more general \texttt{cond} clause \\
 87 & \texttt{=>} in \texttt{case} clauses \\
 145 & \texttt{assume} --- assertions with optimizer hints \\
@@ -125,7 +129,7 @@ All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(impo
 \hline
 19 & Time data types and procedures (date, time-utc) \\
 37 & \texttt{args-fold} --- program argument processor \\
-98 & Interface to access environment variables \\
+98\textbf{*} & Interface to access environment variables \\
 170 & POSIX API (file-info, directories, symlinks, permissions) \\
 174 & POSIX timespecs \\
 \end{tabular}
@@ -158,7 +162,7 @@ All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(impo
 \begin{tabular}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
-9 & Defining record types (define-record-type) \\
+9\textbf{*} & Defining record types (define-record-type) \\
 \end{tabular}
 \end{center}
 

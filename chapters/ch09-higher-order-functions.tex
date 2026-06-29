@@ -1,5 +1,6 @@
 \chapter{Higher-Order Functions}
 \index{higher-order functions}
+\label{ch:hof}
 
 A \emph{higher-order function} is a function that takes another function as an argument or returns a function as its result. You have already seen examples in earlier chapters---\texttt{map}, named \texttt{let} with a procedure argument, and closures. This chapter explores the standard higher-order functions in depth and shows how they replace loops in idiomatic Scheme.
 
@@ -312,6 +313,92 @@ Higher-order functions are elegant, but they are not always the best choice:
     \item \textbf{Multiple outputs:} If you need both the filtered elements and the rejected ones, use \texttt{partition} rather than calling \texttt{filter} twice.
 \end{itemize}
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Extracting Data with \code{map} and \code{filter}]
+Given this list of association lists representing people:
+
+\begin{lstlisting}
+(define people
+  '(((name . "Alice") (age . 30) (city . "Paris"))
+    ((name . "Bob") (age . 17) (city . "London"))
+    ((name . "Carol") (age . 25) (city . "Paris"))
+    ((name . "Dave") (age . 15) (city . "Berlin"))))
+\end{lstlisting}
+
+Write expressions (using \code{map}, \code{filter}, and \code{assq}/\code{assoc}) that:
+\begin{enumerate}
+\item Extract a list of all names: \code{("Alice" "Bob" "Carol" "Dave")}
+\item Find the names of people aged 18 or older: \code{("Alice" "Carol")}
+\item Find the cities of people in Paris: \code{("Alice" "Carol")}
+\end{enumerate}
+\end{exercise}
+
+\begin{exercise}[Fold Implementations]
+Implement each of these using \code{fold} (not explicit recursion):
+
+\begin{enumerate}
+\item \code{my-length}: returns the number of elements in a list
+\item \code{my-reverse}: reverses a list
+\end{enumerate}
+
+\begin{lstlisting}[style=repl]
+> (my-length '(a b c d e))
+5
+> (my-reverse '(1 2 3 4 5))
+(5 4 3 2 1)
+\end{lstlisting}
+
+Hint: for \code{my-length}, the accumulator is a counter. For \code{my-reverse}, the accumulator is a list built with \code{cons}.
+\end{exercise}
+
+\begin{exercise}[Word Processing Pipeline]
+Write a function \code{process-words} that takes a list of strings and:
+\begin{enumerate}
+\item Filters out words shorter than 4 characters
+\item Sorts the remaining words alphabetically (use \code{sort} from SRFI-132, or \code{list-sort})
+\item Capitalizes each word (upper-case the first letter, lower-case the rest)
+\end{enumerate}
+
+\begin{lstlisting}[style=repl]
+> (process-words '("the" "quick" "brown" "fox" "jumps"
+                   "over" "the" "lazy" "dog"))
+("Brown" "Jumps" "Lazy" "Over" "Quick")
+\end{lstlisting}
+
+Build this as a pipeline: feed the output of \code{filter} into \code{list-sort}, then \code{map} the capitalization function.
+\end{exercise}
+
+\begin{exercise}[Zipping Lists]
+Implement \code{zip} that pairs up corresponding elements from two lists. If the lists have different lengths, stop at the shorter one:
+
+\begin{lstlisting}[style=repl]
+> (zip '(a b c) '(1 2 3))
+((a 1) (b 2) (c 3))
+> (zip '(x y) '(10 20 30))
+((x 10) (y 20))
+\end{lstlisting}
+
+The chapter showed a one-liner using multi-list \code{map}. Can you also write it with explicit recursion? Which version handles mismatched lengths correctly?
+\end{exercise}
+
+\begin{exercise}[\code{take} and \code{drop}]
+Implement \code{take} and \code{drop}, which return the first $n$ elements or skip the first $n$ elements of a list:
+
+\begin{lstlisting}[style=repl]
+> (take 3 '(a b c d e))
+(a b c)
+> (drop 3 '(a b c d e))
+(d e)
+> (take 0 '(1 2 3))
+()
+> (drop 10 '(1 2 3))
+()
+\end{lstlisting}
+
+Use recursion or named \code{let}. Handle the case where $n$ exceeds the list length gracefully. Verify that \code{(append (take n lst) (drop n lst))} reconstructs the original list.
+\end{exercise}
 
 Higher-order functions are the backbone of functional programming in Scheme. By combining \texttt{map}, \texttt{filter}, and \texttt{fold}, you can express most data transformations without writing explicit recursion. In the next chapter, we cover input and output---reading from files, writing to the console, and working with ports.
+
+\chapterend

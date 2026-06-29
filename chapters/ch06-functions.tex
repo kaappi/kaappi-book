@@ -1,5 +1,6 @@
 \chapter{Functions}
 \index{functions}
+\label{ch:functions}
 
 Functions are the primary organizational unit in Scheme. There are no classes, no methods, no modules in the traditional sense---just functions. This chapter covers defining functions, recursion, closures, tail-call optimization, variadic arguments, and returning multiple values.
 
@@ -333,6 +334,87 @@ A few patterns come up frequently when working with functions.
 
 These patterns---composition, partial application, and higher-order functions in general---are the tools Scheme gives you in place of classes and inheritance. They are simpler, more composable, and often more powerful.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Tail-Recursive Summation]
+Write a function \code{sum-to} that computes the sum $1 + 2 + \cdots + n$ using tail recursion with an accumulator. Verify that it handles large values without stack overflow:
+
+\begin{lstlisting}[style=repl]
+> (sum-to 10)
+55
+> (sum-to 1000000)
+500000500000
+\end{lstlisting}
+
+Compare with the formula $n(n+1)/2$ to check correctness.
+\end{exercise}
+
+\begin{exercise}[Accumulator Closure]
+Write a function \code{make-accumulator} that returns a closure. Each time the closure is called with a number, it adds that number to a running total and returns the new total:
+
+\begin{lstlisting}[style=repl]
+> (define acc (make-accumulator))
+> (acc 10)
+10
+> (acc 25)
+35
+> (acc 5)
+40
+\end{lstlisting}
+
+In Python, you would use a class with \texttt{\_\_call\_\_} or a closure over a \texttt{nonlocal} variable. In Scheme, \code{set!} and a \code{let}-bound variable do the job.
+\end{exercise}
+
+\begin{exercise}[Function Composition]
+Write \code{my-compose} that takes two functions \code{f} and \code{g} and returns a new function that computes \code{(f (g x))}:
+
+\begin{lstlisting}[style=repl]
+> (define inc-then-double
+    (my-compose (lambda (x) (* x 2))
+                (lambda (x) (+ x 1))))
+> (inc-then-double 3)
+8
+> (define shout (my-compose string-upcase
+                            (lambda (s) (string-append s "!"))))
+> (shout "hello")
+"HELLO!"
+\end{lstlisting}
+
+Bonus: extend \code{my-compose} to accept any number of functions using rest arguments and \code{fold}.
+\end{exercise}
+
+\begin{exercise}[Variadic Maximum]
+Write a function \code{my-max} that takes one or more numeric arguments and returns the largest. Use a required first parameter plus rest arguments:
+
+\begin{lstlisting}[style=repl]
+> (my-max 3)
+3
+> (my-max 3 7 2 9 4)
+9
+> (my-max -5 -1 -10)
+-1
+\end{lstlisting}
+
+The built-in \code{max} already does this, so name yours \code{my-max}. Use a named \code{let} or \code{fold} to walk the rest arguments.
+\end{exercise}
+
+\begin{exercise}[Tail-Recursive Fibonacci]
+The naive Fibonacci function shown earlier in this chapter is O($2^n$). Rewrite it as a tail-recursive function using two accumulators \code{a} and \code{b}:
+
+\begin{lstlisting}[style=repl]
+> (fib 0)
+0
+> (fib 1)
+1
+> (fib 10)
+55
+> (fib 50)
+12586269025
+\end{lstlisting}
+
+Hint: at each step, the new \code{a} becomes the old \code{b}, and the new \code{b} becomes \code{a + b}. This mirrors the named \code{let} version from the tail-call section---try writing it from scratch without looking back.
+\end{exercise}
 
 You now understand how to define functions, write recursive algorithms with tail-call guarantees, create closures with private state, handle variable arguments, and compose functions. These are the core skills of Scheme programming. The next chapter covers control flow in depth.
+
+\chapterend

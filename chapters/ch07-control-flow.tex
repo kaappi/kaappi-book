@@ -1,5 +1,6 @@
 \chapter{Control Flow}
 \index{control flow}
+\label{ch:control-flow}
 
 In most languages, control flow is managed with statements: \texttt{if}/\texttt{else} blocks, \texttt{for} loops, \texttt{switch} statements. In Scheme, all control flow is handled by expressions that produce values. This chapter covers \texttt{if}, \texttt{cond}, \texttt{case}, boolean combinators, \texttt{when}/\texttt{unless}, sequencing with \texttt{begin}, and iteration with \texttt{do}.
 
@@ -155,11 +156,12 @@ A common pattern is using \texttt{or} to provide fallback values:
 
 \begin{lstlisting}[style=repl]
 > (define (get-port config)
-    (or (assoc "port" config) 8080))
+    (let ((entry (assoc "port" config)))
+      (if entry (cdr entry) 8080)))
 > (get-port '())
 8080
 > (get-port '(("port" . 3000)))
-("port" . 3000)
+3000
 \end{lstlisting}
 
 \subsection{Using \texttt{and} for Guarded Access}
@@ -311,6 +313,73 @@ Here is a function that demonstrates several control flow forms working together
 
 This uses named \texttt{let} for the loop, \texttt{when} for the termination guard, \texttt{cond} for the multi-branch logic, and \texttt{and} to combine conditions.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[FizzBuzz with \code{cond}]
+Write a function \code{fizzbuzz} that prints the numbers from 1 to 100, but replaces multiples of 3 with \code{"Fizz"}, multiples of 5 with \code{"Buzz"}, and multiples of both with \code{"FizzBuzz"}. Use \code{cond} for the branching logic and named \code{let} for the loop. Each output should appear on its own line.
+
+\begin{lstlisting}[style=repl]
+> (fizzbuzz)
+1
+2
+Fizz
+4
+Buzz
+...
+14
+FizzBuzz
+\end{lstlisting}
+
+This is the classic interview question---but in Scheme, \code{cond} makes the intent clearer than a chain of \texttt{if}/\texttt{elif} in Python.
+\end{exercise}
+
+\begin{exercise}[Letter Grades]
+Write a function \code{grade} that takes a numeric score (0--100) and returns a letter grade as a string: \code{"A"} for 90+, \code{"B"} for 80--89, \code{"C"} for 70--79, \code{"D"} for 60--69, and \code{"F"} below 60. Use \code{cond}:
+
+\begin{lstlisting}[style=repl]
+> (grade 95)
+"A"
+> (grade 73)
+"C"
+> (grade 42)
+"F"
+\end{lstlisting}
+
+Bonus: add input validation---return \code{"Invalid"} if the score is not between 0 and 100.
+\end{exercise}
+
+\begin{exercise}[Clamping a Value]
+Write a function \code{clamp} that takes three arguments---\code{value}, \code{lo}, and \code{hi}---and returns \code{value} restricted to the range [\code{lo}, \code{hi}]. Use \code{cond}:
+
+\begin{lstlisting}[style=repl]
+> (clamp 5 1 10)
+5
+> (clamp -3 0 100)
+0
+> (clamp 150 0 100)
+100
+\end{lstlisting}
+
+In Python, this is \texttt{max(lo, min(hi, value))}. How does the \code{cond} version compare for readability?
+\end{exercise}
+
+\begin{exercise}[Rewriting \code{do} as Named \code{let}]
+Rewrite the following \code{do} loop as an equivalent named \code{let}. Both should produce the same result:
+
+\begin{lstlisting}
+(do ((i 1 (+ i 1))
+     (result '() (cons (* i i) result)))
+    ((> i 5) (reverse result)))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> ;; Your named let version should produce:
+> (1 4 9 16 25)
+\end{lstlisting}
+
+Which version do you find more readable? Most Scheme programmers prefer named \code{let}---practice translating between the two forms until both feel natural.
+\end{exercise}
 
 You now have a complete toolkit for controlling program flow in Scheme. The key insight is that everything is an expression---conditionals produce values, boolean combinators return the determining value, and sequencing returns the last value. In the next chapter, we will look at local bindings in detail.
+
+\chapterend

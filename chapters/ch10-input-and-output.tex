@@ -1,5 +1,6 @@
 \chapter{Input and Output}
 \index{input/output}\index{ports}
+\label{ch:io}
 
 Programs need to communicate with the outside world: reading user input, writing results to the screen, processing files, and formatting data. Scheme's I/O system is based on \emph{ports}---abstract objects that represent sources and destinations for data. This chapter covers console I/O, file operations, string ports, and the difference between \texttt{display} and \texttt{write}.
 
@@ -355,6 +356,60 @@ Usage:
 > (number-lines "input.txt" "output.txt")
 \end{lstlisting}
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[A Simple \code{cat}]
+Write a function \code{cat} that takes a filename and prints its contents to the console, line by line. Use \code{call-with-port} to ensure the file is properly closed:
+
+\begin{lstlisting}
+(define (cat filename)
+  ;; your code here
+  )
+\end{lstlisting}
+
+Test it by creating a small text file and running \code{(cat "test.txt")} in the REPL. This is the Scheme equivalent of the Unix \texttt{cat} command (or Python's \texttt{print(open(f).read())}).
+\end{exercise}
+
+\begin{exercise}[Word Count]
+Write a function \code{wc} that takes a filename and returns three values (using \code{values}): the number of lines, words, and characters in the file. Use \code{read-line} in a loop to process the file line by line:
+
+\begin{lstlisting}[style=repl]
+> (let-values (((lines words chars) (wc "example.txt")))
+    (display lines) (display " lines, ")
+    (display words) (display " words, ")
+    (display chars) (display " characters")
+    (newline))
+5 lines, 23 words, 142 characters
+\end{lstlisting}
+
+Hint: for counting words in a line, split on whitespace by filtering out empty strings after using \code{string-split} (from SRFI-152 or SRFI-130), or count transitions between whitespace and non-whitespace characters.
+\end{exercise}
+
+\begin{exercise}[File to List]
+Write a function \code{file->lines} that reads all lines from a file and returns them as a list of strings. The chapter showed a \code{read-all-lines} helper---try writing it from memory:
+
+\begin{lstlisting}[style=repl]
+> (file->lines "example.txt")
+("first line" "second line" "third line")
+\end{lstlisting}
+
+Then write the inverse: \code{lines->file} that takes a filename and a list of strings and writes each string as a line. Verify round-tripping: \code{(file->lines f)} after \code{(lines->file f data)} should return \code{data}.
+\end{exercise}
+
+\begin{exercise}[String Port Serialization]
+Use string ports to implement \code{serialize} and \code{deserialize} functions that convert Scheme values to strings and back:
+
+\begin{lstlisting}[style=repl]
+> (define s (serialize '(1 "hello" #t (nested list))))
+> s
+"(1 \"hello\" #t (nested list))"
+> (deserialize s)
+(1 "hello" #t (nested list))
+\end{lstlisting}
+
+\code{serialize} should use \code{open-output-string} and \code{write}. \code{deserialize} should use \code{open-input-string} and \code{read}. Test with various types: numbers, strings, booleans, nested lists, and symbols. Why is \code{write} (not \code{display}) essential for round-tripping?
+\end{exercise}
 
 You now understand Scheme's port-based I/O system: console output with \texttt{display}/\texttt{write}/\texttt{newline}, input with \texttt{read-line}/\texttt{read}, file operations with \texttt{call-with-port}, and string ports for in-memory I/O. This completes Part~II of the book. In Part~III, we move to advanced topics, starting with Scheme's powerful macro system.
+
+\chapterend

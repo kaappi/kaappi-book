@@ -1,5 +1,6 @@
 \chapter{Concurrency}
 \index{concurrency}\index{fibers}\index{threads}
+\label{ch:concurrency}
 
 Modern programs often need to do multiple things at once: serve multiple network connections, process data while waiting for I/O, or distribute work across CPU cores. Kaappi provides two concurrency models: \emph{fibers} (lightweight green threads) for cooperative multitasking and \emph{SRFI-18 threads} (OS threads) for true parallelism.
 
@@ -146,23 +147,25 @@ Channels provide safe communication between fibers. They are synchronous (Go-sty
             (cons (channel-receive result-ch) results))))
 \end{lstlisting}
 
-\subsection{Timeouts and Selecting}
+\subsection{Racing Fibers}
 
-For more advanced patterns (timeouts, selecting from multiple channels), you can combine fibers with channels:
+You can race multiple fibers by having them send to a shared channel. The first result wins:
 
 \begin{lstlisting}
-;; Simple timeout pattern
-(define (with-timeout ms thunk)
-  (let ((result-ch (make-channel))
-        (timeout-ch (make-channel)))
-    (spawn (lambda ()
-      (channel-send result-ch (thunk))))
-    (spawn (lambda ()
-      ;; sleep is a hypothetical delay
-      (channel-send timeout-ch 'timeout)))
-    ;; First one to send wins
-    (channel-receive result-ch)))
+(define (race thunk1 thunk2)
+  (let ((ch (make-channel)))
+    (spawn (lambda () (channel-send ch (thunk1))))
+    (spawn (lambda () (channel-send ch (thunk2))))
+    (channel-receive ch)))
 \end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (race (lambda () (+ 1 2))
+        (lambda () (* 3 4)))
+3
+\end{lstlisting}
+
+The result is whichever fiber completes first. The other fiber's value is left in the channel (a second \texttt{channel-receive} would retrieve it).
 
 \section{OS Threads (SRFI-18)}
 \index{SRFI-18}\index{OS threads}
@@ -333,6 +336,90 @@ Usage:
 
 Each number is squared then incremented, with each stage running as a separate fiber.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Three-Stage Fiber Pipeline]
+Write a three-stage fiber pipeline connected by channels: a \emph{producer} that sends the integers 1 through 10, a \emph{transformer} that squares each value, and a \emph{consumer} that collects the results into a list. Use a sentinel value \code{'done} to signal the end of the stream.
+
+\begin{lstlisting}
+(import (kaappi fibers))
+
+(define ch1 (make-channel))  ; producer -> transformer
+(define ch2 (make-channel))  ; transformer -> consumer
+
+;; Producer: sends 1..10 then 'done
+(spawn (lambda () ...))
+
+;; Transformer: reads from ch1, squares, sends to ch2
+(spawn (lambda () ...))
+
+;; Consumer: reads from ch2 until 'done
+;; Should produce: (1 4 9 16 25 36 49 64 81 100)
+\end{lstlisting}
+
+This is the Scheme equivalent of a Unix pipeline like \texttt{seq 10 | awk '\{print \$1*\$1\}'}.
+\end{exercise}
+
+\begin{exercise}[Fiber-Based Parallel Map]
+Implement \code{(fiber-parallel-map f lst)} using fibers and channels. Spawn one fiber per element, have each fiber send its result to a shared results channel, then collect all results in order.
+
+\begin{lstlisting}[style=repl]
+> (fiber-parallel-map
+    (lambda (x) (* x x))
+    '(1 2 3 4 5))
+(1 4 9 16 25)
+\end{lstlisting}
+
+Hint: to preserve order, have each fiber send a pair \code{(index . result)} and sort by index after collecting. Alternatively, use one channel per fiber. How does this differ from the OS-thread \code{parallel-map} shown earlier in the chapter? (Think about whether fibers actually compute in parallel.)
+\end{exercise}
+
+\begin{exercise}[Collecting Results from N Fibers]
+Write a procedure \code{(spawn-collect thunks)} that takes a list of zero-argument procedures, spawns each as a fiber, and returns a list of all their results. Use a single shared channel for collection.
+
+\begin{lstlisting}[style=repl]
+> (spawn-collect
+    (list (lambda () (+ 1 2))
+          (lambda () (* 3 4))
+          (lambda () (string-length "hello"))))
+(3 12 5)
+\end{lstlisting}
+
+The results may arrive in any order---your procedure should still return them in the same order as the input thunks. This pattern is common when you need to fan-out work and wait for all results, similar to Python's \code{asyncio.gather()}.
+\end{exercise}
+
+\begin{exercise}[Worker Pool (Challenge)]
+Implement a worker pool with a fixed number of worker fibers that process jobs from a shared channel:
+
+\begin{lstlisting}
+(define (make-worker-pool num-workers job-proc)
+  ;; Returns two values: a job channel and a
+  ;; results channel. Spawns num-workers fibers
+  ;; that each loop reading from the job channel,
+  ;; applying job-proc, and sending the result to
+  ;; the results channel.
+  ...)
+\end{lstlisting}
+
+Test it by creating a pool of 3 workers and submitting 10 jobs:
+
+\begin{lstlisting}
+(let-values (((jobs results)
+              (make-worker-pool 3
+                (lambda (n) (* n n)))))
+  ;; Submit 10 jobs
+  (for-each (lambda (n) (channel-send jobs n))
+            '(1 2 3 4 5 6 7 8 9 10))
+  ;; Collect 10 results
+  (let loop ((n 10) (acc '()))
+    (if (= n 0) (list-sort < acc)
+        (loop (- n 1)
+              (cons (channel-receive results)
+                    acc)))))
+\end{lstlisting}
+
+Why would you use a fixed pool of workers instead of spawning one fiber per job? (Hint: think about what happens with 10,000 jobs that each open a network connection.) This is analogous to Python's \code{concurrent.futures.ThreadPoolExecutor}.
+\end{exercise}
 
 You now understand both of Kaappi's concurrency models: fibers for lightweight cooperative multitasking with channel-based communication, and OS threads for CPU-bound parallelism with deep-copy safety. This completes Part~IV. The appendices that follow provide quick references for the R7RS standard and the Kaappi CLI.
+
+\chapterend

@@ -1,12 +1,13 @@
 \chapter{Data Types}
 \index{data types}
+\label{ch:data-types}
 
 Chapter~3 introduced the basic atoms in passing. This chapter examines Scheme's data types in depth: the full numeric tower, strings, characters, booleans, symbols, vectors, and bytevectors. You will learn how to create values of each type, the key procedures for working with them, and how to test what type a value is.
 
 \section{The Numeric Tower}
 \index{numbers}\index{numeric tower}
 
-Kaappi supports five kinds of numbers, organized in a hierarchy called the \emph{numeric tower}:
+Kaappi supports four kinds of numbers, organized in a hierarchy called the \emph{numeric tower}:
 
 \begin{enumerate}
     \item \textbf{Integers} --- whole numbers, either fixnums (fast, 63-bit) or bignums (arbitrary precision)
@@ -454,6 +455,64 @@ Scheme provides predicates to test the type of any value. Each returns \texttt{\
 
 These predicates are essential for writing functions that handle different types of input, and they come up frequently when processing heterogeneous data.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Exploring the Numeric Tower]
+Create one value of each numeric type: an integer, a rational, a flonum, and a complex number. For each, use \code{exact?} and \code{inexact?} to confirm whether it is exact or inexact. Then convert between representations:
+
+\begin{lstlisting}[style=repl]
+> (inexact 1/3)
+???
+> (exact 0.75)
+???
+> (exact 3+4i)
+???
+\end{lstlisting}
+
+What do you get when you convert \code{0.1} to exact form with \code{(exact 0.1)}? Why is the result not \code{1/10}? (Hint: think about how floating-point numbers are stored.)
+\end{exercise}
+
+\begin{exercise}[Type Inspector]
+Write a function \code{type-name} that takes a single argument and returns a string describing its type. Use the type predicates from this chapter. Your function should distinguish at least: \code{"boolean"}, \code{"integer"}, \code{"rational"}, \code{"real"}, \code{"complex"}, \code{"string"}, \code{"char"}, \code{"symbol"}, \code{"vector"}, \code{"bytevector"}, \code{"pair"}, \code{"null"}, and \code{"procedure"}. Test the order of your checks carefully---remember that every integer is also rational, and every rational is also real.
+
+\begin{lstlisting}[style=repl]
+> (type-name 42)
+"integer"
+> (type-name 1/3)
+"rational"
+> (type-name "hello")
+"string"
+> (type-name +)
+"procedure"
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Counting Vowels]
+Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Use \code{string->list} to convert the string to a list of characters, then process the list. You will need \code{char-downcase} and \code{member} (or a series of \code{char=?} checks).
+
+\begin{lstlisting}[style=repl]
+> (count-vowels "Hello, World!")
+3
+> (count-vowels "AEIOU")
+5
+> (count-vowels "rhythm")
+0
+\end{lstlisting}
+
+In Python, you might write \texttt{sum(1 for c in s.lower() if c in "aeiou")}. How does your Scheme version compare?
+\end{exercise}
+
+\begin{exercise}[Vector of Squares]
+Create a vector containing the first 10 perfect squares (1, 4, 9, \ldots, 100) in two different ways:
+
+\begin{enumerate}
+\item Using \code{vector-map} on an existing vector of \code{1} through \code{10}.
+\item Using a named \code{let} loop that builds the vector with \code{make-vector} and \code{vector-set!}.
+\end{enumerate}
+
+Verify that both approaches produce \code{\#(1 4 9 16 25 36 49 64 81 100)}.
+\end{exercise}
 
 You now have a thorough understanding of Scheme's data types. The next chapter covers the most important compound data structure: lists and pairs.
+
+\chapterend

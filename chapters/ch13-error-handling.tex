@@ -1,5 +1,6 @@
 \chapter{Error Handling}
 \index{error handling}\index{exceptions}
+\label{ch:errors}
 
 Programs encounter errors: files that do not exist, invalid user input, network failures, division by zero. Scheme provides a structured exception system with \texttt{guard} for catching errors, \texttt{raise} for signaling them, and \texttt{error} for creating error objects. This chapter covers all three, plus strategies for writing robust code.
 
@@ -187,21 +188,9 @@ The handler receives 5, returns 50, and execution continues as if \texttt{raise-
       (lambda (port) (read port)))))
 \end{lstlisting}
 
-\subsection{Cleanup with \texttt{dynamic-wind}}
-\index{dynamic-wind}
+\subsection{Guaranteed Cleanup}
 
-\texttt{dynamic-wind} ensures cleanup code runs even if an exception occurs:
-
-\begin{lstlisting}
-(define (with-temp-file proc)
-  (let ((filename (make-temp-name)))
-    (dynamic-wind
-      (lambda () #f)                    ; before
-      (lambda () (proc filename))       ; body
-      (lambda () (delete-file filename))))) ; after (cleanup)
-\end{lstlisting}
-
-The ``after'' thunk runs whether the body returns normally or an exception is raised. This is similar to Python's \texttt{try}/\texttt{finally}.
+For guaranteed resource cleanup (similar to Python's \texttt{try}/\texttt{finally}), Scheme provides \texttt{dynamic-wind}\index{dynamic-wind}, which we cover in detail in the continuations chapter. For now, the simplest approach is \texttt{call-with-port}, which closes the port when the body returns or raises an exception.
 
 \subsection{Wrapping External Calls}
 
@@ -238,6 +227,64 @@ Fail early with a clear message when preconditions are not met.
     \item \textbf{Provide context.} Use irritants in \texttt{error} to include the values that caused the problem. ``index out of range'' is less useful than ``index out of range: 10, list length: 5.''
 \end{itemize}
 
-\sectionbreak
+\section*{Exercises}
 
-You now know how to signal errors with \texttt{error}, catch them with \texttt{guard}, raise custom conditions with \texttt{raise}, and write robust code that fails gracefully. In the next chapter, we explore continuations---Scheme's most powerful and unusual control flow mechanism.
+\begin{exercise}[Safe Division]
+Write a \code{safe-divide} procedure that takes a numerator, a denominator, and an optional default value. If the denominator is zero, it returns the default (or \code{0} if none is provided) instead of raising an error. Use \code{guard} to catch the error.
+
+\begin{lstlisting}[style=repl]
+> (safe-divide 10 3)
+10/3
+> (safe-divide 10 0)
+0
+> (safe-divide 10 0 -1)
+-1
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Retry on Error]
+Write a \code{retry} procedure that takes a thunk and a maximum number of attempts. It calls the thunk; if it raises an error, it tries again up to \emph{n} times. If all attempts fail, it re-raises the last error. Print which attempt is being made.
+
+\begin{lstlisting}[style=repl]
+> (let ((count 0))
+    (retry (lambda ()
+             (set! count (+ count 1))
+             (if (< count 3)
+                 (error "not yet" count)
+                 count))
+           5))
+Attempt 1 failed: not yet
+Attempt 2 failed: not yet
+3
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Validate with Descriptive Errors]
+Write a \code{validate-email} procedure that checks a string for basic email validity. Raise descriptive errors with irritants for each failure case: the string must contain exactly one \code{@} character, must have at least one character before the \code{@}, and must have a \code{.} after the \code{@}. Each error message should include the input string as an irritant.
+
+\begin{lstlisting}[style=repl]
+> (validate-email "alice@example.com")
+#t
+> (validate-email "no-at-sign")
+; Error: missing @ in email address "no-at-sign"
+> (validate-email "@example.com")
+; Error: empty local part in email address "@example.com"
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[With-Default]
+Write a \code{with-default} procedure that takes a default value and a thunk. It calls the thunk; if any error is raised, it returns the default value instead. This is similar to Python's pattern of \texttt{try: ... except: return default}.
+
+\begin{lstlisting}[style=repl]
+> (with-default 0 (lambda () (+ 1 2)))
+3
+> (with-default 0 (lambda () (error "boom")))
+0
+> (with-default '() (lambda () (vector-ref #(1 2) 5)))
+()
+\end{lstlisting}
+\end{exercise}
+
+You now know how to signal errors with \texttt{error}, catch them with \texttt{guard}, raise custom conditions with \texttt{raise}, and write robust code that fails gracefully. In the next chapter, we define custom data types with records.
+
+\chapterend

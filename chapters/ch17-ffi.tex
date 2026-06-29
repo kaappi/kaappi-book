@@ -1,5 +1,6 @@
 \chapter{Foreign Function Interface}
 \index{FFI}\index{foreign function interface}
+\label{ch:ffi}
 
 Sometimes you need to use a library written in C---a graphics toolkit, a database driver, a compression algorithm, or a system API. Kaappi's Foreign Function Interface (FFI) lets you call C functions directly from Scheme without writing any C code yourself. This chapter covers opening shared libraries, binding functions, handling types, and passing Scheme callbacks into C.
 
@@ -209,6 +210,61 @@ In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures 
     \item \textbf{Consider writing a library} if you find yourself wrapping more than a few functions. Publish it via thottam so others benefit.
 \end{itemize}
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Binding \texttt{strlen}]
+Use the FFI to bind \code{strlen} from the C standard library. Open the appropriate shared library for your platform (\code{libc.dylib} on macOS, \code{libc.so.6} on Linux), bind \code{strlen} with the correct type signature, and test it:
+
+\begin{lstlisting}[style=repl]
+> (c-strlen "hello")
+5
+> (c-strlen "")
+0
+> (c-strlen "Kaappi Scheme")
+13
+\end{lstlisting}
+
+What happens if you declare the return type as \code{'int} instead of \code{'size\_t}? Does it still work for short strings? Think about why \code{size\_t} is the correct choice (hint: consider strings longer than $2^{31}$ bytes).
+\end{exercise}
+
+\begin{exercise}[Comparing FFI \texttt{pow} with \texttt{expt}]
+Bind the C function \code{pow} from \code{libm} using the FFI and write a procedure that compares its results with Scheme's built-in \code{expt}:
+
+\begin{lstlisting}
+(define (compare-pow base exp)
+  (let ((c-result (c-pow (exact->inexact base)
+                         (exact->inexact exp)))
+        (s-result (expt base exp)))
+    (list c-result s-result (- c-result s-result))))
+\end{lstlisting}
+
+Test with several inputs: \code{(compare-pow 2 10)}, \code{(compare-pow 3.0 3.0)}, and \code{(compare-pow 2 0.5)}. When do the results differ? Why might the C version and the Scheme version give slightly different answers? (Hint: think about exact vs.\ inexact arithmetic.)
+\end{exercise}
+
+\begin{exercise}[Safe Library Wrapper]
+Write a procedure \code{(with-library name proc)} that opens a shared library, passes the handle to \code{proc}, and guarantees that \code{ffi-close} is called even if \code{proc} raises an exception. This is the FFI equivalent of Python's \code{with open(...) as f:} pattern.
+
+\begin{lstlisting}
+(define (with-library name proc)
+  ;; Your implementation here.
+  ;; Use guard or dynamic-wind to ensure cleanup.
+  ...)
+\end{lstlisting}
+
+Test it by binding and calling \code{ceil} from libm:
+
+\begin{lstlisting}[style=repl]
+> (with-library "libm.dylib"
+    (lambda (lib)
+      (let ((c-ceil (ffi-fn lib "ceil"
+                      '(double) 'double)))
+        (c-ceil 3.2))))
+4.0
+\end{lstlisting}
+
+Verify that the library is closed after the call returns. What happens if you try to use a function bound from a closed library?
+\end{exercise}
 
 You now know how to call C code from Scheme: open a shared library, bind functions with type signatures, handle strings and pointers, create callbacks, and manage cleanup. In the next chapter, we cover concurrency---fibers, channels, and threads.
+
+\chapterend

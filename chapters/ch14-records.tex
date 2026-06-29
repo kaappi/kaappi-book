@@ -1,5 +1,6 @@
 \chapter{Records and Data Abstraction}
 \index{records}\index{define-record-type}
+\label{ch:records}
 
 As programs grow, you need structured data with named fields---not just anonymous lists where you have to remember that ``the third element is the email address.'' Scheme's \texttt{define-record-type} creates custom data types with constructors, predicates, and accessors. This chapter covers record definition, usage patterns, and how to build clean abstractions.
 
@@ -233,7 +234,22 @@ By default, records print as an opaque representation. You can define a custom d
 
 \section{Records and Pattern Matching}
 
-Scheme does not have built-in pattern matching on records (unlike Haskell or Rust). The idiomatic approach is to test with the predicate and destructure with accessors:
+Scheme does not have built-in pattern matching on records (unlike Haskell or Rust). The idiomatic approach is to test with the predicate and destructure with accessors. Consider two shape types:
+
+\begin{lstlisting}
+(define-record-type <circle>
+  (make-circle radius)
+  circle?
+  (radius circle-radius))
+
+(define-record-type <rectangle>
+  (make-rectangle width height)
+  rectangle?
+  (width rectangle-width)
+  (height rectangle-height))
+\end{lstlisting}
+
+A dispatch function tests each predicate and extracts the relevant fields:
 
 \begin{lstlisting}
 (define (describe shape)
@@ -249,7 +265,14 @@ Scheme does not have built-in pattern matching on records (unlike Haskell or Rus
     (else "unknown shape")))
 \end{lstlisting}
 
-This works well for small type hierarchies. For larger ones, consider using a dispatch table or SRFI-9's record features.
+\begin{lstlisting}[style=repl]
+> (describe (make-circle 5))
+"circle with radius 5"
+> (describe (make-rectangle 3 4))
+"rectangle 3x4"
+\end{lstlisting}
+
+This works well for small type hierarchies. For larger ones, consider a dispatch table keyed on predicates.
 
 \section{When to Use Records}
 
@@ -262,6 +285,68 @@ This works well for small type hierarchies. For larger ones, consider using a di
 
 Do not use records when a simple list or pair suffices (e.g., a coordinate pair used only locally) or when the structure needs to vary at runtime (use association lists instead).
 
-\sectionbreak
+\section*{Exercises}
 
-You now know how to define custom data types with records, control mutability, build clean abstractions, and choose between records and lists. This completes Part~III. In Part~IV, we explore features beyond the R7RS standard---the SRFI ecosystem, the foreign function interface, and concurrency.
+\begin{exercise}[Book Records]
+Define a \code{<book>} record type with fields for \code{title}, \code{author}, \code{year}, and \code{isbn}. All fields should be immutable. Write a \code{display-book} procedure that formats a book as a readable string.
+
+\begin{lstlisting}[style=repl]
+> (define b (make-book "SICP" "Abelson & Sussman" 1996
+                       "978-0262510875"))
+> (book? b)
+#t
+> (display-book b)
+SICP by Abelson & Sussman (1996) [978-0262510875]
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Mutable Bank Account]
+Define a \code{<bank-account>} record with an immutable \code{owner} field and a mutable \code{balance} field. Write \code{deposit!} and \code{withdraw!} procedures. The \code{withdraw!} procedure should raise an error if the withdrawal would cause a negative balance.
+
+\begin{lstlisting}[style=repl]
+> (define acct (make-bank-account "Alice" 100))
+> (deposit! acct 50)
+> (account-balance acct)
+150
+> (withdraw! acct 30)
+> (account-balance acct)
+120
+> (withdraw! acct 200)
+; Error: insufficient funds: 200 exceeds balance 120
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Functional Update Helper]
+Using the \code{<book>} record from Exercise~1, write a general-purpose \code{book-with-year} procedure that returns a new book identical to the original but with a different year. Then write \code{book-with-title} the same way. Can you see why a general ``copy-with'' pattern would be useful? (Python solves this with \texttt{dataclasses.replace()}.)
+
+\begin{lstlisting}[style=repl]
+> (define b1 (make-book "SICP" "Abelson" 1985 "000"))
+> (define b2 (book-with-year b1 1996))
+> (book-year b1)
+1985
+> (book-year b2)
+1996
+> (book-title b2)
+"SICP"
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Priority Queue ADT]
+Build a priority queue abstraction using records. Define a \code{<pqueue>} record that internally stores items as a sorted list. Implement \code{make-pqueue}, \code{pqueue-insert} (returns a new priority queue with the item added), \code{pqueue-peek} (returns the highest-priority item), and \code{pqueue-pop} (returns a new priority queue with the highest-priority item removed). Lower numbers mean higher priority.
+
+\begin{lstlisting}[style=repl]
+> (define pq (make-pqueue))
+> (define pq2 (pqueue-insert pq 3 "low"))
+> (define pq3 (pqueue-insert pq2 1 "high"))
+> (define pq4 (pqueue-insert pq3 2 "med"))
+> (pqueue-peek pq4)
+"high"
+> (define pq5 (pqueue-pop pq4))
+> (pqueue-peek pq5)
+"med"
+\end{lstlisting}
+\end{exercise}
+
+You now know how to define custom data types with records, control mutability, build clean abstractions, and choose between records and lists. In the next chapter, we explore continuations---Scheme's most powerful and unusual control flow mechanism.
+
+\chapterend

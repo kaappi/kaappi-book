@@ -1,5 +1,6 @@
 \chapter{The Library System}
 \index{libraries}\index{modules}\index{define-library}
+\label{ch:libraries}
 
 As programs grow, you need to organize code into separate files with clean interfaces. Scheme's R7RS library system provides \texttt{define-library} for creating modules and \texttt{import} for using them. This chapter covers importing standard libraries, writing your own, controlling exports, and structuring multi-file projects.
 
@@ -276,6 +277,52 @@ After installation, you can import the library directly:
 
 Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, which is always on the search path. We will use several ecosystem packages in Part~IV.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Create a Utility Library]
+Create a file \code{mylib/utils.sld} that defines a library \code{(mylib utils)} exporting three utility procedures: \code{clamp} (restricts a number to a min/max range), \code{repeat-string} (returns a string repeated \emph{n} times), and \code{displayln} (displays a value followed by a newline). Write a short program that imports and uses all three.
+
+\begin{lstlisting}
+;; mylib/utils.sld
+(define-library (mylib utils)
+  (export clamp repeat-string displayln)
+  (import (scheme base) (scheme write))
+  (begin
+    ;; your definitions here
+    ))
+\end{lstlisting}
+
+Test in the REPL:
+\begin{lstlisting}[style=repl]
+> (clamp 15 0 10)
+10
+> (repeat-string "ha" 3)
+"hahaha"
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Import Modifiers]
+Import SRFI-1 (the extended list library) three different ways in a single program using import modifiers:
+
+\begin{enumerate}
+    \item Use \code{only} to import just \code{fold} and \code{unfold}.
+    \item Use \code{prefix} to import the entire library with a \code{list:} prefix.
+    \item Use \code{rename} to import \code{partition} as \code{split-by}.
+\end{enumerate}
+
+Write a short program that demonstrates all three imports working. Which approach would you choose for a large project, and why?
+\end{exercise}
+
+\begin{exercise}[Conditional Code with cond-expand]
+Write a library \code{(mylib greeting)} that uses \code{cond-expand} to export a \code{greet} procedure. When the \code{kaappi} feature is available, \code{greet} should include the Kaappi version; on other Scheme implementations it should return a generic greeting. Also add a branch for the \code{posix} feature that appends the hostname using \code{get-environment-variable}.
+
+\begin{lstlisting}[style=repl]
+> (import (mylib greeting))
+> (greet "Alice")
+"Hello, Alice! (Running on Kaappi, host: myhost)"
+\end{lstlisting}
+\end{exercise}
 
 You now know how to organize Scheme code into libraries with explicit interfaces, control imports with modifiers, structure multi-file projects, and use third-party packages. In the next chapter, we cover error handling and exception management.
+
+\chapterend

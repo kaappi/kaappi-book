@@ -1,5 +1,6 @@
 \chapter{First Steps}
 \index{expressions}
+\label{ch:first-steps}
 
 With Kaappi installed and the REPL ready, it is time to write your first Scheme code. This chapter covers the fundamental building blocks: expressions, basic arithmetic, variables, and defining simple functions. Open a REPL and type along---every example here is meant to be tried interactively.
 
@@ -334,6 +335,100 @@ Notice that \texttt{(fahrenheit->celsius 72)} returns the exact rational \texttt
 22.22222222222222
 \end{lstlisting}
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Predict and Check]
+Before typing each expression into the REPL, predict what the result will be. Then check your answer:
+
+\begin{lstlisting}[style=repl]
+> (+ (* 3 5) (- 10 6))
+> (/ 1 3)
+> (+ 1/4 1/4 1/4 1/4)
+> (* (+ 1 2) (+ 3 4) (+ 5 6))
+> (- (* 2 3) (* 4 5))
+\end{lstlisting}
+
+Which results surprised you? Pay attention to how Kaappi handles exact rationals versus integers.
+\end{exercise}
+
+\begin{exercise}[Celsius to Fahrenheit]
+The chapter showed a \code{fahrenheit->celsius} function. Write the inverse: a function \code{celsius->fahrenheit} that takes a temperature in Celsius and returns Fahrenheit. The formula is $F = C \times \frac{9}{5} + 32$. Test it in the REPL:
+
+\begin{lstlisting}[style=repl]
+> (celsius->fahrenheit 0)
+32
+> (celsius->fahrenheit 100)
+212
+> (celsius->fahrenheit 37)
+493/5
+\end{lstlisting}
+
+In Python, this would be \code{def celsius\_to\_fahrenheit(c): return c * 9/5 + 32}.
+\end{exercise}
+
+\begin{exercise}[Absolute Value]
+Write a function \code{(absolute-value n)} that returns the absolute value of \code{n} using \code{if}. It should handle positive numbers, negative numbers, and zero:
+
+\begin{lstlisting}[style=repl]
+> (absolute-value -7)
+7
+> (absolute-value 5)
+5
+> (absolute-value 0)
+0
+\end{lstlisting}
+
+Compare your solution to the \code{abs} function defined earlier in this chapter. Are they equivalent?
+\end{exercise}
+
+\begin{exercise}[Recursive Power]
+Write a function \code{(power base exp)} that computes $\mathit{base}^{\mathit{exp}}$ using recursion. Assume \code{exp} is a non-negative integer. The base case is: anything raised to the power 0 is 1. The recursive case is: $b^n = b \times b^{n-1}$.
+
+\begin{lstlisting}[style=repl]
+> (power 2 10)
+1024
+> (power 3 0)
+1
+> (power 5 3)
+125
+\end{lstlisting}
+
+In Python, you would write:
+
+\begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
+def power(base, exp):
+    if exp == 0:
+        return 1
+    return base * power(base, exp - 1)
+\end{lstlisting}
+
+Translate this logic into Scheme using \code{if}, \code{=}, and \code{-}.
+\end{exercise}
+
+\begin{exercise}[Temperature Classifier]
+Write a function \code{(describe-temp t)} that takes a temperature in Celsius and returns a string describing it. Use \code{cond} with these ranges:
+
+\begin{itemize}
+    \item Below 0: \code{"freezing"}
+    \item 0 to 15: \code{"cold"}
+    \item 16 to 25: \code{"warm"}
+    \item Above 25: \code{"hot"}
+\end{itemize}
+
+\begin{lstlisting}[style=repl]
+> (describe-temp -5)
+"freezing"
+> (describe-temp 10)
+"cold"
+> (describe-temp 22)
+"warm"
+> (describe-temp 35)
+"hot"
+\end{lstlisting}
+
+Hint: you will need both \code{<} and \code{<=} (or \code{>=}) to express the boundary conditions.
+\end{exercise}
 
 You now know how to evaluate expressions, work with the basic data types, define variables and functions, write conditionals, and add comments. These are the building blocks of every Scheme program. In the next chapter, we will explore Scheme's data types in depth.
+
+\chapterend

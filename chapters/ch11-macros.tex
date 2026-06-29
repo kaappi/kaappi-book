@@ -1,5 +1,6 @@
 \chapter{Macros}
 \index{macros}\index{syntax-rules}
+\label{ch:macros}
 
 Macros are what make Lisp languages uniquely powerful. They let you extend the language itself---defining new syntactic forms that look and behave exactly like built-in ones. If you find yourself writing the same boilerplate pattern repeatedly, a macro can eliminate it.
 
@@ -280,6 +281,62 @@ Macros are powerful but should not be overused. Use a macro when:
 
 Do \emph{not} use a macro when a function would suffice. Functions are simpler, composable (you can pass them to \texttt{map}), and easier to debug. If your ``macro'' does not need to delay evaluation or introduce bindings, make it a function.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Swap!]
+Write a \code{swap!} macro that swaps the values of two variables using \code{set!}. Verify that hygiene prevents the macro's temporary variable from clashing with user code.
+
+\begin{lstlisting}[style=repl]
+> (let ((a 1) (b 2))
+    (swap! a b)
+    (list a b))
+(2 1)
+> (let ((tmp 99) (x 10) (y 20))
+    (swap! x y)
+    (list tmp x y))
+(99 20 10)
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Assert-Equal]
+Write an \code{assert-equal} macro that takes two expressions, evaluates both, and raises an error showing the source code of each expression and their values if they are not \code{equal?}. (Hint: use \code{'expr} in the template to capture source code.)
+
+\begin{lstlisting}[style=repl]
+> (assert-equal (+ 1 2) 3)
+;; no output --- assertion passed
+> (assert-equal (* 2 3) 7)
+;; Error: assertion failed: (* 2 3) => 6
+;;   is not equal to: 7 => 7
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Do-Times with Named Counter]
+Write a \code{do-n-times} macro similar to the \code{dotimes} macro from this chapter, but the user supplies the counter variable name, the count, \emph{and} an optional step size (defaulting to 1). You will need two \code{syntax-rules} clauses.
+
+\begin{lstlisting}[style=repl]
+> (do-n-times (i 5)
+    (display i) (display " "))
+0 1 2 3 4
+> (do-n-times (i 10 3)
+    (display i) (display " "))
+0 3 6 9
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[With-Logging]
+Write a \code{with-logging} macro that prints an entry message before evaluating the body and an exit message after, then returns the body's result. The macro should accept a label string as its first argument.
+
+\begin{lstlisting}[style=repl]
+> (with-logging "compute"
+    (+ 1 2))
+[enter: compute]
+[exit: compute]
+3
+\end{lstlisting}
+
+As a bonus, make it print the elapsed time in the exit message using \code{current-second}.
+\end{exercise}
 
 You now know how to extend Scheme's syntax with hygienic, pattern-based macros. This is a capability that few mainstream languages offer. In the next chapter, we cover the library system---how to organize code into modules with clean interfaces.
+
+\chapterend

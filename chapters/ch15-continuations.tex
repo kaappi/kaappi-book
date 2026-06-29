@@ -1,5 +1,6 @@
 \chapter{Continuations}
 \index{continuations}\index{call/cc}
+\label{ch:continuations}
 
 Continuations are Scheme's most distinctive feature. A continuation represents ``the rest of the computation''---everything that would happen after a particular point in the program. Scheme lets you capture this as a first-class value and invoke it later, enabling non-local exits, coroutines, backtracking, and custom control structures.
 
@@ -261,6 +262,73 @@ Continuations are powerful but should be used sparingly:
 
 Most programs never need full \texttt{call/cc}. But knowing it exists---and that all control flow in Scheme is ultimately built on continuations---gives you a deep understanding of the language's power.
 
-\sectionbreak
+\section*{Exercises}
 
-You now understand both escape continuations (practical, efficient) and full continuations (powerful, rare). Together with \texttt{dynamic-wind}, these tools give Scheme its unique ability to express any control flow pattern. In the next chapter, we cover records and data abstraction.
+\begin{exercise}[Find-First with call/ec]
+Use \code{call/ec} to write a \code{find-first} procedure that takes a predicate and a list, and returns the first element satisfying the predicate, or \code{\#f} if none does. Do not use the built-in \code{find}---use \code{for-each} with an escape continuation instead.
+
+\begin{lstlisting}[style=repl]
+> (find-first even? '(1 3 4 7 8))
+4
+> (find-first negative? '(1 2 3))
+#f
+> (find-first string? '(1 "hello" 3))
+"hello"
+\end{lstlisting}
+\end{exercise}
+
+\begin{exercise}[Early Exit from Nested Loops]
+Use \code{call/ec} to write a \code{find-pair-summing-to} procedure that takes a target number and a list, and returns the first pair of elements whose sum equals the target (as a list of two elements), or \code{\#f} if no such pair exists. This is like Python's nested loop with an early \code{return}.
+
+\begin{lstlisting}[style=repl]
+> (find-pair-summing-to 10 '(1 3 7 4 6))
+(3 7)
+> (find-pair-summing-to 100 '(1 2 3))
+#f
+\end{lstlisting}
+
+Hint: nest two \code{for-each} calls inside a single \code{call/ec}.
+\end{exercise}
+
+\begin{exercise}[Resource Cleanup with dynamic-wind]
+Write a \code{with-resource} procedure that takes three arguments: an \emph{acquire} thunk (returns a resource), a \emph{body} procedure (receives the resource and uses it), and a \emph{release} procedure (cleans up the resource). Use \code{dynamic-wind} to guarantee the release procedure runs even if an error is raised.
+
+\begin{lstlisting}[style=repl]
+> (with-resource
+    (lambda () (display "acquiring\n") 'my-resource)
+    (lambda (r) (display "using ") (display r) (newline) 42)
+    (lambda (r) (display "releasing ") (display r) (newline)))
+acquiring
+using my-resource
+releasing my-resource
+42
+\end{lstlisting}
+
+Verify that the release runs even when the body raises an error.
+\end{exercise}
+
+\begin{exercise}[Challenge: Simple Generator]
+Implement a generator using \code{call/cc}. Write a \code{make-generator} procedure that takes a procedure. The procedure receives a \code{yield} function; each call to \code{yield} suspends the generator and returns the yielded value. Calling the generator again resumes from where it left off. When the procedure returns, the generator returns \code{'done} on all subsequent calls.
+
+\begin{lstlisting}[style=repl]
+> (define gen (make-generator
+    (lambda (yield)
+      (yield 1)
+      (yield 2)
+      (yield 3))))
+> (gen)
+1
+> (gen)
+2
+> (gen)
+3
+> (gen)
+done
+\end{lstlisting}
+
+This mirrors Python's \texttt{yield} statement but is built entirely from \code{call/cc}.
+\end{exercise}
+
+You now understand both escape continuations (practical, efficient) and full continuations (powerful, rare). Together with \texttt{dynamic-wind}, these tools give Scheme its unique ability to express any control flow pattern. This completes Part~III. In Part~IV, we explore features beyond the R7RS standard---the SRFI ecosystem, the foreign function interface, and concurrency.
+
+\chapterend

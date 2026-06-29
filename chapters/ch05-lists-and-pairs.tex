@@ -1,5 +1,6 @@
 \chapter{Lists and Pairs}
 \index{lists}\index{pairs}
+\label{ch:lists}
 
 Lists are the most important data structure in Scheme. They are used for storing collections, building trees, representing structured data, and even encoding the source code of programs. Understanding lists is essential for everything that follows in this book.
 
@@ -298,6 +299,10 @@ And one that keeps only elements satisfying a predicate:
 This recursive pattern replaces Python's \texttt{for} loop. Instead of iterating with a counter, you decompose the list into head and tail. This style takes practice, but it eliminates off-by-one errors and makes the flow of data explicit.
 \end{note}
 
+\begin{note}[Built-in \texttt{filter}]
+You do not need to write \texttt{my-filter} in real code. SRFI-1 provides a built-in \texttt{filter} (plus \texttt{remove} and \texttt{partition}). We will cover these in the chapter on higher-order functions. The purpose here is to understand the recursive pattern.
+\end{note}
+
 \section{Nested Lists and Trees}
 
 Lists can contain other lists, forming trees:
@@ -363,6 +368,74 @@ Understanding list performance helps you choose the right data structure:
 
 Lists excel at sequential processing and stack-like access (always working with the front). When you need O(1) random access, use vectors. When you need O(1) key lookup, use hash tables.
 
-\sectionbreak
+\section*{Exercises}
+
+\begin{exercise}[Building Lists by Hand]
+Construct the list \code{(a b c d)} using only \code{cons} and \code{'()}---do not use \code{list} or quoting. Then verify that your result is equal to \code{(list 'a 'b 'c 'd)} using \code{equal?}. Draw the pair diagram on paper to reinforce how the chain of cons cells forms a proper list.
+\end{exercise}
+
+\begin{exercise}[Reversing a List]
+Write a function \code{my-reverse} that reverses a list using recursion. Use an accumulator parameter to make it tail-recursive:
+
+\begin{lstlisting}[style=repl]
+> (my-reverse '(1 2 3 4 5))
+(5 4 3 2 1)
+> (my-reverse '())
+()
+> (my-reverse '(a))
+(a)
+\end{lstlisting}
+
+In Python, this would be \texttt{lst[::-1]}. Your Scheme version should be O(n) in both time and space.
+\end{exercise}
+
+\begin{exercise}[Appending Two Lists]
+Write \code{my-append} that concatenates two lists without using the built-in \code{append}:
+
+\begin{lstlisting}[style=repl]
+> (my-append '(1 2 3) '(4 5 6))
+(1 2 3 4 5 6)
+> (my-append '() '(a b))
+(a b)
+> (my-append '(x) '())
+(x)
+\end{lstlisting}
+
+Hint: recurse on the first list. What is the base case? Why does this function copy the first list but share the second?
+\end{exercise}
+
+\begin{exercise}[Mapping over a List]
+Write \code{my-map} that applies a function to each element of a list:
+
+\begin{lstlisting}[style=repl]
+> (my-map (lambda (x) (* x x)) '(1 2 3 4 5))
+(1 4 9 16 25)
+> (my-map string-upcase '("hello" "world"))
+("HELLO" "WORLD")
+> (my-map car '((a 1) (b 2) (c 3)))
+(a b c)
+\end{lstlisting}
+
+Follow the standard recursive pattern: base case for the empty list, then \code{cons} the transformed first element onto the recursion over the rest.
+\end{exercise}
+
+\begin{exercise}[Flattening Nested Lists]
+Write a function \code{flatten} that takes an arbitrarily nested list structure and returns a flat list of all the non-list elements:
+
+\begin{lstlisting}[style=repl]
+> (flatten '(1 (2 3) (4 (5 (6))) 7))
+(1 2 3 4 5 6 7)
+> (flatten '((((deep)))))
+(deep)
+> (flatten '(1 2 3))
+(1 2 3)
+> (flatten '())
+()
+\end{lstlisting}
+
+This requires two recursive cases: when the \code{car} is itself a pair (recurse into it) and when it is an atom (keep it). An example was shown earlier in this chapter---try writing it from memory before looking back.
+\end{exercise}
 
 Lists and pairs are the backbone of Scheme programming. Nearly everything in the language---from data processing to code representation---builds on the ideas in this chapter. In the next chapter, we will define functions in earnest and explore recursion, closures, and tail calls.
+
+\chapterend
