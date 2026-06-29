@@ -142,8 +142,9 @@ A safer approach is to always initialize every field:
 \end{lstlisting}
 
 \section{Building Abstractions with Records}
+\index{encapsulation}
 
-Records shine when combined with procedures that form a clean interface. Here is a simple stack:
+Records shine when combined with procedures that form a clean interface. Here is a simple stack:\index{stack}
 
 \begin{lstlisting}
 (define-record-type <stack>
@@ -183,7 +184,7 @@ Records shine when combined with procedures that form a clean interface. Here is
 Users of this stack never access \texttt{stack-items} directly---they use the provided interface. The internal representation can change without breaking client code.
 
 \section{Immutable Records and Functional Updates}
-\index{functional update}
+\index{functional update}\index{immutable records}
 
 For immutable records, the ``update'' pattern creates a new record with one field changed:
 
@@ -349,6 +350,6 @@ Build a priority queue abstraction using records. Define a \code{<pqueue>} recor
 \end{lstlisting}
 \end{exercise}
 
-You now know how to define custom data types with records, control mutability, build clean abstractions, and choose between records and lists. In the next chapter, we explore continuations---Scheme's most powerful and unusual control flow mechanism.
+You now know how to define custom data types with records, control mutability, build clean abstractions, and choose between records and lists. In the next chapter (Chapter~\ref{ch:continuations}), we explore continuations---Scheme's most powerful and unusual control flow mechanism.
 
 \chapterend

@@ -181,6 +181,8 @@ The handler receives 5, returns 50, and execution continues as if \texttt{raise-
 
 \subsection{Default Values on Error}
 
+Here we intentionally catch all errors---any failure (missing file, parse error, or otherwise) means we fall back to the default:
+
 \begin{lstlisting}
 (define (read-config-or-default filename)
   (guard (e (#t '()))  ; return empty list on any error
@@ -212,8 +214,8 @@ This returns two values: the parsed result (or \texttt{\#f} on error) and an err
 (define (vector-median v)
   (when (zero? (vector-length v))
     (error "cannot compute median of empty vector" v))
-  (let ((sorted (vector-sort < v)))
-    (vector-ref sorted (quotient (vector-length sorted) 2))))
+  (let ((sorted (list-sort < (vector->list v))))
+    (list-ref sorted (quotient (length sorted) 2))))
 \end{lstlisting}
 
 Fail early with a clear message when preconditions are not met.
@@ -221,7 +223,7 @@ Fail early with a clear message when preconditions are not met.
 \section{Custom Error Types}
 \index{custom error types}
 
-For larger programs, you may want to distinguish between different kinds of errors. One approach is to use records as error objects and raise them with \texttt{raise}:
+For larger programs, you may want to distinguish between different kinds of errors. One approach is to use records as error objects and raise them with \texttt{raise}. We use \texttt{define-record-type} here, which is covered in full in Chapter~\ref{ch:records}---for now, just note the pattern: a type name, a constructor, a predicate, and field specifications:
 
 \begin{lstlisting}
 (define-record-type <http-error>
@@ -270,14 +272,14 @@ When writing a library, follow these conventions so that callers can handle your
 (define (parse-config filename)
   (guard (e
           ((and (error-object? e)
-                (string-contains
-                  (error-object-message e) "No such file"))
+                (string=? (error-object-message e)
+                          "No such file or directory"))
            (error "parse-config: file not found" filename)))
     (call-with-port (open-input-file filename)
       (lambda (port) (json-read port)))))
 \end{lstlisting}
 
-This wraps the low-level ``No such file'' error in a domain-specific message while preserving the original filename as an irritant.
+This wraps the low-level file-not-found error in a domain-specific message while preserving the original filename as an irritant.
 
 \section{Error Handling Strategy}
 
@@ -359,6 +361,6 @@ Write a \code{with-default} procedure that takes a default value and a thunk. It
 \end{lstlisting}
 \end{exercise}
 
-You now know how to signal errors with \texttt{error}, catch them with \texttt{guard}, raise custom conditions with \texttt{raise}, and write robust code that fails gracefully. In the next chapter, we define custom data types with records.
+You now know how to signal errors with \texttt{error}, catch them with \texttt{guard}, raise custom conditions with \texttt{raise}, and write robust code that fails gracefully. In the next chapter (Chapter~\ref{ch:records}), we define custom data types with records.
 
 \chapterend

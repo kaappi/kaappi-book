@@ -27,10 +27,8 @@ a
 \texttt{display} does not add a newline. Use \texttt{newline} to move to the next line:
 
 \begin{lstlisting}[style=repl]
-> (display "line one")
-> (newline)
-> (display "line two")
-> (newline)
+> (begin (display "line one") (newline)
+         (display "line two") (newline))
 line one
 line two
 \end{lstlisting}
@@ -386,7 +384,7 @@ Write a function \code{wc} that takes a filename and returns three values (using
 5 lines, 23 words, 142 characters
 \end{lstlisting}
 
-Hint: for counting words in a line, split on whitespace by filtering out empty strings after using \code{string-split} (from SRFI-152 or SRFI-130), or count transitions between whitespace and non-whitespace characters.
+Hint: for counting words in a line, split on whitespace using \code{string-split} from SRFI-13 (importable as \code{(srfi 13)}), or count transitions between whitespace and non-whitespace characters.
 \end{exercise}
 
 \begin{exercise}[File to List]
@@ -414,6 +412,6 @@ Use string ports to implement \code{serialize} and \code{deserialize} functions 
 \code{serialize} should use \code{open-output-string} and \code{write}. \code{deserialize} should use \code{open-input-string} and \code{read}. Test with various types: numbers, strings, booleans, nested lists, and symbols. Why is \code{write} (not \code{display}) essential for round-tripping?
 \end{exercise}
 
-You now understand Scheme's port-based I/O system: console output with \texttt{display}/\texttt{write}/\texttt{newline}, input with \texttt{read-line}/\texttt{read}, file operations with \texttt{call-with-port}, and string ports for in-memory I/O. This completes Part~II of the book. In Part~III, we move to advanced topics, starting with Scheme's powerful macro system.
+You now understand Scheme's port-based I/O system: console output with \texttt{display}/\texttt{write}/\texttt{newline}, input with \texttt{read-line}/\texttt{read}, file operations with \texttt{call-with-port}, and string ports for in-memory I/O. This completes Part~II of the book. In Part~III, we move to advanced topics, starting with Scheme's powerful macro system (Chapter~\ref{ch:macros}).
 
 \chapterend

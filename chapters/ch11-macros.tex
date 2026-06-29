@@ -132,22 +132,27 @@ In a pattern, \texttt{expr ...} matches zero or more expressions. In a template,
 \begin{lstlisting}[style=repl]
 > (define-syntax my-list
     (syntax-rules ()
-      ((my-list elem ...)
-       (cons* elem ... '()))))
+      ((my-list) '())
+      ((my-list elem rest ...)
+       (cons elem (my-list rest ...)))))
+> (my-list 1 2 3)
+(1 2 3)
 \end{lstlisting}
 
-A more useful example---a macro that defines multiple variables at once:
+A more useful example---a macro that returns the value of the first expression while evaluating the rest for side effects:
 
 \begin{lstlisting}[style=repl]
-> (define-syntax define-values
+> (define-syntax begin0
     (syntax-rules ()
-      ((define-values (name ...) expr)
-       (begin
-         (define temp expr)
-         (define name (list-ref temp
-           (- (length '(name ...))
-              (length (memq 'name '(name ...))))))
-         ...))))
+      ((begin0 first rest ...)
+       (let ((result first))
+         rest ...
+         result))))
+> (begin0 (+ 1 2)
+    (display "side effect")
+    (newline))
+side effect
+3
 \end{lstlisting}
 
 \subsection{Nested Ellipsis}
@@ -193,6 +198,8 @@ In C, the macro \texttt{\#define SWAP(a,b) \{int tmp=a; a=b; b=tmp;\}} breaks if
 \section{Practical Macros}
 
 \subsection{A \texttt{unless} Macro}
+
+Both \texttt{when} and \texttt{unless} are built-in, but they are defined as macros internally. Here is how \texttt{unless} could be implemented:
 
 \begin{lstlisting}
 (define-syntax unless
@@ -320,8 +327,8 @@ Write an \code{assert-equal} macro that takes two expressions, evaluates both, a
 > (assert-equal (+ 1 2) 3)
 ;; no output --- assertion passed
 > (assert-equal (* 2 3) 7)
-;; Error: assertion failed: (* 2 3) => 6
-;;   is not equal to: 7 => 7
+; Error: assertion failed: (* 2 3) => 6
+;   is not equal to: 7 => 7
 \end{lstlisting}
 \end{exercise}
 
@@ -352,6 +359,6 @@ Write a \code{with-logging} macro that prints an entry message before evaluating
 As a bonus, make it print the elapsed time in the exit message using \code{current-second}.
 \end{exercise}
 
-You now know how to extend Scheme's syntax with hygienic, pattern-based macros. This is a capability that few mainstream languages offer. In the next chapter, we cover the library system---how to organize code into modules with clean interfaces.
+You now know how to extend Scheme's syntax with hygienic, pattern-based macros. This is a capability that few mainstream languages offer. In the next chapter (Chapter~\ref{ch:libraries}), we cover the library system---how to organize code into modules with clean interfaces.
 
 \chapterend

@@ -17,11 +17,11 @@ Every Scheme program begins by importing the libraries it needs:
 (newline)
 \end{lstlisting}
 
-The REPL automatically imports \texttt{(scheme base)}, but script files must import explicitly. You can import any number of libraries in a single \texttt{import} form.
+The REPL automatically imports \texttt{(scheme base)}, but script files must import explicitly. You can import any number of libraries in a single \texttt{import} form. Notice that we import \texttt{(scheme write)} above: in R7RS, \texttt{display} and \texttt{write} are formally defined there, though Kaappi also makes them available through \texttt{(scheme base)}. Including \texttt{(scheme write)} is good practice for portability across Scheme implementations.
 
 \subsection{Available Standard Libraries}
 
-R7RS defines 14 standard libraries:
+R7RS defines 15 standard libraries:
 
 \begin{center}
 \begin{tabular}{lp{7.5cm}}
@@ -33,6 +33,7 @@ R7RS defines 14 standard libraries:
 \texttt{(scheme char)} & Unicode character procedures \\
 \texttt{(scheme file)} & File port operations \\
 \texttt{(scheme eval)} & \texttt{eval}, \texttt{environment} \\
+\texttt{(scheme repl)} & \texttt{interaction-environment} \\
 \texttt{(scheme load)} & \texttt{load} \\
 \texttt{(scheme inexact)} & Transcendental functions (\texttt{sin}, \texttt{cos}, \texttt{sqrt}, etc.) \\
 \texttt{(scheme complex)} & Complex number operations \\
@@ -334,6 +335,6 @@ Write a library \code{(mylib greeting)} that uses \code{cond-expand} to export a
 \end{lstlisting}
 \end{exercise}
 
-You now know how to organize Scheme code into libraries with explicit interfaces, control imports with modifiers, structure multi-file projects, and use third-party packages. In the next chapter, we cover error handling and exception management.
+You now know how to organize Scheme code into libraries with explicit interfaces, control imports with modifiers, structure multi-file projects, and use third-party packages. In the next chapter (Chapter~\ref{ch:errors}), we cover error handling and exception management.
 
 \chapterend
