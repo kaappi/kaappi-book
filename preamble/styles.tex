@@ -59,18 +59,22 @@
 \renewcommand{\theexercise}{\thechapter.\arabic{exercise}}
 
 \newmdenv[
-    backgroundcolor=exercisebg,
+    backgroundcolor=white,
     linecolor=exerciseborder,
-    linewidth=1pt,
-    roundcorner=2pt,
+    linewidth=2pt,
+    roundcorner=0pt,
     innerleftmargin=12pt,
     innerrightmargin=12pt,
-    innertopmargin=12pt,
+    innertopmargin=10pt,
     innerbottommargin=10pt,
     leftmargin=0pt,
     rightmargin=0pt,
     skipabove=\baselineskip,
     skipbelow=\baselineskip,
+    leftline=true,
+    rightline=false,
+    topline=false,
+    bottomline=false,
 ]{exercisebox}
 
 \newenvironment{exercise}[1][]{%
