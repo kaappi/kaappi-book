@@ -101,7 +101,7 @@ Here, \texttt{assv} returns \texttt{(2 "two")} (a true value), and \texttt{=>} p
 "weekday"
 \end{lstlisting}
 
-Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}, so this works well with symbols, numbers, and characters---but not strings (use \texttt{cond} with \texttt{string=?} for strings).
+Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?}, so this works well with symbols, numbers, and characters---but not strings (use \texttt{cond} with \texttt{string=?} for strings).
 
 \begin{lstlisting}[style=repl]
 > (case (+ 2 3)
@@ -118,7 +118,7 @@ Each clause lists datum values in parentheses. The key is compared using \texttt
 \section{Boolean Combinators: \texttt{and} and \texttt{or}}
 \index{and}\index{or}
 
-\texttt{and} and \texttt{or} are short-circuiting expressions that return the determining value---not just \texttt{\#t} or \texttt{\#f}.
+\texttt{and} and \texttt{or} are short-circuiting\index{short-circuit evaluation} expressions that return the determining value---not just \texttt{\#t} or \texttt{\#f}.
 
 \subsection{\texttt{and}}
 

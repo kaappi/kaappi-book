@@ -1,5 +1,5 @@
 \chapter{Records and Data Abstraction}
-\index{records}\index{define-record-type}
+\index{records}\index{define-record-type}\index{data abstraction}
 \label{ch:records}
 
 As programs grow, you need structured data with named fields---not just anonymous lists where you have to remember that ``the third element is the email address.'' Scheme's \texttt{define-record-type} creates custom data types with constructors, predicates, and accessors. This chapter covers record definition, usage patterns, and how to build clean abstractions.
@@ -41,12 +41,13 @@ The \texttt{define-record-type} form takes:
 
 \begin{enumerate}
     \item \textbf{Type name} --- \texttt{<point>} (the angle brackets are a convention, not syntax).
-    \item \textbf{Constructor} --- \texttt{(make-point x y)} specifies the constructor name and which fields it initializes.
-    \item \textbf{Predicate} --- \texttt{point?} tests whether a value is an instance of this record type.
+    \item \textbf{Constructor}\index{constructor} --- \texttt{(make-point x y)} specifies the constructor name and which fields it initializes.
+    \item \textbf{Predicate}\index{predicate!record} --- \texttt{point?} tests whether a value is an instance of this record type.
     \item \textbf{Field specifications} --- each is \texttt{(field-name accessor)} or \texttt{(field-name accessor mutator)}.
 \end{enumerate}
 
 \section{Accessors and Mutators}
+\index{accessor}\index{mutator}
 
 Each field gets an accessor. You can optionally add a mutator for mutable fields:
 
@@ -72,7 +73,7 @@ Fields without a mutator are immutable---once set by the constructor, they canno
 \end{lstlisting}
 
 \begin{note}[Prefer immutable records]
-Make fields immutable by default (no mutator). Immutable data is easier to reason about, safe to share between threads, and less prone to bugs. Add mutators only when you genuinely need in-place updates.
+\index{immutable records}Make fields immutable by default (no mutator). Immutable data is easier to reason about, safe to share between threads, and less prone to bugs. Add mutators only when you genuinely need in-place updates.
 \end{note}
 
 \section{Records vs.\ Lists}
@@ -182,6 +183,7 @@ Records shine when combined with procedures that form a clean interface. Here is
 Users of this stack never access \texttt{stack-items} directly---they use the provided interface. The internal representation can change without breaking client code.
 
 \section{Immutable Records and Functional Updates}
+\index{functional update}
 
 For immutable records, the ``update'' pattern creates a new record with one field changed:
 

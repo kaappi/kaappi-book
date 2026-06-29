@@ -18,7 +18,7 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \hline
 \texttt{kaappi FILE} & Run a Scheme source file \\
 \texttt{kaappi} & Launch the interactive REPL \\
-\texttt{kaappi compile FILE} & Compile Scheme source to a native binary via LLVM \\
+\texttt{kaappi compile FILE}\index{compile} & Compile Scheme source to a native binary via LLVM \\
 \end{tabular}
 \end{center}
 
@@ -30,18 +30,18 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \hline
 \texttt{-h}, \texttt{--help} & Show usage and available flags \\
 \texttt{--version} & Print version string \\
-\texttt{--lib-path DIR} & Add a library search path (repeatable, up to 16) \\
+\texttt{--lib-path DIR}\index{--lib-path} & Add a library search path (repeatable, up to 16) \\
 \texttt{--compile FILE} & Compile to bytecode (\texttt{.sbc}) without running \\
 \texttt{-o FILE} & Output path for \texttt{--compile}, \texttt{--emit-llvm}, or \texttt{compile} \\
 \texttt{--emit-llvm} & Emit LLVM IR text (\texttt{.ll} file) \\
 \texttt{--profile} & Profile execution (per-function timing, call counts) \\
 \texttt{--profile-json FILE} & Write profiling data as JSON \\
-\texttt{--sandbox} & Sandbox mode: blocks FFI, file I/O, eval, load, env access \\
+\texttt{--sandbox}\index{--sandbox} & Sandbox mode: blocks FFI, file I/O, eval, load, env access \\
 \texttt{--timeout MS} & Execution timeout in milliseconds \\
 \texttt{--max-memory BYTES} & Maximum heap memory \\
 \texttt{--disassemble FILE} & Show compiled bytecode without running \\
 \texttt{--gc-stats} & Print GC statistics on exit \\
-\texttt{--coverage} & Report library procedure coverage \\
+\texttt{--coverage}\index{--coverage} & Report library procedure coverage \\
 \texttt{--coverage-xml FILE} & Write Cobertura XML coverage report \\
 \texttt{--completions SHELL} & Output shell completion script (bash, zsh, or fish) \\
 \texttt{--experimental-threads} & Enable OS thread support (SRFI-18) \\

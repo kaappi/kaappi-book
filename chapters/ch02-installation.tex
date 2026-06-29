@@ -118,7 +118,7 @@ echo '(+ 1 2)' | kaappi
 This should print \texttt{3}. If both commands succeed, your installation is ready.
 
 \begin{note}[No install yet?]
-If you want to follow along before installing, Kaappi provides a browser-based playground at \texttt{https://kaappi-lang.org/playground/} that runs the same interpreter via WebAssembly. It is perfect for trying examples, though you will eventually want a local install for file I/O and the full feature set.
+If you want to follow along before installing, Kaappi provides a browser-based playground\index{playground} at \texttt{https://kaappi-lang.org/playground/} that runs the same interpreter via WebAssembly. It is perfect for trying examples, though you will eventually want a local install for file I/O and the full feature set.
 \end{note}
 
 \section{The REPL}
@@ -232,7 +232,7 @@ Hello, world!
 \end{codeoutput}
 
 \begin{note}[Import in scripts vs.\ REPL]
-Script files must explicitly import the libraries they use. The REPL automatically imports \texttt{(scheme base)}, so expressions like \texttt{(+ 1 2)} work immediately. In a file, you would get an ``unbound variable'' error without the \texttt{import} line.
+Script files must explicitly import\index{import} the libraries they use. The REPL automatically imports \texttt{(scheme base)}, so expressions like \texttt{(+ 1 2)} work immediately. In a file, you would get an ``unbound variable'' error without the \texttt{import} line.
 \end{note}
 
 \section{Editor Support}
@@ -242,7 +242,7 @@ You can write Scheme in any text editor, but language server support makes the e
 
 \subsection{VS Code}
 
-Install the \texttt{kaappi} extension from the VS Code marketplace. It provides syntax highlighting, bracket matching, and full LSP integration (go-to-definition, find-references, document symbols) via the bundled \texttt{kaappi-lsp} server.
+Install the \texttt{kaappi} extension from the VS Code marketplace. It provides syntax highlighting, bracket matching, and full LSP integration (go-to-definition, find-references, document symbols) via the bundled \texttt{kaappi-lsp}\index{kaappi-lsp} server.
 
 \subsection{Neovim, Emacs, and Helix}
 

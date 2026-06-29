@@ -27,7 +27,7 @@ This appendix provides a concise reference to the R7RS-small standard. Use it as
 \texttt{case-lambda} & \texttt{(case-lambda (formals body ...) ...)} \\
 \texttt{begin} & \texttt{(begin expr ...)} \\
 \texttt{quote} & \texttt{'datum} or \texttt{(quote datum)} \\
-\texttt{quasiquote} & \texttt{`template} with \texttt{,expr} and \texttt{,@expr} \\
+\texttt{quasiquote}\index{quasiquote} & \texttt{`template} with \texttt{,expr} and \texttt{,@expr} \\
 \texttt{set!} & \texttt{(set! var expr)} \\
 \texttt{define-syntax} & \texttt{(define-syntax name (syntax-rules ...))} \\
 \texttt{syntax-rules} & \texttt{(syntax-rules (literals) (pattern template) ...)} \\
@@ -37,9 +37,9 @@ This appendix provides a concise reference to the R7RS-small standard. Use it as
 \texttt{import} & \texttt{(import import-set ...)} \\
 \texttt{guard} & \texttt{(guard (var (test expr ...) ...) body ...)} \\
 \texttt{define-record-type} & \texttt{(define-record-type name ctor pred field ...)} \\
-\texttt{delay} & \texttt{(delay expr)} \\
+\texttt{delay}\index{delay} & \texttt{(delay expr)} \\
 \texttt{delay-force} & \texttt{(delay-force expr)} \\
-\texttt{parameterize} & \texttt{(parameterize ((param val) ...) body ...)} \\
+\texttt{parameterize}\index{parameterize} & \texttt{(parameterize ((param val) ...) body ...)} \\
 \texttt{cond-expand} & \texttt{(cond-expand (feature-req body ...) ...)} \\
 \end{tabular}
 \end{center}
@@ -188,9 +188,9 @@ This appendix provides a concise reference to the R7RS-small standard. Use it as
 \hline
 \texttt{not} & Boolean negation \\
 \texttt{boolean?} & Type predicate \\
-\texttt{eq?} & Pointer identity \\
+\texttt{eq?}\index{eq?} & Pointer identity \\
 \texttt{eqv?} & Value equivalence (numbers, chars) \\
-\texttt{equal?} & Deep structural equality \\
+\texttt{equal?}\index{equal?} & Deep structural equality \\
 \end{tabular}
 \end{center}
 
@@ -214,7 +214,7 @@ This appendix provides a concise reference to the R7RS-small standard. Use it as
 \textbf{Procedure} & \textbf{Description} \\
 \hline
 \texttt{make-parameter parameterize} & Dynamic binding \\
-\texttt{force make-promise promise?} & Lazy evaluation \\
+\texttt{force make-promise promise?}\index{force}\index{promise} & Lazy evaluation \\
 \texttt{eval environment} & Evaluation \\
 \texttt{load} & Load a file \\
 \texttt{exit} & Terminate the program \\

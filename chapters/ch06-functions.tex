@@ -125,7 +125,7 @@ Most list processing follows this pattern: check for empty (base case), process 
 \section{Tail Calls and Tail Recursion}
 \index{tail call optimization}\index{TCO}
 
-When a recursive call is the \emph{last thing} a function does---the final expression with nothing left to do after it returns---it is in \emph{tail position}. Kaappi (and all conforming Schemes) guarantee that tail calls reuse the current stack frame instead of allocating a new one.
+When a recursive call is the \emph{last thing} a function does---the final expression with nothing left to do after it returns---it is in \emph{tail position}\index{tail position}. Kaappi (and all conforming Schemes) guarantee that tail calls reuse the current stack frame instead of allocating a new one.
 
 This means tail-recursive functions use constant stack space, just like a loop.
 
@@ -290,7 +290,7 @@ Scheme functions can return multiple values using \texttt{values}:
 2
 \end{lstlisting}
 
-To receive multiple values, use \texttt{call-with-values} or the more convenient \texttt{let-values}:
+To receive multiple values, use \texttt{call-with-values}\index{call-with-values} or the more convenient \texttt{let-values}:
 
 \begin{lstlisting}[style=repl]
 > (let-values (((q r) (divide 17 5)))
@@ -309,6 +309,7 @@ This is similar to Python's tuple unpacking: \texttt{q, r = divmod(17, 5)}. Sche
 A few patterns come up frequently when working with functions.
 
 \subsection{Functions that Return Functions}
+\index{compose}
 
 \begin{lstlisting}[style=repl]
 > (define (compose f g)
@@ -319,6 +320,7 @@ A few patterns come up frequently when working with functions.
 \end{lstlisting}
 
 \subsection{Partial Application}
+\index{partial application}
 
 \begin{lstlisting}[style=repl]
 > (define (partial f . fixed-args)

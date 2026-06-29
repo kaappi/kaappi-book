@@ -11,6 +11,7 @@ all: $(BUILD_DIR)/$(JOBNAME).pdf
 $(BUILD_DIR)/$(JOBNAME).pdf: $(MAIN).tex preamble/*.tex chapters/*.tex
 	@mkdir -p $(BUILD_DIR)
 	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
+	-cd $(BUILD_DIR) && makeindex $(JOBNAME).idx
 	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
 	$(LATEX) $(LATEX_FLAGS) $(MAIN).tex
 

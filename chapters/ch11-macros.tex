@@ -10,7 +10,7 @@ This chapter covers \texttt{define-syntax} and \texttt{syntax-rules}---the patte
 
 \section{What Is a Macro?}
 
-A macro is a compile-time transformation rule. When Kaappi encounters a macro call, it does not evaluate the arguments---instead, it rewrites the entire expression according to the macro's rules, and then evaluates the result.
+A macro is a compile-time transformation rule\index{macro expansion}. When Kaappi encounters a macro call, it does not evaluate the arguments---instead, it rewrites the entire expression according to the macro's rules, and then evaluates the result.
 
 Consider \texttt{when}:
 
@@ -171,7 +171,7 @@ Scheme macros are hygienic: temporary variables introduced by a macro cannot cla
 (100 2 1)
 \end{lstlisting}
 
-The \texttt{tmp} inside the macro and the \texttt{tmp} in the calling code are different bindings---the macro's \texttt{tmp} is automatically renamed to avoid capture. In an unhygienic system (like C's \texttt{\#define}), this would be a bug.
+The \texttt{tmp} inside the macro and the \texttt{tmp} in the calling code are different bindings---the macro's \texttt{tmp} is automatically renamed to avoid capture\index{variable capture}. In an unhygienic system (like C's \texttt{\#define}), this would be a bug.
 
 \begin{note}[Why hygiene matters]
 In C, the macro \texttt{\#define SWAP(a,b) \{int tmp=a; a=b; b=tmp;\}} breaks if you write \texttt{SWAP(tmp, x)} because the user's \texttt{tmp} and the macro's \texttt{tmp} collide. Scheme's system makes this impossible.
@@ -189,6 +189,7 @@ In C, the macro \texttt{\#define SWAP(a,b) \{int tmp=a; a=b; b=tmp;\}} breaks if
 \end{lstlisting}
 
 \subsection{A \texttt{while} Loop}
+\index{while}
 
 Scheme does not have a built-in \texttt{while}, but you can add one:
 
@@ -208,6 +209,7 @@ Scheme does not have a built-in \texttt{while}, but you can add one:
 \end{lstlisting}
 
 \subsection{A \texttt{dotimes} Loop}
+\index{dotimes}
 
 \begin{lstlisting}[style=repl]
 > (define-syntax dotimes

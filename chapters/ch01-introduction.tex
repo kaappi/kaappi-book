@@ -99,10 +99,10 @@ Kaappi implements the full R7RS-small specification: all 14 standard libraries, 
 When you type a Scheme expression, Kaappi processes it through a pipeline:
 
 \begin{enumerate}
-    \item \textbf{Reader} --- parses source text into a data structure (an S-expression).
+    \item \textbf{Reader} --- parses source text into a data structure (an S-expression\index{S-expression}).
     \item \textbf{Expander} --- processes macros, transforming syntactic sugar into core forms.
     \item \textbf{Compiler} --- translates the expanded code into register-based bytecode through an intermediate representation with optimization passes.
-    \item \textbf{Virtual machine} --- executes the bytecode on a register-based VM with a generational garbage collector.
+    \item \textbf{Virtual machine}\index{virtual machine} --- executes the bytecode on a register-based VM with a generational garbage collector\index{garbage collector}.
 \end{enumerate}
 
 This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 39,000 lines of Zig).
@@ -122,7 +122,7 @@ Beyond the R7RS standard, Kaappi provides:
 
 \subsection{Single Binary, Multiple Platforms}
 
-Kaappi installs as a statically-linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V), and in the browser via WebAssembly.
+Kaappi installs as a statically-linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V), and in the browser via WebAssembly\index{WebAssembly}.
 
 \section{Why Learn Scheme?}
 

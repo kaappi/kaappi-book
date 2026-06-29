@@ -60,6 +60,7 @@ Beyond these, Kaappi provides 72 SRFIs importable as \texttt{(srfi N)}:
 Sometimes you want to import only specific names, avoid conflicts, or add a prefix. Import modifiers give you fine-grained control.
 
 \subsection{\texttt{only}: Import Specific Names}
+\index{only}
 
 \begin{lstlisting}
 (import (only (scheme base) map filter define let if))
@@ -68,6 +69,7 @@ Sometimes you want to import only specific names, avoid conflicts, or add a pref
 Only the listed names become available. Everything else from the library is excluded.
 
 \subsection{\texttt{except}: Exclude Specific Names}
+\index{except}
 
 \begin{lstlisting}
 (import (except (scheme base) error))
@@ -76,6 +78,7 @@ Only the listed names become available. Everything else from the library is excl
 Everything from \texttt{(scheme base)} is imported except \texttt{error}.
 
 \subsection{\texttt{prefix}: Add a Namespace Prefix}
+\index{prefix}
 
 \begin{lstlisting}[style=repl]
 > (import (prefix (scheme char) char:))
@@ -88,6 +91,7 @@ Everything from \texttt{(scheme base)} is imported except \texttt{error}.
 All imported names get the prefix \texttt{char:}. This avoids name collisions between libraries.
 
 \subsection{\texttt{rename}: Rename Specific Imports}
+\index{rename}
 
 \begin{lstlisting}
 (import (rename (scheme base) (define def) (lambda fn)))
@@ -130,7 +134,7 @@ A library is defined in a \texttt{.sld} file (Scheme Library Definition). The fi
 The key declarations:
 
 \begin{itemize}
-    \item \texttt{export} --- lists the names that users of this library can access.
+    \item \texttt{export}\index{export} --- lists the names that users of this library can access.
     \item \texttt{import} --- lists libraries that this library depends on.
     \item \texttt{begin} --- contains the Scheme code that defines the exported bindings.
 \end{itemize}
@@ -155,6 +159,7 @@ kaappi program.scm
 \end{Verbatim}
 
 \section{Library Search Paths}
+\index{library search path}\index{--lib-path}
 
 Kaappi searches for \texttt{.sld} files in this order:
 
@@ -200,6 +205,7 @@ You can export a binding under a different name:
 Users import \texttt{join} and \texttt{split}, but internally the functions are named \texttt{internal-join} and \texttt{internal-split}.
 
 \section{The \texttt{include} Declaration}
+\index{include}
 
 For libraries with large implementations, you can keep the code in separate files:
 

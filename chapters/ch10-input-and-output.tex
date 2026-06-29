@@ -120,7 +120,7 @@ Never use \texttt{read} on untrusted input. It can parse any Scheme datum, inclu
 A \emph{port} is an abstract source or destination for I/O. Every read operation reads from some port; every write operation writes to some port. When you call \texttt{display} or \texttt{read-line} without specifying a port, they use the \emph{current ports}:
 
 \begin{lstlisting}[style=repl]
-> (current-input-port)
+> (current-input-port)\index{current-input-port}\index{current-output-port}\index{current-error-port}
 #<input-port stdin>
 > (current-output-port)
 #<output-port stdout>
@@ -136,6 +136,7 @@ error!
 \end{lstlisting}
 
 \subsection{Port Predicates}
+\index{port?}\index{input-port?}\index{output-port?}
 
 \begin{lstlisting}[style=repl]
 > (port? (current-input-port))
@@ -150,6 +151,7 @@ error!
 \index{file I/O}
 
 \subsection{Opening and Closing Ports}
+\index{open-input-file}\index{open-output-file}\index{close-input-port}\index{close-output-port}
 
 \begin{lstlisting}
 (define in (open-input-file "data.txt"))
@@ -240,6 +242,7 @@ A utility that reads all lines into a list:
 String ports let you use I/O procedures on strings instead of files. They are useful for building strings incrementally or parsing string content.
 
 \subsection{Output String Ports}
+\index{open-output-string}\index{get-output-string}
 
 \begin{lstlisting}[style=repl]
 > (define port (open-output-string))
@@ -252,6 +255,7 @@ String ports let you use I/O procedures on strings instead of files. They are us
 This is more efficient than repeated \texttt{string-append} for building large strings.
 
 \subsection{Input String Ports}
+\index{open-input-string}
 
 \begin{lstlisting}[style=repl]
 > (define port (open-input-string "(+ 1 2) (+ 3 4)"))

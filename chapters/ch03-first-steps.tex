@@ -8,7 +8,7 @@ With Kaappi installed and the REPL ready, it is time to write your first Scheme 
 
 In Python, you distinguish between \emph{statements} (which do things) and \emph{expressions} (which produce values). In Scheme, there is only one category: everything is an expression, and every expression produces a value.
 
-The syntax is uniform. An expression is either an atom (a number, string, or symbol standing alone) or a list enclosed in parentheses. When the evaluator sees a list, it treats the first element as the operator and the rest as operands:
+The syntax is uniform. An expression is either an atom (a number, string, or symbol standing alone) or a list enclosed in parentheses\index{S-expression}. When the evaluator sees a list, it treats the first element as the operator and the rest as operands:
 
 \begin{lstlisting}[style=repl]
 > (+ 2 3)
@@ -35,7 +35,7 @@ In Python, \texttt{2 + 3 * 4} evaluates to \texttt{14} because \texttt{*} binds 
 The parentheses \emph{are} the precedence. There is nothing to memorize, and there is never ambiguity about evaluation order.
 
 \begin{note}[Coming from Python]
-If \texttt{(+ 2 3)} looks strange, think of it as a function call where the function name goes inside the parentheses: like \texttt{add(2, 3)} but without the commas and with the function name moved inside. After a few examples, the pattern becomes natural.
+If \texttt{(+ 2 3)} looks strange, think of it as a procedure\index{procedure} call where the procedure name goes inside the parentheses: like \texttt{add(2, 3)} but without the commas and with the procedure name moved inside. After a few examples, the pattern becomes natural.
 \end{note}
 
 \subsection{Operators Take Multiple Arguments}
@@ -92,7 +92,7 @@ Python 3 also has arbitrary-precision integers, so this will feel familiar. The 
 \subsection{Strings}
 \index{strings}
 
-Strings are delimited by double quotes:
+Strings are delimited by double quotes:\index{string-length}\index{string-append}
 
 \begin{lstlisting}[style=repl]
 > "hello, world"
@@ -181,7 +181,7 @@ Once defined, you can use the name anywhere an expression is expected. Names in 
 \end{lstlisting}
 
 \begin{note}[Naming conventions]
-Scheme uses \texttt{kebab-case} (words separated by hyphens) instead of \texttt{snake\_case} or \texttt{camelCase}. Predicates end with \texttt{?} (e.g., \texttt{zero?}, \texttt{string?}). Mutating procedures end with \texttt{!} (e.g., \texttt{set!}, \texttt{vector-set!}).
+Scheme uses \texttt{kebab-case}\index{kebab-case} (words separated by hyphens) instead of \texttt{snake\_case} or \texttt{camelCase}. Predicates end with \texttt{?} (e.g., \texttt{zero?}, \texttt{string?}). Mutating procedures end with \texttt{!} (e.g., \texttt{set!}, \texttt{vector-set!}).
 \end{note}
 
 \section{Defining Functions}
@@ -302,7 +302,7 @@ multi-line comment
 |#
 \end{lstlisting}
 
-A datum comment \texttt{\#;} comments out the next expression:
+A datum comment\index{datum comment} \texttt{\#;} comments out the next expression:
 
 \begin{lstlisting}[style=repl]
 > (+ 1 #;(this is ignored) 2)

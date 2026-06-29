@@ -30,7 +30,7 @@ SRFI-1 is the most commonly used extension. It provides dozens of list procedure
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 1))
-> (iota 5)
+> (iota 5)\index{iota}
 (0 1 2 3 4)
 > (iota 5 1)
 (1 2 3 4 5)
@@ -39,6 +39,7 @@ SRFI-1 is the most commonly used extension. It provides dozens of list procedure
 \end{lstlisting}
 
 \subsection{Searching and Filtering}
+\index{find}\index{any}\index{every}\index{partition}
 
 \begin{lstlisting}[style=repl]
 > (find even? '(1 3 5 4 7))
@@ -55,6 +56,7 @@ SRFI-1 is the most commonly used extension. It provides dozens of list procedure
 \end{lstlisting}
 
 \subsection{Folding and Reducing}
+\index{reduce}\index{unfold}
 
 \begin{lstlisting}[style=repl]
 > (fold + 0 '(1 2 3 4 5))
@@ -71,6 +73,7 @@ SRFI-1 is the most commonly used extension. It provides dozens of list procedure
 \end{lstlisting}
 
 \subsection{Zipping and Unzipping}
+\index{zip}
 
 \begin{lstlisting}[style=repl]
 > (zip '(a b c) '(1 2 3))
@@ -81,6 +84,7 @@ SRFI-1 is the most commonly used extension. It provides dozens of list procedure
 \end{lstlisting}
 
 \subsection{Other Highlights}
+\index{take}\index{drop}\index{delete-duplicates}\index{concatenate}
 
 \begin{lstlisting}[style=repl]
 > (take '(a b c d e) 3)
@@ -123,7 +127,7 @@ SRFI-13 extends Scheme's string operations significantly:
 \section{SRFI-69: Hash Tables}
 \index{SRFI-69}\index{hash tables}
 
-Hash tables provide O(1) average key lookup---much faster than association lists for large collections:
+Hash tables provide O(1) average key lookup---much faster than association lists for large collections:\index{make-hash-table}\index{hash-table-set"!}\index{hash-table-ref}\index{hash-table-ref/default}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 69))
@@ -191,7 +195,7 @@ SRFI-133 adds higher-order operations on vectors:
 \index{SRFI-132}\index{sorting}
 
 \begin{lstlisting}[style=repl]
-> (import (srfi 132))
+> (import (srfi 132))\index{list-sort}\index{vector-sort"!}
 > (list-sort < '(5 3 1 4 2))
 (1 2 3 4 5)
 > (list-sort string<? '("banana" "apple" "cherry"))
@@ -215,7 +219,7 @@ The comparator is a two-argument predicate. Use \texttt{<} for ascending numbers
 0.6234981723
 \end{lstlisting}
 
-\texttt{random-integer} returns a random integer in \texttt{[0, n)}. \texttt{random-real} returns a random real in \texttt{[0, 1)}.
+\texttt{random-integer}\index{random-integer} returns a random integer in \texttt{[0, n)}. \texttt{random-real}\index{random-real} returns a random real in \texttt{[0, 1)}.
 
 \section{SRFI-115: Regular Expressions}
 \index{SRFI-115}\index{regular expressions}
@@ -232,12 +236,12 @@ The comparator is a two-argument predicate. Use \texttt{<} for ascending numbers
 ("foo" "bar" "baz")
 \end{lstlisting}
 
-SRFI-115 uses S-expression syntax for patterns instead of string-based regex. \texttt{(+ digit)} matches one or more digits, \texttt{(+ alpha)} matches one or more letters.
+SRFI-115 uses S-expression syntax for patterns instead of string-based regex. \texttt{(+ digit)} matches one or more digits, \texttt{(+ alpha)} matches one or more letters.\index{regexp-matches}\index{regexp-replace}\index{regexp-extract}
 
 \section{SRFI-158: Generators}
 \index{SRFI-158}\index{generators}
 
-Generators are lazy sequences---they produce values one at a time on demand:
+Generators are lazy sequences---they produce values one at a time on demand:\index{make-range-generator}\index{generator->list}\index{gfilter}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 158))
@@ -260,6 +264,7 @@ Generators are useful for processing large or infinite sequences without materia
 \section{Other Useful SRFIs}
 
 \subsection{SRFI-26: Partial Application with \texttt{cut}}
+\index{SRFI-26}\index{cut}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 26))
@@ -272,6 +277,7 @@ Generators are useful for processing large or infinite sequences without materia
 \texttt{cut} creates a partial application. \texttt{<>} marks the argument slot.
 
 \subsection{SRFI-28: Basic Format Strings}
+\index{SRFI-28}\index{format}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 28))
@@ -280,6 +286,7 @@ Generators are useful for processing large or infinite sequences without materia
 \end{lstlisting}
 
 \subsection{SRFI-113: Sets and Bags}
+\index{SRFI-113}\index{sets}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 113) (srfi 128))
@@ -293,6 +300,7 @@ Generators are useful for processing large or infinite sequences without materia
 \end{lstlisting}
 
 \subsection{SRFI-189: Maybe and Either}
+\index{SRFI-189}\index{maybe}\index{either}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 189))

@@ -55,7 +55,7 @@ When the cdr chain ends with \texttt{'()}, we call it a \emph{proper list}. Sche
 
 \subsection{The \texttt{list} Procedure}
 
-The \texttt{list} procedure is the most convenient way to create a list:
+The \texttt{list}\index{list} procedure is the most convenient way to create a list:
 
 \begin{lstlisting}[style=repl]
 > (list 1 2 3 4 5)
@@ -132,7 +132,7 @@ c
 
 \subsection{Shorthand Compositions}
 
-For deeply nested access, Scheme provides shorthand procedures up to four levels deep:
+For deeply nested access, Scheme provides shorthand procedures\index{cadr}\index{caddr} up to four levels deep:
 
 \begin{lstlisting}[style=repl]
 > (cadr '(a b c))
@@ -149,7 +149,7 @@ c
 
 \subsection{\texttt{list-ref}}
 
-For positional access by index:
+For positional access by index:\index{list-ref}
 
 \begin{lstlisting}[style=repl]
 > (list-ref '(a b c d e) 0)
@@ -163,6 +163,7 @@ Unlike vectors, \texttt{list-ref} is O(n)---it must walk the chain from the head
 \section{Common List Operations}
 
 \subsection{\texttt{length}}
+\index{length}
 
 \begin{lstlisting}[style=repl]
 > (length '(a b c))
@@ -172,6 +173,7 @@ Unlike vectors, \texttt{list-ref} is O(n)---it must walk the chain from the head
 \end{lstlisting}
 
 \subsection{\texttt{append}}
+\index{append}
 
 Concatenates lists:
 
@@ -185,6 +187,7 @@ Concatenates lists:
 \texttt{append} copies all lists except the last one. It is O(n) in the total length of all lists except the last.
 
 \subsection{\texttt{reverse}}
+\index{reverse}
 
 \begin{lstlisting}[style=repl]
 > (reverse '(1 2 3 4 5))
@@ -221,10 +224,11 @@ It returns the tail of the list starting with the match, or \texttt{\#f} if not 
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
-An association list is like a Python dictionary, but with O(n) lookup. For small collections (under ~50 entries), alists are simple and effective. For larger collections, use hash tables (covered in Chapter~16).
+An association list\index{alist} is like a Python dictionary, but with O(n) lookup. For small collections (under ~50 entries), alists are simple and effective. For larger collections, use hash tables (covered in Chapter~16).
 \end{note}
 
 \section{List Predicates}
+\index{pair?}\index{null?}\index{list?}
 
 \begin{lstlisting}[style=repl]
 > (pair? '(1 2 3))
@@ -337,7 +341,7 @@ Here is a function that flattens a nested list into a single level:
 \section{Improper Lists and Dotted Pairs}
 \index{dotted pair}
 
-Not all pairs form proper lists. A pair whose cdr is not a list or the empty list is called an \emph{improper list} or \emph{dotted pair}:
+Not all pairs form proper lists. A pair whose cdr is not a list or the empty list is called an \emph{improper list}\index{improper list} or \emph{dotted pair}:
 
 \begin{lstlisting}[style=repl]
 > (cons 1 2)

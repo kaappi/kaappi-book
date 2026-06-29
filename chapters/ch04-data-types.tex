@@ -88,7 +88,7 @@ Scheme distinguishes between \emph{exact} and \emph{inexact} numbers. Integers a
 #t
 \end{lstlisting}
 
-You can convert between exact and inexact representations:
+You can convert between exact and inexact representations:\index{exact?}\index{inexact?}
 
 \begin{lstlisting}[style=repl]
 > (inexact 1/3)
@@ -114,6 +114,7 @@ Complex numbers are written in rectangular form with \texttt{+} or \texttt{-} se
 \end{lstlisting}
 
 \subsection{Numeric Predicates and Comparisons}
+\index{number?}\index{integer?}\index{zero?}\index{positive?}\index{negative?}
 
 Scheme provides predicates to classify numbers and comparison procedures that work across the numeric tower:
 
@@ -139,6 +140,7 @@ Scheme provides predicates to classify numbers and comparison procedures that wo
 Note that \texttt{<}, \texttt{>}, \texttt{<=}, and \texttt{>=} accept multiple arguments and check that the entire sequence is ordered.
 
 \subsection{Common Arithmetic Procedures}
+\index{quotient}\index{remainder}\index{modulo}\index{abs}\index{max}\index{min}\index{expt}\index{sqrt}
 
 \begin{lstlisting}[style=repl]
 > (+ 1 2 3)
@@ -184,6 +186,7 @@ Strings are sequences of Unicode characters, enclosed in double quotes. Kaappi s
 \end{lstlisting}
 
 \subsection{String Operations}
+\index{string-append}\index{substring}\index{string-upcase}\index{string-downcase}\index{string-ref}
 
 \begin{lstlisting}[style=repl]
 > (string-append "foo" "bar" "baz")
@@ -199,6 +202,7 @@ Strings are sequences of Unicode characters, enclosed in double quotes. Kaappi s
 \end{lstlisting}
 
 \subsection{String Conversion}
+\index{number->string}\index{string->number}\index{symbol->string}\index{string->symbol}
 
 \begin{lstlisting}[style=repl]
 > (number->string 42)
@@ -378,6 +382,7 @@ Vector literals are written with \texttt{\#(}:
 Unlike Scheme lists (which are linked), vectors support efficient random access. Use vectors when you need to look up elements by position.
 
 \subsection{Modifying Vectors}
+\index{vector-set"!}
 
 Vectors are mutable---you can change individual elements:
 
@@ -389,6 +394,7 @@ Vectors are mutable---you can change individual elements:
 \end{lstlisting}
 
 \subsection{Vector Operations}
+\index{vector-ref}\index{vector-length}\index{make-vector}\index{vector-map}\index{vector->list}\index{list->vector}
 
 \begin{lstlisting}[style=repl]
 > (vector-map + #(1 2 3) #(10 20 30))
@@ -416,7 +422,7 @@ Bytevectors are sequences of bytes (unsigned 8-bit integers). They are used for 
 "Hello"
 \end{lstlisting}
 
-You can create bytevectors from strings and vice versa:
+You can create bytevectors from strings and vice versa:\index{string->utf8}\index{utf8->string}
 
 \begin{lstlisting}[style=repl]
 > (string->utf8 "hello")
@@ -428,7 +434,7 @@ You can create bytevectors from strings and vice versa:
 \section{Type Predicates}
 \index{predicates}
 
-Scheme provides predicates to test the type of any value. Each returns \texttt{\#t} or \texttt{\#f}:
+Scheme provides predicates to test the type of any value. Each returns \texttt{\#t} or \texttt{\#f}:\index{string?}\index{char?}\index{boolean?}\index{symbol?}\index{vector?}\index{bytevector?}\index{procedure?}
 
 \begin{lstlisting}[style=repl]
 > (number? 42)

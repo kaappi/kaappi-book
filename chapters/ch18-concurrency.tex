@@ -37,6 +37,7 @@ Fibers are lightweight green threads that run cooperatively within a single OS t
 \texttt{spawn} takes a zero-argument procedure (a thunk), starts it as a new fiber, and returns a fiber object. \texttt{fiber-join}\index{fiber-join} blocks until the fiber completes and returns its result.
 
 \subsection{Cooperative Scheduling}
+\index{cooperative scheduling}
 
 Fibers run until they voluntarily yield control. Call \texttt{yield}\index{yield} to let other fibers run:
 
@@ -88,6 +89,7 @@ Channels provide safe communication between fibers. They are synchronous (Go-sty
 \end{lstlisting}
 
 \subsection{Producer-Consumer Pattern}
+\index{producer-consumer}
 
 \begin{lstlisting}
 (import (kaappi fibers))
@@ -173,7 +175,7 @@ The result is whichever fiber completes first. The other fiber's value is left i
 For true parallelism across CPU cores, use SRFI-18 OS threads. Each thread gets its own VM and garbage collector with an independent heap.
 
 \begin{warning}[Experimental feature]
-OS threads require the \texttt{--experimental-threads} flag:
+OS threads require the \texttt{--experimental-threads}\index{--experimental-threads} flag:
 \begin{Verbatim}[fontsize=\small]
 kaappi --experimental-threads program.scm
 \end{Verbatim}
@@ -190,6 +192,7 @@ kaappi --experimental-threads program.scm
 \end{lstlisting}
 
 \subsection{Creating and Starting Threads}
+\index{make-thread}\index{thread-start"!}\index{thread-join"!}
 
 \begin{lstlisting}
 (import (srfi 18))
@@ -231,6 +234,7 @@ Python's \texttt{multiprocessing} module works similarly: separate memory spaces
 \end{note}
 
 \subsection{Mutexes and Condition Variables}
+\index{mutex}\index{condition variables}
 
 SRFI-18 provides mutexes and condition variables for the rare cases where you need synchronization:
 

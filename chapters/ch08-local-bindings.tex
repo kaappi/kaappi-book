@@ -2,7 +2,7 @@
 \index{local bindings}
 \label{ch:bindings}
 
-In Scheme, local variables are introduced with \emph{binding forms}. Unlike Python, where you create a variable simply by assigning to it, Scheme makes the scope of every variable explicit. This chapter covers \texttt{let}, \texttt{let*}, \texttt{letrec}, internal definitions, and the relationship between \texttt{let} and \texttt{lambda}.
+In Scheme, local variables are introduced with \emph{binding forms}. Unlike Python, where you create a variable simply by assigning to it, Scheme makes the scope\index{scope} of every variable explicit. This chapter covers \texttt{let}, \texttt{let*}, \texttt{letrec}, internal definitions, and the relationship between \texttt{let} and \texttt{lambda}.
 
 \section{\texttt{let}: Parallel Bindings}
 \index{let}
@@ -55,7 +55,7 @@ Variables introduced by \texttt{let} exist only within the body. They do not lea
 100
 \end{lstlisting}
 
-The outer \texttt{x} is temporarily shadowed inside the \texttt{let}, but remains unchanged afterward.
+The outer \texttt{x} is temporarily shadowed\index{shadowing} inside the \texttt{let}, but remains unchanged afterward.
 
 \subsection{Practical Uses}
 

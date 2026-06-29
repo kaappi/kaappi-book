@@ -90,10 +90,11 @@ for name in ["Alice", "Bob", "Carol"]:
 \end{lstlisting}
 
 \begin{note}
-\texttt{filter} comes from SRFI-1 (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} to use it. The REPL makes it available automatically.
+\texttt{filter} comes from SRFI-1\index{SRFI-1} (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} to use it. The REPL makes it available automatically.
 \end{note}
 
 \subsection{\texttt{remove}: The Complement of \texttt{filter}}
+\index{remove}
 
 \texttt{remove} (also from SRFI-1) keeps elements that do \emph{not} satisfy the predicate:
 
@@ -105,6 +106,7 @@ for name in ["Alice", "Bob", "Carol"]:
 \end{lstlisting}
 
 \subsection{\texttt{partition}: Split into Two Lists}
+\index{partition}
 
 \texttt{partition} returns two values: elements that pass and elements that fail:
 

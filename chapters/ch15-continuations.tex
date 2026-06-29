@@ -74,7 +74,7 @@ If we see a zero, we bail immediately---no point multiplying the remaining eleme
 \section{Full Continuations with \texttt{call/cc}}
 \index{call/cc}
 
-\texttt{call/cc} (short for \texttt{call-with-current-continuation}) captures the \emph{full} continuation---not just an escape, but a snapshot of the entire execution state that can be invoked multiple times, even after the original computation has finished.
+\texttt{call/cc} (short for \texttt{call-with-current-continuation}\index{call-with-current-continuation}) captures the \emph{full} continuation---not just an escape, but a snapshot of the entire execution state that can be invoked multiple times, even after the original computation has finished.
 
 \begin{lstlisting}[style=repl]
 > (call/cc (lambda (k) (k 42)))
@@ -212,6 +212,7 @@ Before \texttt{guard} existed, exceptions were implemented with continuations:
 \end{lstlisting}
 
 \subsection{Coroutines}
+\index{coroutines}
 
 A simple coroutine system using continuations:
 
@@ -229,6 +230,7 @@ A simple coroutine system using continuations:
 \end{lstlisting}
 
 \subsection{Non-Deterministic Choice (Backtracking)}
+\index{backtracking}
 
 \begin{lstlisting}
 (define fail #f)
@@ -254,7 +256,7 @@ This creates a backtracking mechanism: \texttt{choose} returns each alternative 
 Continuations are powerful but should be used sparingly:
 
 \begin{itemize}
-    \item \textbf{Use \texttt{call/ec}} for early returns, loop breaks, and search. This is common and cheap.
+    \item \textbf{Use \texttt{call/ec}} for early returns, loop breaks, and search.\index{non-local exit} This is common and cheap.
     \item \textbf{Use \texttt{guard}} for exception handling. It is built on continuations but provides a cleaner interface.
     \item \textbf{Use \texttt{call/cc}} only for advanced patterns: coroutines, generators, backtracking, or implementing new control structures. These are rare in application code.
     \item \textbf{Always pair with \texttt{dynamic-wind}} when resources need cleanup across continuation invocations.

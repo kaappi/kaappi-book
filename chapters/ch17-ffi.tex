@@ -34,7 +34,7 @@ The core procedures are:
 > (define libm (ffi-open "libm.dylib"))  ; macOS
 \end{lstlisting}
 
-On Linux, use the \texttt{.so} name:
+On Linux, use the \texttt{.so}\index{shared library} name:
 
 \begin{lstlisting}
 (define libm (ffi-open "libm.so.6"))
@@ -113,7 +113,7 @@ The following C types are supported in parameter and return type positions:
 \begin{itemize}
     \item \textbf{Strings:} Scheme strings are automatically converted to null-terminated C strings when passed as arguments, and C strings are converted back to Scheme strings when returned.
     \item \textbf{Numbers:} Scheme integers and floats are converted to the appropriate C numeric type.
-    \item \textbf{Pointers:} Opaque pointer values are represented as Scheme FFI pointer objects. You cannot dereference them directly from Scheme.
+    \item \textbf{Pointers:}\index{pointer} Opaque pointer values are represented as Scheme FFI pointer objects. You cannot dereference them directly from Scheme.
     \item \textbf{Void:} Use \texttt{'void} as the return type for C functions that return nothing.
 \end{itemize}
 
@@ -193,6 +193,7 @@ The FFI is inherently unsafe. Incorrect type declarations, buffer overflows, and
 \end{warning}
 
 \section{FFI and Sandbox Mode}
+\index{sandbox}\index{--sandbox}
 
 Kaappi's \texttt{--sandbox} mode disables the FFI entirely. This is useful for running untrusted code:
 
