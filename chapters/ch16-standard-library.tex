@@ -26,11 +26,11 @@ Kaappi's 72 SRFIs fall into two categories:
 \section{SRFI-1: Extended List Library}
 \index{SRFI-1}
 
-SRFI-1 is the most commonly used extension. It provides dozens of list procedures beyond what \texttt{(scheme base)} offers:
+SRFI-1 is the most commonly used extension. It provides dozens of list procedures beyond what \texttt{(scheme base)} offers:\index{iota}
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 1))
-> (iota 5)\index{iota}
+> (iota 5)
 (0 1 2 3 4)
 > (iota 5 1)
 (1 2 3 4 5)
@@ -192,10 +192,10 @@ SRFI-133 adds higher-order operations on vectors:
 \end{lstlisting}
 
 \section{SRFI-132: Sorting}
-\index{SRFI-132}\index{sorting}
+\index{SRFI-132}\index{sorting}\index{list-sort}\index{vector-sort}
 
 \begin{lstlisting}[style=repl]
-> (import (srfi 132))\index{list-sort}\index{vector-sort}
+> (import (srfi 132))
 > (list-sort < '(5 3 1 4 2))
 (1 2 3 4 5)
 > (list-sort string<? '("banana" "apple" "cherry"))

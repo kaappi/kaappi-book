@@ -325,10 +325,10 @@ Let's write a slightly larger example that uses what we have learned. Here is a 
 > (fahrenheit->celsius 32)
 0
 > (fahrenheit->celsius 72)
-160/9
+200/9
 \end{lstlisting}
 
-Notice that \texttt{(fahrenheit->celsius 72)} returns the exact rational \texttt{160/9} rather than a floating-point approximation. Kaappi preserves exactness when all inputs are exact. If you want a decimal, use a floating-point literal:
+Notice that \texttt{(fahrenheit->celsius 72)} returns the exact rational \texttt{200/9} rather than a floating-point approximation. Kaappi preserves exactness when all inputs are exact. If you want a decimal, use a floating-point literal:
 
 \begin{lstlisting}[style=repl]
 > (define (fahrenheit->celsius-approx f)

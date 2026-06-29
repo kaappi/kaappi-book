@@ -74,7 +74,7 @@ A mechanism for calling C functions from Scheme. Kaappi provides \texttt{(kaappi
 A lightweight green thread managed by Kaappi's runtime. Created with \texttt{spawn} from \texttt{(kaappi fibers)}. Fibers are cooperatively scheduled.
 
 \item[fixnum]\index{fixnum}
-A small integer stored inline (no heap allocation) in Kaappi's NaN-boxed value representation. 63-bit range.
+A small integer stored inline (no heap allocation) in Kaappi's NaN-boxed value representation. 48-bit signed range (up to $\pm 2^{47}$).
 
 \item[flonum]\index{flonum}
 An IEEE 754 double-precision floating-point number. Inexact by definition.

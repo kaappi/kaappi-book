@@ -194,7 +194,7 @@ The result is whichever fiber completes first. The other fiber's value is left i
 
 For true parallelism across CPU cores, use SRFI-18 OS threads. Each thread gets its own VM and garbage collector with an independent heap.
 
-\begin{warning}[Heavy-weight concurrency]
+\begin{warning}[Heavyweight concurrency]
 Each OS thread creates an independent VM and garbage collector. This makes them safe (no shared mutable state) but expensive. Prefer fibers for I/O concurrency; reserve threads for CPU-bound work that benefits from multiple cores. OS threads are not available in sandbox mode or WASM builds.
 \end{warning}
 

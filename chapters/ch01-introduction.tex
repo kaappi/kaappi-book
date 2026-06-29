@@ -93,7 +93,7 @@ In Scheme:
   (filter even? (iota 10)))
 \end{lstlisting}
 
-\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely-used list library. To use them in a script file, add \texttt{(import (srfi 1))}; in the REPL, type \texttt{,import (srfi 1)}.
+\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely used list library. To use them in a script file, add \texttt{(import (srfi 1))}; in the REPL, type \texttt{,import (srfi 1)}.
 
 \subsection{Closures}
 
@@ -152,7 +152,7 @@ Kaappi is a complete implementation of the R7RS-small Scheme standard, written f
 
 \subsection{Standards Conformance}
 
-Kaappi implements the full R7RS-small specification: all 14 standard libraries, all 33 syntax forms, and over 550 built-in procedures. It passes 1,391 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
+Kaappi implements the full R7RS-small specification: all 15 standard libraries, all 33 syntax forms, and over 550 built-in procedures. It passes 1,391 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
 
 \subsection{How It Works}
 
@@ -201,7 +201,7 @@ Beyond the R7RS standard, Kaappi provides:
 
 \subsection{Single Binary, Multiple Platforms}
 
-Kaappi installs as a statically-linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V), and in the browser via WebAssembly\index{WebAssembly}.
+Kaappi installs as a statically linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V), and in the browser via WebAssembly\index{WebAssembly}.
 
 \section{Why Learn Scheme?}
 
@@ -234,7 +234,7 @@ Let's get started.
 \begin{itemize}
     \item Scheme is a minimalist Lisp dialect built from a few powerful ideas: first-class functions, lexical closures, recursion, and macros.
     \item Many features of Python, JavaScript, and Ruby---closures, \texttt{lambda}, garbage collection---trace back to Lisp and Scheme.
-    \item Kaappi is a practical, batteries-included implementation of R7RS-small, written in Zig and shipped as a single statically-linked binary.
+    \item Kaappi is a practical, batteries-included implementation of R7RS-small, written in Zig and shipped as a single statically linked binary.
     \item Beyond the standard, Kaappi adds 72 SRFIs, a C foreign function interface, green-threaded concurrency, and a package manager.
 \end{itemize}
 

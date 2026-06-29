@@ -115,10 +115,10 @@ Never use \texttt{read} on untrusted input. It can parse any Scheme datum, inclu
 \section{Ports}
 \index{ports}
 
-A \emph{port} is an abstract source or destination for I/O. Every read operation reads from some port; every write operation writes to some port. When you call \texttt{display} or \texttt{read-line} without specifying a port, they use the \emph{current ports}:
+A \emph{port} is an abstract source or destination for I/O. Every read operation reads from some port; every write operation writes to some port. When you call \texttt{display} or \texttt{read-line} without specifying a port, they use the \emph{current ports}\index{current-input-port}\index{current-output-port}\index{current-error-port}:
 
 \begin{lstlisting}[style=repl]
-> (current-input-port)\index{current-input-port}\index{current-output-port}\index{current-error-port}
+> (current-input-port)
 #<input-port stdin>
 > (current-output-port)
 #<output-port stdout>
