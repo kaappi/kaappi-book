@@ -143,14 +143,14 @@ Each call to \texttt{resume} re-enters the \texttt{let}, with \texttt{result} bo
 \section{\texttt{call/ec} vs.\ \texttt{call/cc}}
 
 \begin{center}
-\begin{tabular}{lp{5cm}l}
+\begin{tabular}{lll}
 \textbf{Feature} & \textbf{\texttt{call/ec}} & \textbf{\texttt{call/cc}} \\
 \hline
-Can be invoked after proc returns & No & Yes \\
-Can be invoked multiple times & No & Yes \\
-Stack snapshot required & No & Yes \\
-Performance & Fast (no allocation) & Slow (copies stack) \\
-Use case & Early return, loop break & Coroutines, backtracking \\
+Invoke after proc returns? & No & Yes \\
+Invoke multiple times? & No & Yes \\
+Stack snapshot? & No & Yes \\
+Performance & Fast & Slow (copies stack) \\
+Use case & Early return & Coroutines \\
 \end{tabular}
 \end{center}
 
@@ -246,6 +246,23 @@ A simple coroutine system using continuations:
           (proc yield)))))
 \end{lstlisting}
 
+\begin{lstlisting}[style=repl]
+> (define counter
+    (make-coroutine
+      (lambda (yield)
+        (yield "one")
+        (yield "two")
+        "three")))
+> (counter)
+"one"
+> (counter)
+"two"
+> (counter)
+"three"
+\end{lstlisting}
+
+Each call to \texttt{counter} resumes the coroutine from where it last yielded. The first call starts the procedure and yields \texttt{"one"}; subsequent calls continue after the corresponding \texttt{yield}.
+
 \subsection{Non-Deterministic Choice (Backtracking)}
 \index{backtracking}
 
@@ -267,6 +284,18 @@ A simple coroutine system using continuations:
 \end{lstlisting}
 
 This creates a backtracking mechanism: \texttt{choose} returns each alternative in turn, backtracking when \texttt{fail} is called.
+
+\begin{lstlisting}[style=repl]
+> (set! fail (lambda () (error "no solution")))
+> (let ((x (choose 1 2 3))
+        (y (choose 4 5 6)))
+    (if (= (+ x y) 8)
+        (list x y)
+        (fail)))
+(2 6)
+\end{lstlisting}
+
+The search tries combinations until \texttt{(+ x y)} equals 8: it backtracks through \texttt{(1 4)}, \texttt{(1 5)}, \texttt{(1 6)}, \texttt{(2 4)}, \texttt{(2 5)}, then finds \texttt{(2 6)}.
 
 \section{When to Use Continuations}
 

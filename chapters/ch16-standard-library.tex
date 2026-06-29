@@ -2,7 +2,7 @@
 \index{SRFI}\index{standard library}
 \label{ch:stdlib}
 
-Beyond the 14 R7RS standard libraries, Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each.
+Beyond the 15 R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each.
 
 \section{What Are SRFIs?}
 
@@ -116,7 +116,7 @@ SRFI-13 extends Scheme's string operations significantly:
 "hello"
 > (string-join '("one" "two" "three") ", ")
 "one, two, three"
-> (string-split "a,b,c,d" #\,)
+> (string-split "a,b,c,d" ",")
 ("a" "b" "c" "d")
 \end{lstlisting}
 
@@ -181,26 +181,26 @@ SRFI-133 adds higher-order operations on vectors:
 > (import (srfi 133))
 > (vector-map + #(1 2 3) #(10 20 30))
 #(11 22 33)
-> (vector-fold + 0 #(1 2 3 4 5))
-15
-> (vector-filter even? #(1 2 3 4 5 6))
-#(2 4 6)
+> (vector-count even? #(1 2 3 4 5 6))
+3
 > (vector-any odd? #(2 4 5 6))
 #t
 > (vector-every positive? #(1 2 3 4))
 #t
+> (vector-index even? #(1 3 4 7))
+2
 \end{lstlisting}
 
 \section{SRFI-132: Sorting}
 \index{SRFI-132}\index{sorting}
 
 \begin{lstlisting}[style=repl]
-> (import (srfi 132))\index{list-sort}\index{vector-sort"!}
+> (import (srfi 132))\index{list-sort}\index{vector-sort}
 > (list-sort < '(5 3 1 4 2))
 (1 2 3 4 5)
 > (list-sort string<? '("banana" "apple" "cherry"))
 ("apple" "banana" "cherry")
-> (vector-sort! < #(5 3 1 4 2))
+> (vector-sort < #(5 3 1 4 2))
 #(1 2 3 4 5)
 \end{lstlisting}
 
@@ -365,7 +365,7 @@ Write a procedure \code{(word-frequencies str)} that takes a string of words (se
 (("the" . 3) ("cat" . 2))
 \end{lstlisting}
 
-Hint: use \code{string-split} from SRFI-13 to tokenize, and \code{list-sort} from SRFI-132 for sorting. In Python this would be \code{collections.Counter(s.split())}.
+Hint: use \code{string-split} from SRFI-13 to tokenize and \code{list-sort} from SRFI-132 for sorting. The Python equivalent is \texttt{Counter(s.split())} from the \texttt{collections} module.
 \end{exercise}
 
 \begin{exercise}[Email Validation with Regexps]

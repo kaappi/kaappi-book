@@ -15,7 +15,7 @@ The FFI is provided by the \texttt{(kaappi ffi)}\index{kaappi ffi} library:
 The core procedures are:
 
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\begin{tabular}{lp{6.5cm}}
 \textbf{Procedure} & \textbf{Purpose} \\
 \hline
 \texttt{ffi-open} & Open a shared library (.dylib / .so) \\
@@ -23,6 +23,8 @@ The core procedures are:
 \texttt{ffi-close} & Close the library handle \\
 \texttt{ffi-callback} & Create a C function pointer from a Scheme procedure \\
 \texttt{ffi-callback-release} & Free a callback \\
+\texttt{ffi-callback?} & Test if a value is an FFI callback \\
+\texttt{ffi-bytevector-ptr} & Get the data pointer of a bytevector (for passing buffers to C) \\
 \end{tabular}
 \end{center}
 
@@ -117,49 +119,54 @@ The following C types are supported in parameter and return type positions:
     \item \textbf{Void:} Use \texttt{'void} as the return type for C functions that return nothing.
 \end{itemize}
 
-\section{A Complete Example: SQLite}
+\section{A Complete Example: System Information}
 
-Here is a more realistic example that uses SQLite's C API to create a table, insert a row, and query it:
+Here is a more realistic example that combines several libc functions to query system information:
 
 \begin{lstlisting}
 (import (kaappi ffi))
 
-(define lib (ffi-open "libsqlite3.dylib"))
+(define libc (ffi-open "libc.dylib"))
 
-;; Bind the functions we need
-(define sqlite3-open
-  (ffi-fn lib "sqlite3_open" '(string pointer) 'int))
-(define sqlite3-close
-  (ffi-fn lib "sqlite3_close" '(pointer) 'int))
-(define sqlite3-exec
-  (ffi-fn lib "sqlite3_exec"
-    '(pointer string pointer pointer pointer) 'int))
-(define sqlite3-errmsg
-  (ffi-fn lib "sqlite3_errmsg" '(pointer) 'string))
+;; Bind functions we need
+(define c-getenv
+  (ffi-fn libc "getenv" '(string) 'string))
+(define c-strlen
+  (ffi-fn libc "strlen" '(string) 'size_t))
+(define c-time
+  (ffi-fn libc "time" '(pointer) 'long))
+(define c-getpid
+  (ffi-fn libc "getpid" '() 'int))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (c-getenv "HOME")
+"/Users/alice"
+> (c-getenv "SHELL")
+"/bin/zsh"
+> (c-strlen (c-getenv "HOME"))
+12
+> (c-getpid)
+42137
+> (c-time 0)
+1751234567
 \end{lstlisting}
 
 \begin{lstlisting}
-;; Open a database (returns a pointer via out-param)
-(define db-ptr (make-ffi-pointer))
-(sqlite3-open ":memory:" db-ptr)
-(define db (ffi-pointer-ref db-ptr))
-
-;; Execute SQL statements
-(define (exec sql)
-  (let ((rc (sqlite3-exec db sql #f #f #f)))
-    (unless (= rc 0)
-      (error "SQLite error" (sqlite3-errmsg db)))))
-
-(exec "CREATE TABLE greetings (lang TEXT, msg TEXT)")
-(exec "INSERT INTO greetings VALUES ('en', 'Hello')")
-(exec "INSERT INTO greetings VALUES ('fi', 'Moi')")
+;; Build a system report
+(define (system-info)
+  (list
+    (cons "home" (c-getenv "HOME"))
+    (cons "shell" (c-getenv "SHELL"))
+    (cons "pid" (c-getpid))
+    (cons "time" (c-time 0))))
 
 ;; Clean up
-(sqlite3-close db)
+(ffi-close libc)
 \end{lstlisting}
 
-\begin{note}
-In practice, you would use the \texttt{kaappi-sqlite} package (via \texttt{thottam install kaappi-sqlite}) which wraps these raw FFI calls in a clean Scheme interface. The FFI is for when you need to call a library that does not yet have a Scheme wrapper.
+\begin{note}[Why not SQLite?]
+The SQLite C API uses pointer-to-pointer out-parameters (\texttt{sqlite3**}) to return database handles, which requires low-level pointer manipulation beyond what the FFI provides directly. In practice, you would use the \texttt{kaappi-sqlite} package (\texttt{thottam install kaappi-sqlite}), which wraps these details in a clean Scheme interface.
 \end{note}
 
 \section{Callbacks: Passing Scheme to C}
@@ -168,7 +175,7 @@ In practice, you would use the \texttt{kaappi-sqlite} package (via \texttt{thott
 Some C APIs expect function pointers as arguments (e.g., comparators for \texttt{qsort}, event handlers, iteration callbacks). \texttt{ffi-callback} creates a C-compatible function pointer from a Scheme procedure:
 
 \begin{lstlisting}
-(define cb (ffi-callback scheme-proc '(param-types ...) 'return-type)
+(define cb (ffi-callback scheme-proc '(param-types ...) 'return-type))
 \end{lstlisting}
 
 \subsection{Example: Custom Comparator}
@@ -232,9 +239,9 @@ When FFI calls misbehave, use this checklist:
 
 Kaappi's \texttt{--sandbox} mode disables the FFI entirely. This is useful for running untrusted code:
 
-\begin{Verbatim}[fontsize=\small]
+\begin{lstlisting}
 kaappi --sandbox untrusted.scm
-\end{Verbatim}
+\end{lstlisting}
 
 In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures raise an error when called.
 

@@ -7,16 +7,16 @@ Modern programs often need to do multiple things at once: serve multiple network
 \section{Two Models of Concurrency}
 
 \begin{center}
-\begin{tabular}{lp{4.5cm}p{4.5cm}}
+\begin{tabular}{lp{4.2cm}p{4.2cm}}
 \textbf{Aspect} & \textbf{Fibers} & \textbf{OS Threads (SRFI-18)} \\
 \hline
 Library & \texttt{(kaappi fibers)} & \texttt{(srfi 18)} \\
-Scheduling & Cooperative (voluntary yield) & Preemptive (OS scheduler) \\
+Scheduling & Cooperative (yield) & Preemptive (OS) \\
 Parallelism & No (single OS thread) & Yes (multiple cores) \\
 Communication & Channels (synchronous) & Deep-copy at boundaries \\
-Overhead & Very low (~100 bytes each) & High (full VM + GC per thread) \\
-Shared state & Same heap (careful with mutation) & Separate heaps (safe) \\
-Use case & I/O concurrency, event loops & CPU-bound parallelism \\
+Overhead & Very low (\textasciitilde 100 bytes) & High (VM + GC per thread) \\
+Shared state & Same heap & Separate heaps (safe) \\
+Use case & I/O, event loops & CPU-bound parallelism \\
 \end{tabular}
 \end{center}
 
@@ -194,11 +194,8 @@ The result is whichever fiber completes first. The other fiber's value is left i
 
 For true parallelism across CPU cores, use SRFI-18 OS threads. Each thread gets its own VM and garbage collector with an independent heap.
 
-\begin{warning}[Experimental feature]
-OS threads require the \texttt{--experimental-threads}\index{--experimental-threads} flag:
-\begin{Verbatim}[fontsize=\small]
-kaappi --experimental-threads program.scm
-\end{Verbatim}
+\begin{warning}[Heavy-weight concurrency]
+Each OS thread creates an independent VM and garbage collector. This makes them safe (no shared mutable state) but expensive. Prefer fibers for I/O concurrency; reserve threads for CPU-bound work that benefits from multiple cores. OS threads are not available in sandbox mode or WASM builds.
 \end{warning}
 
 \begin{lstlisting}
