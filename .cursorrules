@@ -6,7 +6,7 @@ A XeLaTeX book teaching the Kaappi Scheme programming language to beginners who 
 
 - Full build: `make` (3 XeLaTeX passes for TOC/index)
 - Quick iteration: `make once` (single pass)
-- View result: `make view` (opens `build/main.pdf`)
+- View result: `make view` (opens `build/kaappi-book.pdf`)
 - Clean: `make clean`
 - Engine: XeLaTeX only (required by fontspec)
 
