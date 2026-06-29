@@ -1,0 +1,129 @@
+% Kaappi: A Scheme Programming Language
+% Compiled with XeLaTeX
+
+\documentclass[11pt,twoside,openright]{memoir}
+
+% Load preamble files
+\input{preamble/colors}
+\input{preamble/packages}
+\input{preamble/fonts}
+\input{preamble/fonts-memoir}
+\input{preamble/decorations}
+\input{preamble/layout}
+\input{preamble/styles}
+\input{preamble/listings}
+
+\begin{document}
+
+% Front matter
+\frontmatter
+\pagestyle{empty}
+
+% Title page
+\thispagestyle{empty}
+\begin{center}
+    \vspace*{3cm}
+    {\fontsize{32}{38}\selectfont\sffamily\bfseries\color{darkbrown}
+     Kaappi}\\[1cm]
+    {\Large\sffamily A Scheme Programming Language}\\[3cm]
+    {\large\sffamily Baiju Muthukadan}\\[1cm]
+    \vfill
+    {\normalsize\sffamily R7RS-small $\bullet$ Zig $\bullet$ Batteries Included}\\[1.5cm]
+\end{center}
+\newpage
+
+% Copyright page
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+    \textit{Kaappi: A Scheme Programming Language}\\[1em]
+    Baiju Muthukadan\\[2em]
+    First Edition, 2026\\[2em]
+    Copyright \textcopyright{} 2026 Baiju Muthukadan\\
+    All rights reserved.\\[2em]
+    \vspace{2em}
+    \textbf{Draft Edition}\\[0.5em]
+    This book is a work in progress.\\
+    Feedback is welcome at \href{mailto:baiju.m.mail@gmail.com}{baiju.m.mail@gmail.com}.
+\end{center}
+\vspace*{\fill}
+\cleardoublepage
+
+% Table of Contents
+\pagestyle{plain}
+\tableofcontents*
+\cleardoublepage
+
+% Preface
+\chapter{Preface}
+
+This book teaches you how to program in Scheme using Kaappi, a modern implementation that conforms to the R7RS-small standard. It is written for programmers who already know at least one language---such as Python, JavaScript, or Ruby---and want to explore the elegance of Scheme without drowning in academic jargon.
+
+Kaappi provides a complete, batteries-included environment: a fast bytecode compiler, an interactive REPL, over 600 built-in procedures, 72 SRFIs, a package manager, and even a foreign function interface for calling C libraries. This book will guide you from your first expression all the way to writing macros, using continuations, and building real programs.
+
+\section*{How to Use This Book}
+
+The book is organized into four parts:
+
+\begin{description}[leftmargin=1em, labelindent=0em]
+    \item[Part I: Getting Started] covers installation, the REPL, and basic expressions.
+    \item[Part II: The Language] teaches the core of Scheme: data types, functions, control flow, and I/O.
+    \item[Part III: Advanced Topics] introduces macros, modules, error handling, and continuations.
+    \item[Part IV: Beyond R7RS] explores Kaappi-specific features like the FFI, fibers, and the SRFI ecosystem.
+\end{description}
+
+Each chapter builds on the previous ones, but experienced programmers can skip ahead to topics of interest. Code examples are meant to be typed into the Kaappi REPL as you read.
+
+\cleardoublepage
+
+% Main matter
+\mainmatter
+\pagestyle{kaappibook}
+
+% Part I: Getting Started
+\part{Getting Started}
+
+\input{chapters/ch01-introduction}
+\input{chapters/ch02-installation}
+\input{chapters/ch03-first-steps}
+
+% Part II: The Language
+\part{The Language}
+
+\input{chapters/ch04-data-types}
+\input{chapters/ch05-lists-and-pairs}
+\input{chapters/ch06-functions}
+\input{chapters/ch07-control-flow}
+\input{chapters/ch08-local-bindings}
+\input{chapters/ch09-higher-order-functions}
+\input{chapters/ch10-input-and-output}
+
+% Part III: Advanced Topics
+\part{Advanced Topics}
+
+\input{chapters/ch11-macros}
+\input{chapters/ch12-library-system}
+\input{chapters/ch13-error-handling}
+\input{chapters/ch14-continuations}
+\input{chapters/ch15-records}
+
+% Part IV: Beyond R7RS
+\part{Beyond R7RS}
+
+\input{chapters/ch16-standard-library}
+\input{chapters/ch17-ffi}
+\input{chapters/ch18-concurrency}
+
+% Appendices
+\appendix
+\part{Appendices}
+
+\input{chapters/appendix-a-r7rs-reference}
+\input{chapters/appendix-b-cli-reference}
+
+% Back matter
+\backmatter
+
+\printindex
+
+\end{document}

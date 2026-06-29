@@ -1,0 +1,73 @@
+% listings.tex - Scheme code listing configuration
+
+\lstdefinelanguage{Scheme}{
+    morekeywords={
+        define, lambda, if, cond, case, and, or, not,
+        when, unless, begin, set!, quote, quasiquote,
+        let, let*, letrec, letrec*, let-values, let*-values,
+        do, case-lambda, define-syntax, syntax-rules,
+        let-syntax, letrec-syntax,
+        define-library, import, export, include,
+        define-record-type, guard, raise,
+        with-exception-handler, dynamic-wind,
+        call-with-current-continuation, call/cc, call/ec,
+        delay, delay-force, force, make-promise,
+        make-parameter, parameterize,
+        values, call-with-values, apply,
+        map, filter, fold, for-each,
+        cons, car, cdr, list, append, reverse,
+        display, newline, write, read,
+        string-append, number->string, string->number,
+        vector, vector-ref, vector-set!,
+        open-input-file, open-output-file,
+        call-with-port, close-port,
+        cond-expand, only, except, rename, prefix,
+        spawn, yield, channel-send, channel-receive,
+        ffi-open, ffi-fn, ffi-close, ffi-callback,
+    },
+    sensitive=true,
+    morecomment=[l]{;},
+    morecomment=[s]{\#|}{|\#},
+    morestring=[b]{"},
+    alsoother={\#},
+    literate=
+        {lambda}{$\lambda$}1
+        {->}{$\rightarrow$}1,
+}
+
+\lstdefinestyle{scheme}{
+    language=Scheme,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries\color{keywordcolor},
+    commentstyle=\itshape\color{commentcolor},
+    stringstyle=\color{stringcolor},
+    backgroundcolor=\color{codebg},
+    frame=single,
+    framerule=0.4pt,
+    rulecolor=\color{codeborder},
+    xleftmargin=4pt,
+    xrightmargin=4pt,
+    framexleftmargin=4pt,
+    framexrightmargin=4pt,
+    aboveskip=\baselineskip,
+    belowskip=\baselineskip,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    tabsize=2,
+    breaklines=true,
+    breakatwhitespace=true,
+    numbers=none,
+    escapeinside={(*@}{@*)},
+}
+
+\lstdefinestyle{repl}{
+    style=scheme,
+    backgroundcolor=\color{outputbg},
+    rulecolor=\color{outputborder},
+}
+
+\lstset{style=scheme}
+
+% Shorthand for inline code
+\newcommand{\code}[1]{\lstinline[style=scheme]{#1}}

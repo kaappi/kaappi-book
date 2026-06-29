@@ -1,0 +1,107 @@
+% styles.tex - Custom environments for the Kaappi book
+
+%% NOTE BOX
+\newmdenv[
+    backgroundcolor=notebg,
+    linecolor=noteborder,
+    linewidth=0.5pt,
+    innerleftmargin=12pt,
+    innerrightmargin=12pt,
+    innertopmargin=10pt,
+    innerbottommargin=10pt,
+    leftmargin=0pt,
+    rightmargin=0pt,
+    skipabove=\baselineskip,
+    skipbelow=\baselineskip,
+    roundcorner=2pt,
+    topline=true,
+    bottomline=true,
+    leftline=false,
+    rightline=false,
+]{notebox}
+
+\newenvironment{note}[1][Note]{%
+    \begin{notebox}
+    \noindent\textbf{\sffamily\color{darkbrown}#1.}\space
+}{%
+    \end{notebox}
+}
+
+%% WARNING BOX
+\newmdenv[
+    backgroundcolor=warningbg,
+    linecolor=warningborder,
+    linewidth=2.5pt,
+    roundcorner=0pt,
+    innerleftmargin=12pt,
+    innerrightmargin=12pt,
+    innertopmargin=10pt,
+    innerbottommargin=10pt,
+    leftmargin=0pt,
+    rightmargin=0pt,
+    skipabove=\baselineskip,
+    skipbelow=\baselineskip,
+    leftline=true,
+    rightline=false,
+    topline=false,
+    bottomline=false,
+]{warningbox}
+
+\newenvironment{warning}[1][Warning]{%
+    \begin{warningbox}
+    \noindent\textbf{\sffamily\color{warningborder}#1.}\space
+}{%
+    \end{warningbox}
+}
+
+%% EXERCISE BOX
+\newcounter{exercise}[chapter]
+\renewcommand{\theexercise}{\thechapter.\arabic{exercise}}
+
+\newmdenv[
+    backgroundcolor=exercisebg,
+    linecolor=exerciseborder,
+    linewidth=1pt,
+    roundcorner=2pt,
+    innerleftmargin=12pt,
+    innerrightmargin=12pt,
+    innertopmargin=12pt,
+    innerbottommargin=10pt,
+    leftmargin=0pt,
+    rightmargin=0pt,
+    skipabove=\baselineskip,
+    skipbelow=\baselineskip,
+]{exercisebox}
+
+\newenvironment{exercise}[1][]{%
+    \refstepcounter{exercise}%
+    \begin{exercisebox}
+    \noindent\textbf{\sffamily\color{exerciseborder}Exercise \theexercise%
+    \ifx&#1&\else: #1\fi}\par\vspace{0.5\baselineskip}
+}{%
+    \end{exercisebox}
+}
+
+%% CODE OUTPUT / REPL BOX
+\newmdenv[
+    backgroundcolor=outputbg,
+    linecolor=outputborder,
+    linewidth=0.5pt,
+    innerleftmargin=12pt,
+    innerrightmargin=12pt,
+    innertopmargin=10pt,
+    innerbottommargin=8pt,
+    leftmargin=0pt,
+    rightmargin=0pt,
+    skipabove=\baselineskip,
+    skipbelow=\baselineskip,
+    roundcorner=2pt,
+]{outputbox}
+
+\newenvironment{codeoutput}[1][]{%
+    \begin{outputbox}
+    \ifx&#1&\else\noindent\textbf{\sffamily\small\color{darkbrown}#1}\par\vspace{0.3\baselineskip}\fi
+    \ttfamily\small
+}{%
+    \end{outputbox}
+}

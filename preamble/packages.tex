@@ -1,0 +1,44 @@
+% packages.tex - Package loading for Kaappi book
+
+% Typography
+\usepackage[
+    protrusion=true,
+    expansion=false,
+    tracking=false,
+    final
+]{microtype}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+
+% Graphics
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{float}
+
+% Boxes and frames
+\usepackage[framemethod=tikz]{mdframed}
+\usepackage{adjustbox}
+
+% Code listings
+\usepackage{listings}
+
+% Cross-references and navigation
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkbrown,
+    urlcolor=darkbrown,
+    bookmarks=true,
+    bookmarksnumbered=true,
+    pdfauthor={Baiju Muthukadan},
+    pdftitle={Kaappi: A Scheme Programming Language},
+    pdfsubject={Scheme programming with Kaappi},
+}
+
+% Index
+\usepackage{imakeidx}
+\makeindex[columns=2, title=Index, intoc]
+
+% TOC depth
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{2}

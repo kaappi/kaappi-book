@@ -1,0 +1,38 @@
+% fonts.tex - Font configuration using fontspec
+
+\usepackage{fontspec}
+
+\defaultfontfeatures{Ligatures=TeX}
+
+% Main body font: EB Garamond
+\setmainfont{EBGaramond}[
+    Path = fonts/,
+    UprightFont = *-Regular,
+    BoldFont = *-Bold,
+    ItalicFont = *-Italic,
+    BoldItalicFont = *-BoldItalic,
+    Extension = .ttf,
+    Numbers = Lining,
+    Ligatures = {Common, TeX},
+]
+
+% Sans-serif for headings: Source Sans 3
+\setsansfont{SourceSans3}[
+    Path = fonts/,
+    UprightFont = *-Regular,
+    BoldFont = *-Bold,
+    ItalicFont = *-Italic,
+    BoldItalicFont = *-BoldItalic,
+    Extension = .ttf,
+    Numbers = Lining,
+    Ligatures = {Common, TeX},
+]
+
+% Monospace for code: Fira Code
+\setmonofont{FiraCode}[
+    Path = fonts/,
+    UprightFont = *-Regular,
+    BoldFont = *-Bold,
+    Extension = .ttf,
+    Scale = 0.85,
+]

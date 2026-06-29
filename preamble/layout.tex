@@ -1,0 +1,84 @@
+% layout.tex - 6" x 9" page layout
+
+% Page dimensions for 6" x 9" (152.4mm x 228.6mm)
+\setstocksize{228.6mm}{152.4mm}
+\settrimmedsize{228.6mm}{152.4mm}{*}
+
+% Margins: inner 19mm (0.75"), outer 10mm (0.39")
+\setlrmarginsandblock{19mm}{10mm}{*}
+% Top 15mm, bottom 15mm
+\setulmarginsandblock{15mm}{15mm}{*}
+
+% Header and footer spacing
+\setheadfoot{14pt}{22pt}
+\setheaderspaces{*}{10pt}{*}
+
+\checkandfixthelayout
+
+% Chapter style
+\makeatletter
+\makechapterstyle{kaappi}{%
+    \chapterstyle{default}
+    \renewcommand*{\chapterheadstart}{\vspace*{30pt}}
+    \renewcommand*{\afterchapternum}{\par\nobreak\vskip 8pt}
+    \renewcommand*{\afterchaptertitle}{%
+        \par\nobreak\vskip 8pt
+        \noindent\rule{\linewidth}{0.4pt}%
+        \par\nobreak\vskip 25pt
+    }
+    \renewcommand*{\printchaptername}{}
+    \renewcommand*{\chapternamenum}{}
+    \renewcommand*{\printchapternum}{%
+        \centering
+        {\chapnumfont \@chapapp\ \thechapter}%
+    }
+    \renewcommand*{\printchaptertitle}[1]{%
+        \centering\chaptitlefont ##1
+    }
+}
+\makeatother
+\chapterstyle{kaappi}
+
+% Part style
+\renewcommand{\partnamefont}{\normalfont\huge\sffamily\bfseries\color{darkbrown}}
+\renewcommand{\partnumfont}{\normalfont\huge\sffamily\bfseries\color{darkbrown}}
+\renewcommand{\parttitlefont}{\normalfont\Huge\sffamily\bfseries\color{darkbrown}}
+\renewcommand{\printpartname}{Part}
+\renewcommand{\printparttitle}[1]{\parttitlefont #1}
+
+% Headers and footers
+\makepagestyle{kaappibook}
+\makeevenhead{kaappibook}{%
+    \small\sffamily\thepage%
+}{}{%
+    \small\sffamily\leftmark%
+}
+\makeoddhead{kaappibook}{%
+    \small\sffamily\rightmark%
+}{}{%
+    \small\sffamily\thepage%
+}
+\makeevenfoot{kaappibook}{}{}{}
+\makeoddfoot{kaappibook}{}{}{}
+\makeheadrule{kaappibook}{\textwidth}{0.4pt}
+\pagestyle{kaappibook}
+
+% Chapter pages use plain style
+\aliaspagestyle{chapter}{plain}
+
+% Paragraph settings
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+
+% Widow and orphan control
+\widowpenalty=10000
+\clubpenalty=10000
+
+\frenchspacing
+\flushbottom
+
+% Hyphenation control
+\doublehyphendemerits=10000
+\finalhyphendemerits=5000
+\tolerance=1500
+\emergencystretch=1em

@@ -1,0 +1,47 @@
+# Build output
+build/
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+
+# Index files
+*.idx
+*.ilg
+*.ind
+
+# Bibliography
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Hyperref
+*.out.ps
+
+# mdframed
+*.mdf
+
+# Temporary files
+*.tmp
+*.temp
+*~
+\#*\#
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+.vscode/
+.idea/

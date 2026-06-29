@@ -1,0 +1,32 @@
+% decorations.tex - Minimal decorative elements for the Kaappi book
+
+\usetikzlibrary{calc}
+
+%% LAMBDA ORNAMENT (section breaks)
+\newcommand{\lambdaornament}[1][1]{%
+    \begin{tikzpicture}[scale=#1, baseline=-2pt]
+        \node[font=\Large, text=darkbrown!70] at (0,0) {$\lambda$};
+    \end{tikzpicture}%
+}
+
+%% SECTION BREAK
+\newcommand{\sectionbreak}{%
+    \par\vspace{1.5\baselineskip}
+    \noindent\hfill
+    \rule{1cm}{0.4pt}\hspace{0.8em}%
+    \lambdaornament[0.8]%
+    \hspace{0.8em}\rule{1cm}{0.4pt}%
+    \hfill\null
+    \par\vspace{1.5\baselineskip}
+}
+
+%% CHAPTER END ORNAMENT
+\newcommand{\chapterend}{%
+    \par\vspace{2\baselineskip}
+    \noindent\hfill
+    \rule{2cm}{0.4pt}\hspace{1em}%
+    \lambdaornament%
+    \hspace{1em}\rule{2cm}{0.4pt}%
+    \hfill\null
+    \par\vspace{\baselineskip}
+}
