@@ -156,6 +156,10 @@ Scheme provides predicates to classify numbers and comparison procedures that wo
 
 Note that \texttt{<}, \texttt{>}, \texttt{<=}, and \texttt{>=} accept multiple arguments and check that the entire sequence is ordered.
 
+\begin{note}[Coming from Python]
+\texttt{(integer? 3.0)} returns \texttt{\#t} because R7RS classifies numbers by their mathematical value, not their representation. The value 3.0 is mathematically an integer, even though it is stored as a flonum. In Python, \texttt{isinstance(3.0, int)} returns \texttt{False} because Python distinguishes by type, not by value.
+\end{note}
+
 \subsection{Common Arithmetic Procedures}
 \index{quotient}\index{remainder}\index{modulo}\index{abs}\index{max}\index{min}\index{expt}\index{sqrt}
 
@@ -214,9 +218,14 @@ Strings are sequences of Unicode characters, enclosed in double quotes. Kaappi s
 "HELLO"
 > (string-downcase "HELLO")
 "hello"
+> (import (srfi 13))
 > (string-contains "hello world" "world")
 6
 \end{lstlisting}
+
+\begin{note}[SRFI-13]
+\texttt{string-contains} comes from SRFI-13\index{SRFI-13}, the string library. In a script file, add \texttt{(import (srfi 13))} to use it. The other string procedures shown above are part of the R7RS standard and are always available.
+\end{note}
 
 \subsection{String Conversion}
 \index{number->string}\index{string->number}\index{symbol->string}\index{string->symbol}
@@ -511,7 +520,7 @@ Write a function \code{type-name} that takes a single argument and returns a str
 \end{exercise}
 
 \begin{exercise}[Counting Vowels]
-Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Use \code{string->list} to convert the string to a list of characters, then process the list. You will need \code{char-downcase} and \code{member} (or a series of \code{char=?} checks).
+Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Use \code{string-ref} to access each character by index and recurse from index 0 to \code{(string-length s)}. You will need \code{char-downcase} and a series of \code{char=?} checks (or \code{string-contains} on a vowel string).
 
 \begin{lstlisting}[style=repl]
 > (count-vowels "Hello, World!")
@@ -526,14 +535,15 @@ In Python, you might write \texttt{sum(1 for c in s.lower() if c in "aeiou")}. H
 \end{exercise}
 
 \begin{exercise}[Vector of Squares]
-Create a vector containing the first 10 perfect squares (1, 4, 9, \ldots, 100) in two different ways:
+Create a vector containing the first 10 perfect squares (1, 4, 9, \ldots, 100) using \code{vector-map}. Start with a vector of \code{1} through \code{10} and map a squaring function over it:
 
-\begin{enumerate}
-\item Using \code{vector-map} on an existing vector of \code{1} through \code{10}.
-\item Using a named \code{let} loop that builds the vector with \code{make-vector} and \code{vector-set!}.
-\end{enumerate}
+\begin{lstlisting}[style=repl]
+> (define nums (vector 1 2 3 4 5 6 7 8 9 10))
+> (vector-map ??? nums)
+#(1 4 9 16 25 36 49 64 81 100)
+\end{lstlisting}
 
-Verify that both approaches produce \code{\#(1 4 9 16 25 36 49 64 81 100)}.
+Then try building the same vector a different way: use \code{make-vector} to create a 10-element vector, then use \code{vector-set!} in a recursive helper function to fill each position with \code{(* i i)}.
 \end{exercise}
 
 You now have a thorough understanding of Scheme's data types. The next chapter covers the most important compound data structure: lists and pairs.

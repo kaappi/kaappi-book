@@ -93,7 +93,7 @@ In Scheme:
   (filter even? (iota 10)))
 \end{lstlisting}
 
-\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates.
+\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely-used list library. To use them in a script file, add \texttt{(import (srfi 1))}; in the REPL, type \texttt{,import (srfi 1)}.
 
 \subsection{Closures}
 
@@ -184,7 +184,7 @@ When you type a Scheme expression, Kaappi processes it through a pipeline:
     \item \textbf{Virtual machine}\index{virtual machine} --- executes the bytecode on a register-based VM with a generational garbage collector\index{garbage collector}.
 \end{enumerate}
 
-This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 39,000 lines of Zig).
+This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 48,000 lines of Zig).
 
 \subsection{Batteries Included}
 
@@ -231,6 +231,10 @@ Let's get started.
 
 \section*{Exercises}
 
+\begin{exercise}[Try the Playground]
+Visit \texttt{https://kaappi-lang.org/playground/} in your browser. Try evaluating a few expressions from this chapter---the factorial function, the list filter example, or anything else that interests you. The playground runs the same Kaappi interpreter via WebAssembly, so everything works identically to a local install.
+\end{exercise}
+
 \begin{exercise}[Install Kaappi]
 Install Kaappi on your system using the install script or a manual download (see Chapter~2 for details). Run \code{kaappi --version} in your terminal and confirm you see a version string like \code{Kaappi Scheme v0.5.0}. Then evaluate a simple expression:
 
@@ -240,10 +244,6 @@ Install Kaappi on your system using the install script or a manual download (see
 \end{lstlisting}
 
 If you see \code{6}, your installation is working.
-\end{exercise}
-
-\begin{exercise}[Try the Playground]
-Visit \texttt{https://kaappi-lang.org/playground/} in your browser. Try evaluating a few expressions from this chapter---the factorial function, the list filter example, or anything else that interests you. The playground runs the same Kaappi interpreter via WebAssembly, so everything works identically to a local install.
 \end{exercise}
 
 \begin{exercise}[Scheme's Influence on Python]

@@ -185,9 +185,11 @@ Scheme uses \texttt{kebab-case}\index{kebab-case} (words separated by hyphens) i
 \end{note}
 
 \section{Defining Functions}
-\index{functions}\index{lambda}
+\index{functions}\index{lambda}\index{procedures}
 
-To define a function, put the name and parameters in a list after \texttt{define}:
+Scheme officially calls these \emph{procedures}\index{procedure} rather than functions, because they can have side effects (like printing output). This book uses both terms interchangeably.
+
+To define a procedure, put the name and parameters in a list after \texttt{define}:
 
 \begin{lstlisting}[style=repl]
 > (define (square x) (* x x))
@@ -232,11 +234,11 @@ Functions are ordinary values in Scheme. You can pass them as arguments to other
 > (define (apply-twice f x) (f (f x)))
 > (apply-twice square 3)
 81
-> (apply-twice string-length "no")
-1
+> (apply-twice square 2)
+16
 \end{lstlisting}
 
-In the first call, \texttt{(square 3)} gives \texttt{9}, then \texttt{(square 9)} gives \texttt{81}. This ability to pass functions around is what makes Scheme a \emph{functional} language, and it is the foundation for many powerful patterns you will learn in later chapters.
+In the first call, \texttt{(square 3)} gives \texttt{9}, then \texttt{(square 9)} gives \texttt{81}. In the second, \texttt{(square 2)} gives \texttt{4}, then \texttt{(square 4)} gives \texttt{16}. This ability to pass functions around is what makes Scheme a \emph{functional} language, and it is the foundation for many powerful patterns you will learn in later chapters.
 
 \section{Basic Conditionals}
 \index{if}\index{conditionals}
@@ -382,7 +384,7 @@ Compare your solution to the \code{abs} function defined earlier in this chapter
 \end{exercise}
 
 \begin{exercise}[Recursive Power]
-Write a function \code{(power base exp)} that computes $\mathit{base}^{\mathit{exp}}$ using recursion. Assume \code{exp} is a non-negative integer. The base case is: anything raised to the power 0 is 1. The recursive case is: $b^n = b \times b^{n-1}$.
+Write a function \code{(power base exponent)} that computes $\mathit{base}^{\mathit{exponent}}$ using recursion. Assume \code{exponent} is a non-negative integer. The base case is: anything raised to the power 0 is 1. The recursive case is: $b^n = b \times b^{n-1}$.
 
 \begin{lstlisting}[style=repl]
 > (power 2 10)
@@ -396,10 +398,10 @@ Write a function \code{(power base exp)} that computes $\mathit{base}^{\mathit{e
 In Python, you would write:
 
 \begin{lstlisting}[language=Python, style=scheme, keywordstyle=\bfseries]
-def power(base, exp):
-    if exp == 0:
+def power(base, exponent):
+    if exponent == 0:
         return 1
-    return base * power(base, exp - 1)
+    return base * power(base, exponent - 1)
 \end{lstlisting}
 
 Translate this logic into Scheme using \code{if}, \code{=}, and \code{-}.
