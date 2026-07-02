@@ -274,6 +274,48 @@ Internal \texttt{define} & Local helper functions; equivalent to \texttt{letrec*
 \end{tabular}
 \end{center}
 
+\section{Parameters: Dynamic Binding}
+\index{parameters}\index{make-parameter}\index{parameterize}\index{dynamic binding}
+
+Every binding form so far has been \emph{lexical}: a binding is visible only in the source text it encloses. Scheme also offers a controlled form of \emph{dynamic} binding through parameter objects. A parameter is created with \texttt{make-parameter} and read by calling it like a function:
+
+\begin{lstlisting}[style=repl]
+> (define verbosity (make-parameter 1))
+> (verbosity)
+1
+\end{lstlisting}
+
+\texttt{parameterize} rebinds a parameter \emph{for the duration of its body}---including inside any functions called from that body---and restores the old value afterward:
+
+\begin{lstlisting}[style=repl]
+> (define (log-line msg)
+    (when (>= (verbosity) 2)
+      (display msg)
+      (newline)))
+> (log-line "quiet by default")
+> (parameterize ((verbosity 2))
+    (log-line "loud inside parameterize"))
+loud inside parameterize
+> (verbosity)
+1
+\end{lstlisting}
+
+Notice what \texttt{let} could not do here: \texttt{log-line} was defined far away from the \texttt{parameterize}, yet it sees the new value. Parameters are how Scheme passes contextual settings---log levels, output destinations, precision---down through many layers of calls without threading an extra argument through every function.
+
+\texttt{make-parameter} accepts an optional converter function applied to every value the parameter takes on:
+
+\begin{lstlisting}[style=repl]
+> (define timeout (make-parameter "30" string->number))
+> (timeout)
+30
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+Parameters resemble Python's \texttt{contextvars} (or a disciplined use of thread-local globals): \texttt{(parameterize ((p v)) body)} is like setting a context variable inside a \texttt{with} block. The value reverts automatically when the body exits---even if it exits with an error.
+\end{note}
+
+Several built-in procedures use parameters. In Chapter~\ref{ch:io} you will meet \texttt{current-output-port} and friends, which are ordinary parameter objects---redirecting output is just a \texttt{parameterize}.
+
 \section*{Summary}
 
 \begin{itemize}
@@ -282,6 +324,7 @@ Internal \texttt{define} & Local helper functions; equivalent to \texttt{letrec*
     \item Named \texttt{let} is a concise loop, and internal \texttt{define}s behave like \texttt{letrec*}.
     \item \texttt{let} is syntactic sugar for an immediately applied \texttt{lambda}.
     \item \texttt{let-values} binds the results of an expression that returns multiple values.
+    \item Parameters provide dynamic binding: \texttt{parameterize} changes a value for the extent of a computation, then restores it.
 \end{itemize}
 
 \section*{Exercises}

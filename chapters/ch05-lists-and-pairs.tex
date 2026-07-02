@@ -96,6 +96,8 @@ For lists of literal values, you can use a quote:
 
 The quote \texttt{'} prevents evaluation. Without it, \texttt{(red green blue)} would try to call \texttt{red} as a procedure. With the quote, it creates a list of three symbols.
 
+The apostrophe is reader shorthand: \texttt{'x} is exactly the same as writing \texttt{(quote x)}. The reader expands one into the other before evaluation, which is why quoted data sometimes prints back with \texttt{quote} spelled out.
+
 \begin{warning}[Quote vs.\ list]
 \texttt{'(1 2 3)} and \texttt{(list 1 2 3)} both produce the list \texttt{(1 2 3)}, but they differ in an important way: quoted lists contain literal values only. If you need computed elements, use \texttt{list}:
 
@@ -110,9 +112,35 @@ The quote \texttt{'} prevents evaluation. Without it, \texttt{(red green blue)} 
 In the quoted version, \texttt{x} is the symbol \texttt{x}, not the value~10.
 \end{warning}
 
-\begin{note}[Quasiquoting]
-Scheme also supports \emph{quasiquoting}\index{quasiquote} for building lists with a mix of literal and computed elements. We will cover this in Chapter~\ref{ch:macros} (Macros).
-\end{note}
+\subsection{Quasiquotation}
+\index{quasiquote}\index{unquote}
+
+Often you want a list that is \emph{mostly} literal with a few computed elements. Rather than assembling it with \texttt{list} and \texttt{cons}, use \emph{quasiquote}: a backtick \texttt{`} quotes the whole structure, and a comma \texttt{,} (\emph{unquote}) switches evaluation back on for one element:
+
+\begin{lstlisting}[style=repl]
+> `(1 2 ,(+ 1 2))
+(1 2 3)
+> (define name "world")
+> `("hello" ,name)
+("hello" "world")
+\end{lstlisting}
+
+\texttt{,@} (\emph{unquote-splicing}) evaluates to a list and splices its elements into place, rather than inserting the list as a single element:
+
+\begin{lstlisting}[style=repl]
+> `(1 ,@(list 2 3) 4)
+(1 2 3 4)
+\end{lstlisting}
+
+Quasiquote shines when building nested, tagged data:
+
+\begin{lstlisting}[style=repl]
+> (define port 8080)
+> `(config (host "localhost") (port ,port))
+(config (host "localhost") (port 8080))
+\end{lstlisting}
+
+Like \texttt{'}, the backtick and comma are reader shorthand---for \texttt{quasiquote}, \texttt{unquote}, and \texttt{unquote-splicing}. Think of quasiquote as Scheme's template string: \texttt{`(port ,port)} plays the role of Python's \texttt{f"port \{port\}"}, except it produces structured data instead of text.
 
 \subsection{Building Lists with \texttt{cons}}
 

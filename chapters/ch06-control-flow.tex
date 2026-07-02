@@ -101,7 +101,7 @@ Here, \texttt{assv} returns \texttt{(2 "two")} (a true value), and \texttt{=>} p
 "weekday"
 \end{lstlisting}
 
-Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?}, which tests equality for numbers, characters, booleans, and symbols (but not strings---two strings with the same content may not be \texttt{eqv?}). For matching against strings, use \texttt{cond} with \texttt{string=?} instead.
+Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?} (Section~\ref{sec:equality}), which tests equality for numbers, characters, booleans, and symbols (but not strings---two strings with the same content may not be \texttt{eqv?}). For matching against strings, use \texttt{cond} with \texttt{string=?} instead.
 
 \begin{lstlisting}[style=repl]
 > (case (+ 2 3)

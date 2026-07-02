@@ -133,6 +133,10 @@ You can write to a specific port by passing it as an extra argument:
 error!
 \end{lstlisting}
 
+\begin{note}[Current ports are parameters]
+\texttt{current-input-port}, \texttt{current-output-port}, and \texttt{current-error-port} are ordinary parameter objects (Chapter~\ref{ch:bindings}). That means you can redirect all output within a computation using \texttt{parameterize}---no procedure needs to be told about the redirection explicitly.
+\end{note}
+
 \subsection{Port Predicates}
 \index{port?}\index{input-port?}\index{output-port?}
 

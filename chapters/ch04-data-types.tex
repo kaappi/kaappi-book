@@ -487,6 +487,77 @@ Scheme provides predicates to test the type of any value. Each returns \texttt{\
 
 These predicates are essential for writing functions that handle different types of input, and they come up frequently when processing heterogeneous data.
 
+\section{Equality: \texttt{eq?}, \texttt{eqv?}, \texttt{equal?}, and \texttt{=}}
+\label{sec:equality}
+\index{equality}\index{eq?}\index{eqv?}\index{equal?}
+
+Scheme has three general-purpose equality predicates plus the numeric \texttt{=}. Python collapses most of this into \texttt{==} and \texttt{is}, so the distinctions deserve a careful look now---every chapter that follows relies on them.
+
+\texttt{eq?} tests \emph{identity}: are the two arguments the very same object in memory? It is the right choice for symbols and booleans, which are interned:
+
+\begin{lstlisting}[style=repl]
+> (eq? 'apple 'apple)
+#t
+> (eq? '(1 2) '(1 2))
+#f
+> (eq? "hi" "hi")
+#f
+\end{lstlisting}
+
+The two lists print the same but are separate objects, so \texttt{eq?} says \texttt{\#f}. The same goes for strings.
+
+\texttt{eqv?} extends \texttt{eq?} with well-defined behavior for numbers and characters. Two numbers are \texttt{eqv?} when they have the same value \emph{and} the same exactness:
+
+\begin{lstlisting}[style=repl]
+> (eqv? 42 42)
+#t
+> (eqv? 1.5 1.5)
+#t
+> (eqv? #\a #\a)
+#t
+> (eqv? 1 1.0)
+#f
+> (eqv? "hi" "hi")
+#f
+\end{lstlisting}
+
+\texttt{equal?} compares \emph{structure}, recursively. Two values are \texttt{equal?} when they look the same---this is the predicate that behaves like Python's \texttt{==} for containers:
+
+\begin{lstlisting}[style=repl]
+> (equal? '(1 (2 3)) '(1 (2 3)))
+#t
+> (equal? "hello" "hello")
+#t
+> (equal? #(1 2) #(1 2))
+#t
+\end{lstlisting}
+
+Finally, \texttt{=} compares \emph{numeric value only} and works across exactness---but accepts nothing except numbers:
+
+\begin{lstlisting}[style=repl]
+> (= 1 1.0)
+#t
+> (= 1/2 0.5)
+#t
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{Predicate} & \textbf{Compares} & \textbf{Use for} \\
+\hline
+\texttt{eq?} & object identity & symbols, booleans \\
+\texttt{eqv?} & identity, plus value for numbers/chars & characters, exact numbers \\
+\texttt{equal?} & structure, recursively & lists, strings, vectors \\
+\texttt{=} & numeric value, ignoring exactness & numbers \\
+\end{tabular}
+\end{center}
+
+When in doubt, \texttt{equal?} is the safe general-purpose choice; reach for the cheaper \texttt{eq?}/\texttt{eqv?} when identity is what you mean. For strings there is also the dedicated \texttt{string=?} predicate, and for characters \texttt{char=?}.
+
+\begin{note}[Coming from Python]
+\texttt{eq?} corresponds to Python's \texttt{is}, and \texttt{equal?} to \texttt{==} on containers. Python has no direct analog of \texttt{eqv?}---think of it as \texttt{is} that also works sensibly for numbers and characters.
+\end{note}
+
 \section*{Summary}
 
 \begin{itemize}
@@ -495,6 +566,7 @@ These predicates are essential for writing functions that handle different types
     \item Symbols are interned names, and the only booleans are \texttt{\#t} and \texttt{\#f}.
     \item Vectors are fixed-length, mutable, constant-time-indexed sequences; bytevectors hold raw bytes.
     \item Type predicates such as \texttt{number?}, \texttt{string?}, and \texttt{vector?} test a value's type.
+    \item \texttt{eq?} tests identity, \texttt{eqv?} adds numbers and characters, \texttt{equal?} compares structure, and \texttt{=} compares numeric value.
 \end{itemize}
 
 \section*{Exercises}

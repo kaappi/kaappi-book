@@ -316,6 +316,41 @@ Generators are useful for processing large or infinite sequences without materia
 
 \texttt{maybe} is like Python's \texttt{Optional} or Rust's \texttt{Option}---it represents a value that might not exist.
 
+\section{Beyond SRFIs: Lazy Evaluation with \texttt{(scheme lazy)}}
+\index{lazy evaluation}\index{delay}\index{force}\index{promises}
+
+Not everything in the standard library is a SRFI. R7RS itself ships the \texttt{(scheme lazy)} library, which lets you defer a computation until its value is actually needed. \texttt{delay} wraps an expression into a \emph{promise} without evaluating it; \texttt{force} evaluates it on first use:
+
+\begin{lstlisting}[style=repl]
+> (import (scheme lazy))
+> (define p (delay (begin (display "computing...")
+                          (newline)
+                          42)))
+> (force p)
+computing...
+42
+> (force p)
+42
+\end{lstlisting}
+
+Note that \texttt{computing...} printed only once: promises \emph{memoize} their result, so the expression runs at most once no matter how often you force it. That makes \texttt{delay} a natural fit for expensive values that might never be needed---a parsed config file, a database connection, a large table.
+
+Two companions round out the library. \texttt{make-promise} wraps an already-computed value so it can be used where a promise is expected, and \texttt{delay-force} is the tail-recursive variant of \texttt{delay} used when a promise's computation itself returns a promise:
+
+\begin{lstlisting}[style=repl]
+> (define q (make-promise 7))
+> (force q)
+7
+> (promise? q)
+#t
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+A promise is like \texttt{functools.cache} applied to a zero-argument function: the first call computes, subsequent calls return the cached result. It is lazy initialization as a first-class value.
+\end{note}
+
+For programming with entire lazy sequences---infinite lists that materialize on demand---see SRFI-41 (streams) in Appendix~\ref{app:srfi}.
+
 \section{Choosing the Right Data Structure}
 
 \begin{center}
@@ -339,6 +374,7 @@ Indexed random access & Vector & 133 & O(1) \\
     \item SRFI-1 extends list processing, SRFI-13 extends strings, and SRFI-69 provides hash tables.
     \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random numbers), and SRFI-115 (regular expressions) cover common needs.
     \item SRFI-158 provides generators, and other SRFIs add sets and bags, format strings, and the Maybe and Either types.
+    \item R7RS's own \texttt{(scheme lazy)} library provides \texttt{delay} and \texttt{force} for memoized, on-demand computation.
 \end{itemize}
 
 \section*{Exercises}
