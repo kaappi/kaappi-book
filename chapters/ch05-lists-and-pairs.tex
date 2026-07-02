@@ -265,66 +265,6 @@ An association list\index{alist} is like a Python dictionary, but with O(n) look
 
 \texttt{pair?} tests whether something is a cons cell. \texttt{null?} tests for the empty list. \texttt{list?} tests for a proper list (a chain ending in \texttt{'()}). Note that \texttt{(list? (cons 1 2))} returns \texttt{\#f} because the cdr is \texttt{2}---not a pair or \texttt{'()}---so the chain does not terminate properly.
 
-\section{Recursive List Processing}
-\index{recursion}
-
-Lists have a natural recursive structure: a list is either empty, or it has a first element (\texttt{car}) and a rest (\texttt{cdr}) which is itself a list. This leads to a standard pattern for processing lists:
-
-\begin{lstlisting}
-(define (my-length lst)
-  (if (null? lst)
-      0
-      (+ 1 (my-length (cdr lst)))))
-\end{lstlisting}
-
-\begin{lstlisting}[style=repl]
-> (my-length '(a b c d))
-4
-\end{lstlisting}
-
-The pattern is: check if the list is empty (base case), otherwise process the first element and recurse on the rest.
-
-Here is a function that sums a list of numbers:
-
-\begin{lstlisting}
-(define (sum lst)
-  (if (null? lst)
-      0
-      (+ (car lst) (sum (cdr lst)))))
-\end{lstlisting}
-
-\begin{lstlisting}[style=repl]
-> (sum '(1 2 3 4 5))
-15
-\end{lstlisting}
-
-And one that keeps only elements satisfying a predicate:
-
-\begin{lstlisting}
-(define (my-filter pred lst)
-  (cond
-    ((null? lst) '())
-    ((pred (car lst))
-     (cons (car lst) (my-filter pred (cdr lst))))
-    (else
-     (my-filter pred (cdr lst)))))
-\end{lstlisting}
-
-\begin{lstlisting}[style=repl]
-> (my-filter even? '(1 2 3 4 5 6))
-(2 4 6)
-> (my-filter string? '(1 "two" 3 "four"))
-("two" "four")
-\end{lstlisting}
-
-\begin{note}[Coming from Python]
-This recursive pattern replaces Python's \texttt{for} loop. Instead of iterating with a counter, you decompose the list into head and tail. This style takes practice, but it eliminates off-by-one errors and makes the flow of data explicit.
-\end{note}
-
-\begin{note}[Built-in \texttt{filter}]
-You do not need to write \texttt{my-filter} in real code. SRFI-1 provides a built-in \texttt{filter} (plus \texttt{remove} and \texttt{partition}). We will cover these in the chapter on higher-order functions. The purpose here is to understand the recursive pattern.
-\end{note}
-
 \section{Nested Lists and Trees}
 
 Lists can contain other lists, forming trees:
@@ -338,23 +278,7 @@ Lists can contain other lists, forming trees:
 1
 \end{lstlisting}
 
-Here is a function that flattens a nested list into a single level:
-
-\begin{lstlisting}
-(define (flatten lst)
-  (cond
-    ((null? lst) '())
-    ((pair? (car lst))
-     (append (flatten (car lst))
-             (flatten (cdr lst))))
-    (else
-     (cons (car lst) (flatten (cdr lst))))))
-\end{lstlisting}
-
-\begin{lstlisting}[style=repl]
-> (flatten '(1 (2 3) (4 (5 6)) 7))
-(1 2 3 4 5 6 7)
-\end{lstlisting}
+Processing nested lists to arbitrary depth requires recursion, which Chapter~\ref{ch:functions} introduces---we return to tree-shaped data there.
 
 \section{Improper Lists and Dotted Pairs}
 \index{dotted pair}
@@ -416,7 +340,7 @@ Lists excel at sequential processing and stack-like access (always working with 
     \item A pair (cons cell) holds two values---its \texttt{car} and \texttt{cdr}---and lists are chains of pairs ending in the empty list.
     \item Build lists with \texttt{list}, \texttt{cons}, or quoting, and access them with \texttt{car}, \texttt{cdr}, and \texttt{list-ref}.
     \item Common operations include \texttt{length}, \texttt{append}, \texttt{reverse}, \texttt{member}, and \texttt{assoc}.
-    \item Most list algorithms are expressed by recursion over the \texttt{car}/\texttt{cdr} structure.
+    \item Lists have a recursive structure---empty, or an element plus a smaller list---which Chapter~\ref{ch:functions} exploits to process them.
     \item Lists offer constant-time prepend but linear-time access and length, which guides when to use them.
 \end{itemize}
 
@@ -426,66 +350,50 @@ Lists excel at sequential processing and stack-like access (always working with 
 Construct the list \code{(a b c d)} using only \code{cons} and \code{'()}---do not use \code{list} or quoting. Then verify that your result is equal to \code{(list 'a 'b 'c 'd)} using \code{equal?}. Draw the pair diagram on paper to reinforce how the chain of cons cells forms a proper list.
 \end{exercise}
 
-\begin{exercise}[Reversing a List]
-Write a function \code{my-reverse} that reverses a list using recursion. Use an accumulator parameter to make it tail-recursive:
+\begin{exercise}[Pair Anatomy]
+Predict the result of each expression, then check your answers in the REPL:
 
-\begin{lstlisting}[style=repl]
-> (my-reverse '(1 2 3 4 5))
-(5 4 3 2 1)
-> (my-reverse '())
-()
-> (my-reverse '(a))
-(a)
+\begin{lstlisting}
+(car '((1 2) (3 4)))
+(cdr '((1 2) (3 4)))
+(caar '((1 2) (3 4)))
+(cadr '((1 2) (3 4)))
+(cons '(a) '(b c))
+(append '(a) '(b c))
 \end{lstlisting}
 
-In Python, this would be \texttt{lst[::-1]}. Your Scheme version should be O(n) in both time and space.
+Pay attention to the last two: why do \code{cons} and \code{append} give different results for the same arguments?
 \end{exercise}
 
-\begin{exercise}[Appending Two Lists]
-Write \code{my-append} that concatenates two lists without using the built-in \code{append}:
+\begin{exercise}[A Phone Book with \code{assoc}]
+Define an association list \code{phone-book} mapping names (strings) to numbers. Then:
 
-\begin{lstlisting}[style=repl]
-> (my-append '(1 2 3) '(4 5 6))
-(1 2 3 4 5 6)
-> (my-append '() '(a b))
-(a b)
-> (my-append '(x) '())
-(x)
-\end{lstlisting}
+\begin{enumerate}
+\item Look up an existing name with \code{assoc}. What does it return?
+\item Look up a missing name. What do you get instead?
+\item ``Add'' an entry by consing a new pair onto the front, and look it up.
+\item Cons a second entry with an existing name onto the front. Which entry does \code{assoc} find, and why?
+\end{enumerate}
 
-Hint: recurse on the first list. What is the base case? Why does this function copy the first list but share the second?
+The behavior in step 4---new entries shadow old ones---is a common functional idiom for updating alists without mutation.
 \end{exercise}
 
-\begin{exercise}[Mapping over a List]
-Write \code{my-map} that applies a function to each element of a list:
+\begin{exercise}[List Surgery]
+Using only \code{append}, \code{reverse}, \code{list}, \code{car}, \code{cdr}, \code{length}, and \code{list-ref}---no recursion---write:
+
+\begin{enumerate}
+\item \code{rotate-left}: move the first element to the end.
+\item \code{last-element}: return the final element of a non-empty list.
+\end{enumerate}
 
 \begin{lstlisting}[style=repl]
-> (my-map (lambda (x) (* x x)) '(1 2 3 4 5))
-(1 4 9 16 25)
-> (my-map string-upcase '("hello" "world"))
-("HELLO" "WORLD")
-> (my-map car '((a 1) (b 2) (c 3)))
-(a b c)
+> (rotate-left '(1 2 3 4))
+(2 3 4 1)
+> (last-element '(a b c))
+c
 \end{lstlisting}
 
-Follow the standard recursive pattern: base case for the empty list, then \code{cons} the transformed first element onto the recursion over the rest.
-\end{exercise}
-
-\begin{exercise}[Deep Reverse]
-Write a function \code{deep-reverse} that reverses a list at every level of nesting. Unlike the plain \code{reverse} from Exercise~2, this function must also reverse any sublists it encounters:
-
-\begin{lstlisting}[style=repl]
-> (deep-reverse '(1 2 3))
-(3 2 1)
-> (deep-reverse '(1 (2 3) (4 (5 6)) 7))
-(7 ((6 5) 4) (3 2) 1)
-> (deep-reverse '((a b) (c d)))
-((d c) (b a))
-> (deep-reverse '())
-()
-\end{lstlisting}
-
-This requires two recursive cases: when the \code{car} is itself a pair (deep-reverse it before collecting), and when it is an atom (keep it as-is). Use an accumulator for the outer reversal.
+Both have one-line solutions. What is the time complexity of each?
 \end{exercise}
 
 In the next chapter, we look at control flow---conditionals, boolean logic, sequencing, and loops.

@@ -110,7 +110,35 @@ This naive Fibonacci is O($2^n$)---it recomputes the same subproblems repeatedly
 
 \subsection{Recursion on Lists}
 
-Most list processing follows this pattern: check for empty (base case), process the first element, recurse on the rest:
+Chapter~\ref{ch:lists} showed that a list is either empty or an element followed by a smaller list. That structure dictates the standard recursive pattern: check for empty (base case), process the first element, recurse on the rest. Counting elements:
+
+\begin{lstlisting}
+(define (my-length lst)
+  (if (null? lst)
+      0
+      (+ 1 (my-length (cdr lst)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (my-length '(a b c d))
+4
+\end{lstlisting}
+
+Summing a list of numbers:
+
+\begin{lstlisting}
+(define (sum-list lst)
+  (if (null? lst)
+      0
+      (+ (car lst) (sum-list (cdr lst)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (sum-list '(1 2 3 4 5))
+15
+\end{lstlisting}
+
+The same shape transforms a list into a new one:
 
 \begin{lstlisting}[style=repl]
 > (define (my-map f lst)
@@ -120,6 +148,30 @@ Most list processing follows this pattern: check for empty (base case), process 
               (my-map f (cdr lst)))))
 > (my-map square '(1 2 3 4 5))  ; square was defined above
 (1 4 9 16 25)
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+This recursive pattern replaces Python's \texttt{for} loop. Instead of iterating with a counter, you decompose the list into head and tail. This style takes practice, but it eliminates off-by-one errors and makes the flow of data explicit.
+\end{note}
+
+\subsection{Recursion on Nested Lists}
+
+When lists nest, the recursion branches: if the first element is itself a pair, recurse into it as well as into the rest. Here is a function that flattens a nested list into a single level:
+
+\begin{lstlisting}
+(define (flatten lst)
+  (cond
+    ((null? lst) '())
+    ((pair? (car lst))
+     (append (flatten (car lst))
+             (flatten (cdr lst))))
+    (else
+     (cons (car lst) (flatten (cdr lst))))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (flatten '(1 (2 3) (4 (5 6)) 7))
+(1 2 3 4 5 6 7)
 \end{lstlisting}
 
 \section{Tail Calls and Tail Recursion}
@@ -426,6 +478,53 @@ The naive Fibonacci function shown earlier in this chapter is O($2^n$). Rewrite 
 \end{lstlisting}
 
 Hint: at each step, the new \code{a} becomes the old \code{b}, and the new \code{b} becomes \code{a + b}. This mirrors the named \code{let} version from the tail-call section---try writing it from scratch without looking back.
+\end{exercise}
+
+\begin{exercise}[Reversing a List]
+Write a function \code{my-reverse} that reverses a list using recursion. Use an accumulator parameter to make it tail-recursive:
+
+\begin{lstlisting}[style=repl]
+> (my-reverse '(1 2 3 4 5))
+(5 4 3 2 1)
+> (my-reverse '())
+()
+> (my-reverse '(a))
+(a)
+\end{lstlisting}
+
+In Python, this would be \texttt{lst[::-1]}. Your Scheme version should be O(n) in both time and space.
+\end{exercise}
+
+\begin{exercise}[Appending Two Lists]
+Write \code{my-append} that concatenates two lists without using the built-in \code{append}:
+
+\begin{lstlisting}[style=repl]
+> (my-append '(1 2 3) '(4 5 6))
+(1 2 3 4 5 6)
+> (my-append '() '(a b))
+(a b)
+> (my-append '(x) '())
+(x)
+\end{lstlisting}
+
+Hint: recurse on the first list. What is the base case? Why does this function copy the first list but share the second?
+\end{exercise}
+
+\begin{exercise}[Deep Reverse]
+Write a function \code{deep-reverse} that reverses a list at every level of nesting. Unlike your plain \code{my-reverse} from earlier, this function must also reverse any sublists it encounters:
+
+\begin{lstlisting}[style=repl]
+> (deep-reverse '(1 2 3))
+(3 2 1)
+> (deep-reverse '(1 (2 3) (4 (5 6)) 7))
+(7 ((6 5) 4) (3 2) 1)
+> (deep-reverse '((a b) (c d)))
+((d c) (b a))
+> (deep-reverse '())
+()
+\end{lstlisting}
+
+This requires two recursive cases: when the \code{car} is itself a pair (deep-reverse it before collecting), and when it is an atom (keep it as-is). Use an accumulator for the outer reversal, as in the \code{flatten} example from this chapter.
 \end{exercise}
 
 The next chapter covers local bindings in detail---including a closer look at named \texttt{let}, which you met here as a looping construct.

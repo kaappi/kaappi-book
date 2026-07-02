@@ -211,18 +211,7 @@ Many list operations are special cases of fold:
 \section{\texttt{apply}: Spreading a List as Arguments}
 \index{apply}
 
-\texttt{apply} was introduced in Chapter~\ref{ch:functions}, but it is worth revisiting in the context of higher-order programming. It calls a function with elements from a list as individual arguments:
-
-\begin{lstlisting}[style=repl]
-> (apply + '(1 2 3 4 5))
-15
-> (apply max '(3 7 2 9 4 1))
-9
-> (apply string-append '("hello" " " "world"))
-"hello world"
-\end{lstlisting}
-
-You can also provide fixed arguments before the list:
+\texttt{apply}, introduced in Chapter~\ref{ch:functions}, calls a function with the elements of a list as individual arguments---\code{(apply + '(1 2 3 4 5))} is \code{15}. One capability we did not cover there: you can provide fixed arguments before the list:
 
 \begin{lstlisting}[style=repl]
 > (apply + 100 '(1 2 3))
@@ -313,6 +302,29 @@ You are not limited to the standard ones. Here are a few useful patterns:
 > (zip '(a b c) '(1 2 3))
 ((a 1) (b 2) (c 3))
 \end{lstlisting}
+
+\subsection{Building \texttt{filter} from Scratch}
+
+The standard higher-order functions are ordinary Scheme code, not magic. Here is \texttt{filter}, written with the recursive list pattern from Chapter~\ref{ch:functions}:
+
+\begin{lstlisting}
+(define (my-filter pred lst)
+  (cond
+    ((null? lst) '())
+    ((pred (car lst))
+     (cons (car lst) (my-filter pred (cdr lst))))
+    (else
+     (my-filter pred (cdr lst)))))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> (my-filter even? '(1 2 3 4 5 6))
+(2 4 6)
+> (my-filter string? '(1 "two" 3 "four"))
+("two" "four")
+\end{lstlisting}
+
+Writing \texttt{map}, \texttt{filter}, or \texttt{fold} by hand once is worth the effort: afterward you know exactly what they do, what they cost, and how to build variants when the standard ones do not quite fit.
 
 \section{When Not to Use Higher-Order Functions}
 
