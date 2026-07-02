@@ -45,7 +45,7 @@ build/                Output directory (gitignored)
 | Part | Chapters | Files |
 |------|----------|-------|
 | I: Getting Started | 1. Introduction, 2. Installation, 3. First Steps | ch01–ch03 |
-| II: The Language | 4. Data Types, 5. Lists & Pairs, 6. Functions, 7. Control Flow, 8. Local Bindings, 9. Higher-Order Functions, 10. I/O | ch04–ch10 |
+| II: The Language | 4. Data Types, 5. Lists & Pairs, 6. Control Flow, 7. Functions, 8. Local Bindings, 9. Higher-Order Functions, 10. I/O | ch04–ch10 |
 | III: Going Further | 11. Macros, 12. Library System, 13. Records, 14. Error Handling, 15. Continuations | ch11–ch15 |
 | IV: Beyond R7RS | 16. Standard Library (SRFIs), 17. FFI, 18. Concurrency | ch16–ch18 |
 | Appendices | A. R7RS Reference, B. CLI Reference, C. SRFI Catalog, D. Error Messages, E. Ecosystem, F. Glossary, G. Further Reading | appendix-a–g |

@@ -169,7 +169,7 @@ Named \texttt{let} is the idiomatic way to write a tail-recursive loop. It defin
 1 2 3 4 5
 \end{lstlisting}
 
-\texttt{loop} is a name you choose---it is bound to a function with parameter \texttt{i}. Calling \texttt{(loop (+ i 1))} recurses with the next value. Because the call is in tail position, it runs in constant space.
+\texttt{loop} is a name you choose---it is bound to a function with parameter \texttt{i}. Calling \texttt{(loop (+ i 1))} recurses with the next value. Because the call is in tail position, it runs in constant space. Chapter~\ref{ch:bindings} returns to named \texttt{let} and shows how it relates to the other \texttt{let} forms.
 
 Here is a tail-recursive Fibonacci using named \texttt{let}:
 
@@ -428,6 +428,6 @@ The naive Fibonacci function shown earlier in this chapter is O($2^n$). Rewrite 
 Hint: at each step, the new \code{a} becomes the old \code{b}, and the new \code{b} becomes \code{a + b}. This mirrors the named \code{let} version from the tail-call section---try writing it from scratch without looking back.
 \end{exercise}
 
-The next chapter covers control flow in depth.
+The next chapter covers local bindings in detail---including a closer look at named \texttt{let}, which you met here as a looping construct.
 
 \chapterend

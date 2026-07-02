@@ -244,7 +244,7 @@ second
 42
 \end{lstlisting}
 
-You rarely need explicit \texttt{begin} because most forms (\texttt{define}, \texttt{let}, \texttt{lambda}, \texttt{when}, \texttt{cond} clauses) already accept multiple body expressions. It is mainly useful inside \texttt{if} when you need multiple expressions in one branch:
+You rarely need explicit \texttt{begin} because most forms (\texttt{define} function bodies, \texttt{when}, \texttt{unless}, \texttt{cond} clauses) already accept multiple body expressions. It is mainly useful inside \texttt{if} when you need multiple expressions in one branch:
 
 \begin{lstlisting}[style=repl]
 > (if (> 5 3)
@@ -259,7 +259,7 @@ yes
 \section{\texttt{do}: Iterative Loops}
 \index{do}
 
-While named \texttt{let} is the most common loop form, Scheme also provides \texttt{do} for iteration with multiple loop variables:
+Scheme has no dedicated \texttt{while} or \texttt{for} statement. Iteration is usually expressed with recursion, which Chapter~\ref{ch:functions} covers in depth. For loops with explicit loop variables, Scheme provides the \texttt{do} form:
 
 \begin{lstlisting}
 (do ((var init step) ...)
@@ -286,7 +286,7 @@ Here is \texttt{do} building a reversed list:
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
-\texttt{do} is roughly equivalent to a Python \texttt{for} or \texttt{while} loop. However, most Scheme programmers prefer named \texttt{let} for its clarity. Use \texttt{do} when you have multiple loop variables that all change simultaneously.
+\texttt{do} is roughly equivalent to a Python \texttt{for} or \texttt{while} loop. Most Scheme programmers prefer recursion (Chapter~\ref{ch:functions}) or named \texttt{let} (Chapter~\ref{ch:bindings}) for loops---but \texttt{do} needs nothing beyond this chapter, and it shines when several loop variables change together.
 \end{note}
 
 \section{Putting It All Together}
@@ -295,20 +295,19 @@ Here is a function that demonstrates several control flow forms working together
 
 \begin{lstlisting}
 (define (fizzbuzz n)
-  (let loop ((i 1))
-    (when (<= i n)
-      (cond
-        ((and (zero? (modulo i 3))
-              (zero? (modulo i 5)))
-         (display "FizzBuzz"))
-        ((zero? (modulo i 3))
-         (display "Fizz"))
-        ((zero? (modulo i 5))
-         (display "Buzz"))
-        (else
-         (display i)))
-      (display " ")
-      (loop (+ i 1)))))
+  (do ((i 1 (+ i 1)))
+      ((> i n))
+    (cond
+      ((and (zero? (modulo i 3))
+            (zero? (modulo i 5)))
+       (display "FizzBuzz"))
+      ((zero? (modulo i 3))
+       (display "Fizz"))
+      ((zero? (modulo i 5))
+       (display "Buzz"))
+      (else
+       (display i)))
+    (display " ")))
 \end{lstlisting}
 
 \begin{lstlisting}[style=repl]
@@ -316,7 +315,7 @@ Here is a function that demonstrates several control flow forms working together
 1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz
 \end{lstlisting}
 
-This uses named \texttt{let} for the loop, \texttt{when} for the termination guard, \texttt{cond} for the multi-branch logic, and \texttt{and} to combine conditions.
+This uses \texttt{do} for the loop, \texttt{cond} for the multi-branch logic, and \texttt{and} to combine conditions.
 
 \section*{Summary}
 
@@ -340,7 +339,7 @@ The chapter showed a standard FizzBuzz implementation. Generalize it: write a fu
 1 Even Tri Even 5 EvenTri 7 Even Tri Even
 \end{lstlisting}
 
-Use named \code{let} for the outer loop, and \code{fold} or a helper function to check each rule. This exercises \code{cond}, \code{when}, named \code{let}, and string operations together.
+Use \code{do} for the outer loop and a helper function to build the output for one number. This exercises \code{cond}, \code{when}, \code{do}, and string operations together.
 \end{exercise}
 
 \begin{exercise}[Letter Grades]
@@ -373,23 +372,6 @@ Write a function \code{clamp} that takes three arguments---\code{value}, \code{l
 In Python, this is \texttt{max(lo, min(hi, value))}. How does the \code{cond} version compare for readability?
 \end{exercise}
 
-\begin{exercise}[Rewriting \code{do} as Named \code{let}]
-Rewrite the following \code{do} loop as an equivalent named \code{let}. Both should produce the same result:
-
-\begin{lstlisting}
-(do ((i 1 (+ i 1))
-     (result '() (cons (* i i) result)))
-    ((> i 5) (reverse result)))
-\end{lstlisting}
-
-\begin{lstlisting}[style=repl]
-> ;; Your named let version should produce:
-> (1 4 9 16 25)
-\end{lstlisting}
-
-Which version do you find more readable? Most Scheme programmers prefer named \code{let}---practice translating between the two forms until both feel natural.
-\end{exercise}
-
-In the next chapter, we will look at local bindings in detail.
+In the next chapter, we turn to functions in depth---including recursion, the technique Scheme programmers reach for where other languages use loops.
 
 \chapterend

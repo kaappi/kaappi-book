@@ -36,7 +36,7 @@ build/                Output directory (gitignored)
 | Part | Chapters |
 |------|----------|
 | I: Getting Started | Introduction, Installation, First Steps |
-| II: The Language | Data Types, Lists, Functions, Control Flow, Bindings, Higher-Order Functions, I/O |
+| II: The Language | Data Types, Lists, Control Flow, Functions, Bindings, Higher-Order Functions, I/O |
 | III: Going Further | Macros, Libraries, Records, Error Handling, Continuations |
 | IV: Beyond R7RS | Standard Library (SRFIs), FFI, Concurrency |
 | Appendices | R7RS Reference, CLI Reference, SRFI Catalog, Error Messages, Ecosystem, Glossary, Further Reading |

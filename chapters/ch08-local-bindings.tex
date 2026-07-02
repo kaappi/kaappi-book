@@ -361,6 +361,23 @@ Write a function \code{balanced-parens?} that checks whether a string of parenth
 Hint: convert the string to a list of characters with \code{string->list}, then walk the list recursively. One approach uses a single recursive function with a depth counter, but the exercise asks for \code{letrec} with two cooperating functions to practice mutual recursion.
 \end{exercise}
 
+\begin{exercise}[Rewriting \code{do} as Named \code{let}]
+Rewrite the following \code{do} loop from Chapter~\ref{ch:control-flow} as an equivalent named \code{let}. Both should produce the same result:
+
+\begin{lstlisting}
+(do ((i 1 (+ i 1))
+     (result '() (cons (* i i) result)))
+    ((> i 5) (reverse result)))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> ;; Your named let version should produce:
+> (1 4 9 16 25)
+\end{lstlisting}
+
+Which version do you find more readable? Most Scheme programmers prefer named \code{let}---practice translating between the two forms until both feel natural.
+\end{exercise}
+
 In the next chapter, we turn to higher-order functions---procedures that take functions as arguments or return them as results.
 
 \chapterend
