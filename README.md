@@ -7,7 +7,7 @@ A book about the [Kaappi](https://kaappi-lang.org/) Scheme implementation, targe
 Requires XeLaTeX (TeX Live 2024+).
 
 ```bash
-make        # Full build (3 passes for TOC/index)
+make        # Full build (latexmk resolves TOC/index/refs)
 make once   # Single pass (fast iteration)
 make view   # Open PDF in default viewer
 make clean  # Remove build artifacts
@@ -37,7 +37,7 @@ build/                Output directory (gitignored)
 |------|----------|
 | I: Getting Started | Introduction, Installation, First Steps |
 | II: The Language | Data Types, Lists, Functions, Control Flow, Bindings, Higher-Order Functions, I/O |
-| III: Advanced Topics | Macros, Libraries, Error Handling, Records, Continuations |
+| III: Going Further | Macros, Libraries, Records, Error Handling, Continuations |
 | IV: Beyond R7RS | Standard Library (SRFIs), FFI, Concurrency |
 | Appendices | R7RS Reference, CLI Reference, SRFI Catalog, Error Messages, Ecosystem, Glossary, Further Reading |
 
