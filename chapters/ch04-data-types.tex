@@ -602,7 +602,7 @@ Write a function \code{type-name} that takes a single argument and returns a str
 \end{exercise}
 
 \begin{exercise}[Counting Vowels]
-Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Use \code{string-ref} to access each character by index and recurse from index 0 to \code{(string-length s)}. You will need \code{char-downcase} and a series of \code{char=?} checks (or \code{string-contains} on a vowel string).
+Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Use \code{string-ref} to access each character by index and recurse from index 0 to \code{(string-length s)}, following the same shape as the Recursive Power exercise from Chapter~\ref{ch:first-steps}. You will need \code{char-downcase} and a series of \code{char=?} checks (or \code{string-contains} on a vowel string). If the recursion does not click yet, revisit this exercise after Chapter~\ref{ch:functions}.
 
 \begin{lstlisting}[style=repl]
 > (count-vowels "Hello, World!")
@@ -625,7 +625,7 @@ Create a vector containing the first 10 perfect squares (1, 4, 9, \ldots, 100) u
 #(1 4 9 16 25 36 49 64 81 100)
 \end{lstlisting}
 
-Then try building the same vector a different way: use \code{make-vector} to create a 10-element vector, then use \code{vector-set!} in a recursive helper function to fill each position with \code{(* i i)}.
+Then try building the same vector a different way: use \code{make-vector} to create a 10-element vector, then use \code{vector-set!} in a recursive helper function to fill each position with \code{(* i i)}. (Save this second part for after Chapter~\ref{ch:functions} if recursion is new to you.)
 \end{exercise}
 
 The next chapter covers the most important compound data structure: lists and pairs.

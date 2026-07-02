@@ -239,9 +239,9 @@ By default, records print as an opaque representation. You can define a custom d
 (3, 4)
 \end{lstlisting}
 
-\section{Records and Pattern Matching}
+\section{Records and Dispatch}
 
-Scheme does not have built-in pattern matching on records (unlike Haskell or Rust). The idiomatic approach is to test with the predicate and destructure with accessors. Consider two shape types:
+Scheme does not have built-in pattern matching on records (unlike Haskell or Rust). The idiomatic approach is \emph{predicate dispatch}: test with the predicate and destructure with accessors. Consider two shape types:
 
 \begin{lstlisting}
 (define-record-type <circle>
@@ -288,6 +288,7 @@ This works well for small type hierarchies. For larger ones, consider a dispatch
     \item \textbf{Type-safe dispatch} --- when you need to distinguish between different kinds of values (\texttt{circle?} vs.\ \texttt{rectangle?}).
     \item \textbf{Encapsulation} --- hide internal representation behind a constructor + accessor interface.
     \item \textbf{Self-documenting code} --- \texttt{(person-name p)} is clearer than \texttt{(car p)}.
+    \item \textbf{Custom error types} --- Chapter~\ref{ch:errors} uses records to build structured, catchable exception objects.
 \end{itemize}
 
 Do not use records when a simple list or pair suffices (e.g., a coordinate pair used only locally) or when the structure needs to vary at runtime (use association lists instead).
@@ -299,7 +300,7 @@ Do not use records when a simple list or pair suffices (e.g., a coordinate pair 
     \item Records provide named fields and type safety, unlike positional lists.
     \item A constructor need not accept every field, which supports records with defaults.
     \item Functional updates produce new records instead of mutating, enabling immutable designs.
-    \item Records combine naturally with pattern matching for clear data manipulation.
+    \item Without built-in pattern matching, records are dispatched on with predicates and destructured with accessors.
 \end{itemize}
 
 \section*{Exercises}

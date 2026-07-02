@@ -389,7 +389,7 @@ Hint: for \code{my-length}, the accumulator is a counter. For \code{my-reverse},
 Write a function \code{process-words} that takes a list of strings and:
 \begin{enumerate}
 \item Filters out words shorter than 4 characters
-\item Sorts the remaining words alphabetically (use \code{list-sort} from SRFI-132: \code{(import (srfi 132))})
+\item Sorts the remaining words alphabetically (use \code{list-sort} from SRFI-132: \code{(import (srfi 132))}---sorting is covered properly in Chapter~\ref{ch:stdlib}; here you only need \code{(list-sort string<? lst)})
 \item Capitalizes each word (upper-case the first letter, lower-case the rest)
 \end{enumerate}
 

@@ -305,7 +305,7 @@ Write a procedure \code{(with-library name proc)} that opens a shared library, p
   ...)
 \end{lstlisting}
 
-Test it by binding and calling \code{ceil} from libm:
+\code{guard} (Chapter~\ref{ch:errors}) is sufficient here; \code{dynamic-wind} (Chapter~\ref{ch:continuations}) is the more general tool for paired acquire/release. Test it by binding and calling \code{ceil} from libm:
 
 \begin{lstlisting}[style=repl]
 > (with-library "libm.dylib"

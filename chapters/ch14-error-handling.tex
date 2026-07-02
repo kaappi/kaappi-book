@@ -192,7 +192,20 @@ Here we intentionally catch all errors---any failure (missing file, parse error,
 
 \subsection{Guaranteed Cleanup}
 
-For guaranteed resource cleanup (similar to Python's \texttt{try}/\texttt{finally}), Scheme provides \texttt{dynamic-wind}\index{dynamic-wind}, which we cover in detail in the continuations chapter. For now, the simplest approach is \texttt{call-with-port}, which closes the port when the body returns or raises an exception.
+For guaranteed resource cleanup (similar to Python's \texttt{try}/\texttt{finally}), Scheme provides \texttt{dynamic-wind}\index{dynamic-wind}. Its third thunk runs no matter how the body exits---normally or via an exception:
+
+\begin{lstlisting}[style=repl]
+> (guard (e (#t (display "caught\n")))
+    (dynamic-wind
+      (lambda () (display "enter\n"))
+      (lambda () (error "boom"))
+      (lambda () (display "cleanup\n"))))
+enter
+cleanup
+caught
+\end{lstlisting}
+
+Chapter~\ref{ch:continuations} explains \texttt{dynamic-wind} in full, including why it takes three thunks. For the common case of file handling, the simplest approach remains \texttt{call-with-port}, which closes the port when the body returns or raises an exception.
 
 \subsection{Wrapping External Calls}
 

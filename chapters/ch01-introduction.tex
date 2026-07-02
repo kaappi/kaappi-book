@@ -93,7 +93,7 @@ In Scheme:
   (filter even? (iota 10)))
 \end{lstlisting}
 
-\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely used list library. To use them in a script file, add \texttt{(import (srfi 1))}; in the REPL, type \texttt{,import (srfi 1)}.
+\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely used list library. To use them in a script file, add \texttt{(import (srfi 1))}; in the REPL, type \texttt{,import (srfi 1)}. Do not worry about mastering these now---Chapter~\ref{ch:hof} covers \texttt{filter} and its relatives in depth.
 
 \subsection{Closures}
 

@@ -207,7 +207,7 @@ This is shorthand for the more explicit form using \texttt{lambda}, which create
 25
 \end{lstlisting}
 
-\texttt{lambda}\index{lambda} is like Python's \texttt{lambda} keyword, but without the one-expression limitation---a Scheme lambda can contain any number of expressions in its body.
+\texttt{lambda}\index{lambda} is like Python's \texttt{lambda} keyword, but without the one-expression limitation---a Scheme lambda can contain any number of expressions in its body. For now, remember only that the two definition forms are equivalent; Chapter~\ref{ch:functions} explores \texttt{lambda} and anonymous functions fully.
 
 Functions can take multiple parameters:
 
@@ -284,6 +284,8 @@ For multiple branches, use \texttt{cond}\index{cond}. It works like Python's \te
 \end{lstlisting}
 
 Each clause is \texttt{(test result)}. The \texttt{else} clause matches when none of the earlier tests are true.
+
+These two forms will carry you through the next few chapters. Chapter~\ref{ch:control-flow} treats conditionals properly---\texttt{cond}'s full clause syntax, \texttt{case}, \texttt{when}, \texttt{unless}, and the boolean combinators.
 
 \section{Comments}
 \index{comments}
@@ -414,7 +416,7 @@ def power(base, exponent):
     return base * power(base, exponent - 1)
 \end{lstlisting}
 
-Translate this logic into Scheme using \code{if}, \code{=}, and \code{-}.
+Translate this logic into Scheme using \code{if}, \code{=}, and \code{-}. If recursion feels unfamiliar, lean on the Python version above and do not worry---Chapter~\ref{ch:functions} is devoted entirely to it.
 \end{exercise}
 
 \begin{exercise}[Temperature Classifier]
