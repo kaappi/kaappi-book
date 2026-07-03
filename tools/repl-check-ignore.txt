@@ -26,11 +26,11 @@ ch10-input-and-output.tex:110  # interactive: depends on user input above
 ch14-error-handling.tex:292    # hypothetical http-get/fetch example
 
 # --- upstream kaappi bugs (listings verified in a fresh session) ---
-ch16-standard-library.tex:53   # upstream: REPL truncates multiple values (partition)
-ch16-standard-library.tex:81   # upstream: REPL truncates multiple values (unzip2)
-ch16-standard-library.tex:254  # upstream: mid-session (import (srfi 158)) intermittently fails after heap activity
-ch16-standard-library.tex:301  # upstream: mid-session (import (srfi 113) (srfi 128)) intermittently fails after heap activity
-ch16-standard-library.tex:302  # upstream: depends on the srfi 113/128 import above
-ch16-standard-library.tex:303  # upstream: depends on the srfi 113/128 import above
-ch16-standard-library.tex:305  # upstream: depends on the srfi 113/128 import above
+ch16-standard-library.tex:55   # upstream: REPL truncates multiple values (partition)
+ch16-standard-library.tex:83   # upstream: REPL truncates multiple values (unzip2)
+ch16-standard-library.tex:258  # upstream: mid-session (import (srfi 158)) intermittently fails after heap activity
+ch16-standard-library.tex:305  # upstream: mid-session (import (srfi 113) (srfi 128)) intermittently fails after heap activity
+ch16-standard-library.tex:306  # upstream: depends on the srfi 113/128 import above
 ch16-standard-library.tex:307  # upstream: depends on the srfi 113/128 import above
+ch16-standard-library.tex:309  # upstream: depends on the srfi 113/128 import above
+ch16-standard-library.tex:311  # upstream: depends on the srfi 113/128 import above

@@ -2,7 +2,7 @@
 \index{SRFI}\index{standard library}
 \label{ch:stdlib}
 
-Beyond the 15 R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all 72 SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
+Beyond the R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all 72 SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
 
 \section{What Are SRFIs?}
 
@@ -22,6 +22,8 @@ Kaappi's 72 SRFIs fall into two categories:
     \item \textbf{8 built-in SRFIs} --- implemented in Zig for performance, always available.
     \item \textbf{64 portable SRFIs} --- pure Scheme implementations loaded on demand from \texttt{.sld} files.
 \end{itemize}
+
+In practice the split is invisible: both kinds are imported with the same \texttt{(import (srfi N))} form. The built-in ones are simply faster.
 
 \section{SRFI-1: Extended List Library}
 \index{SRFI-1}
@@ -123,6 +125,8 @@ SRFI-13 extends Scheme's string operations significantly:
 \begin{note}[Coming from Python]
 \texttt{string-join} is Python's \texttt{", ".join(["one", "two", "three"])}. \texttt{string-split} is Python's \texttt{"a,b,c,d".split(",")}.
 \end{note}
+
+One portability caveat: \texttt{string-split} is a Kaappi extension to \texttt{(srfi 13)}. The SRFI itself defines \texttt{string-tokenize} instead, so code that uses \texttt{string-split} may need adjusting on other Schemes.
 
 \section{SRFI-69: Hash Tables}
 \index{SRFI-69}\index{hash tables}
@@ -298,7 +302,7 @@ Generators are useful for processing large or infinite sequences without materia
 A set needs a \emph{comparator} (from SRFI-128) that tells it how to compare elements; \texttt{make-default-comparator} builds one that handles all the common types:
 
 \begin{lstlisting}[style=repl]
-> (import (srfi 113) (srfi 128))
+> (import (srfi 113) (srfi 128) (srfi 132))
 > (define s (set (make-default-comparator) 1 2 3 4 5))
 > (set-contains? s 3)
 #t
@@ -368,15 +372,15 @@ For programming with entire lazy sequences---infinite lists that materialize on 
 
 \begin{center}
 \begin{tabular}{llll}
-\textbf{Need} & \textbf{Use} & \textbf{SRFI} & \textbf{Lookup} \\
+\textbf{Need} & \textbf{Use} & \textbf{SRFI} & \textbf{Key operation} \\
 \hline
-Ordered sequence & List & 1 & O(n) \\
-Key-value map & Hash table & 69 & O(1) avg \\
-Sorted collection & Sorted list/vector & 132 & O(n log n) \\
-Unique elements & Set & 113 & O(log n) \\
-FIFO queue & Queue & 117 & O(1) \\
-Double-ended queue & Deque & 134 & O(1) \\
-Indexed random access & Vector & 133 & O(1) \\
+Ordered sequence & List & 1 & O(n) search \\
+Key-value map & Hash table & 69 & O(1) avg lookup \\
+Sorted collection & Sorted list/vector & 132 & O(n log n) sort \\
+Unique elements & Set & 113 & O(1) avg membership \\
+FIFO queue & Queue & 117 & O(1) push/pop \\
+Double-ended queue & Deque & 134 & O(1) at both ends \\
+Indexed random access & Vector & 133 & O(1) index \\
 \end{tabular}
 \end{center}
 
@@ -440,7 +444,7 @@ Use \code{regexp-matches} with submatch groups. A simple pattern is: one or more
 \end{exercise}
 
 \begin{exercise}[Fibonacci Generator]
-Using SRFI-158, create a procedure \code{(make-fib-generator)} that returns a generator producing the Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, \ldots
+Using SRFI-158, create a procedure \code{(make-fib-generator)} that returns a generator producing the Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, \ldots\ Then write \code{(generator-take g n)}, which calls a generator \code{n} times and returns the collected values as a list.
 
 \begin{lstlisting}[style=repl]
 > (define fibs (make-fib-generator))
@@ -452,7 +456,7 @@ Using SRFI-158, create a procedure \code{(make-fib-generator)} that returns a ge
 1
 > (fibs)
 2
-> (generator->list (gtake (make-fib-generator) 10))
+> (generator-take (make-fib-generator) 10)
 (0 1 1 2 3 5 8 13 21 34)
 \end{lstlisting}
 

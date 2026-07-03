@@ -386,6 +386,8 @@ done
 \end{lstlisting}
 
 This mirrors Python's \texttt{yield} statement but is built entirely from \code{call/cc}.
+
+Hint: start from the coroutine example in this chapter. You need the same two saved continuations---one to jump out to the caller, one to jump back in---but packaged inside a closure so each generator gets its own pair, plus a flag that flips to \code{'done} when the procedure finishes.
 \end{exercise}
 
 This completes Part~III. In Part~IV, we explore features beyond the R7RS standard---the SRFI ecosystem, the foreign function interface, and concurrency.

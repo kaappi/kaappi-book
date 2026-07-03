@@ -57,6 +57,8 @@ macOS uses \texttt{.dylib} extensions (\texttt{libm.dylib}, \texttt{libsqlite3.d
 (ffi-fn library "function-name" '(param-types ...) 'return-type)
 \end{lstlisting}
 
+A function can take at most 16 parameters.
+
 \subsection{Example: Math Functions}
 
 \begin{lstlisting}[style=repl]
@@ -169,6 +171,36 @@ Here is a more realistic example that combines several libc functions to query s
 The SQLite C API uses pointer-to-pointer out-parameters (\texttt{sqlite3**}) to return database handles, which requires low-level pointer manipulation beyond what the FFI provides directly. In practice, you would use the \texttt{kaappi-sqlite} package (\texttt{thottam install kaappi-sqlite}), which wraps these details in a clean Scheme interface.
 \end{note}
 
+\section{Passing Buffers with Bytevectors}
+\index{ffi-bytevector-ptr}\index{bytevectors!and FFI}
+
+Many C functions do not return a string---they fill a buffer you hand them. \texttt{ffi-bytevector-ptr} returns the address of a bytevector's data, which you can pass wherever C expects a pointer. Here \texttt{getcwd} writes the current directory into a bytevector as a 0-terminated C string:
+
+\begin{lstlisting}
+(import (kaappi ffi))
+
+(define libc (ffi-open "libc.dylib"))
+(define c-getcwd
+  (ffi-fn libc "getcwd" '(pointer size_t) 'pointer))
+
+;; Extract the C string that ends at the first 0 byte
+(define (bytevector-cstring bv)
+  (let loop ((i 0))
+    (if (zero? (bytevector-u8-ref bv i))
+        (utf8->string (bytevector-copy bv 0 i))
+        (loop (+ i 1)))))
+
+(define buf (make-bytevector 4096 0))
+(define result (c-getcwd (ffi-bytevector-ptr buf) 4096))
+(display (bytevector-cstring buf))
+\end{lstlisting}
+
+\begin{codeoutput}
+/Users/alice/projects
+\end{codeoutput}
+
+Keep the bytevector reachable for as long as C holds the pointer. Kaappi's garbage collector does not move objects, so the address stays valid while the bytevector is alive---but if the bytevector is collected, the pointer dangles.
+
 \section{Callbacks: Passing Scheme to C}
 \index{ffi-callback}
 
@@ -178,20 +210,51 @@ Some C APIs expect function pointers as arguments (e.g., comparators for \texttt
 (define cb (ffi-callback scheme-proc '(param-types ...) 'return-type))
 \end{lstlisting}
 
-\subsection{Example: Custom Comparator}
+Callbacks support only a fixed set of signatures:
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Parameters} & \textbf{Return type} \\
+\hline
+\texttt{()} & \texttt{void} \\
+\texttt{(int)} & \texttt{void} \\
+\texttt{(pointer)} & \texttt{void} \\
+\texttt{(pointer)} & \texttt{int} \\
+\texttt{(int pointer)} & \texttt{int} \\
+\texttt{(pointer pointer)} & \texttt{void} \\
+\texttt{(pointer pointer)} & \texttt{int} \\
+\end{tabular}
+\end{center}
+
+Any other combination raises \texttt{unsupported callback signature}. At most 32 callbacks can exist at once, which is another reason to release them promptly.
+
+\subsection{Example: Sorting Bytes with \texttt{qsort}}
+
+Pointer arguments arrive in the Scheme procedure as raw addresses. You cannot dereference them from Scheme---but you can hand them straight back to C. This comparator sorts the bytes of a bytevector with C's \texttt{qsort} by delegating each comparison to \texttt{memcmp}:
 
 \begin{lstlisting}
-(define my-compare
+(define c-qsort
+  (ffi-fn libc "qsort"
+    '(pointer size_t size_t pointer) 'void))
+(define c-memcmp
+  (ffi-fn libc "memcmp" '(pointer pointer size_t) 'int))
+
+;; qsort passes addresses of two elements; compare 1 byte each
+(define byte-compare
   (ffi-callback
-    (lambda (a b) (- a b))
+    (lambda (a b) (c-memcmp a b 1))
     '(pointer pointer)
     'int))
 
-;; Pass my-compare to a C sort function...
-
-;; Release when done
-(ffi-callback-release my-compare)
+(define data (bytevector 3 1 4 1 5 9 2 6))
+(c-qsort (ffi-bytevector-ptr data) 8 1 byte-compare)
+(ffi-callback-release byte-compare)
+(display data)
 \end{lstlisting}
+
+\begin{codeoutput}
+\#u8(1 1 2 3 4 5 6 9)
+\end{codeoutput}
 
 \begin{warning}[Always release callbacks]
 Callbacks pin Scheme closures so the garbage collector cannot reclaim them. Always call \texttt{ffi-callback-release}\index{ffi-callback-release} when the callback is no longer needed to prevent memory leaks.
@@ -245,7 +308,7 @@ Kaappi's \texttt{--sandbox} mode disables the FFI entirely. This is useful for r
 kaappi --sandbox untrusted.scm
 \end{lstlisting}
 
-In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures raise an error when called. See Appendix~\ref{app:cli} for the full set of command-line options, including \texttt{--sandbox}.
+In sandbox mode, \texttt{(import (kaappi ffi))} itself fails with \texttt{sandbox: cannot load library from file}, and none of the FFI procedures are defined. See Appendix~\ref{app:cli} for the full set of command-line options, including \texttt{--sandbox}.
 
 \section{When to Use the FFI}
 
@@ -260,7 +323,7 @@ In sandbox mode, \texttt{(import (kaappi ffi))} succeeds but all FFI procedures 
 \begin{itemize}
     \item The \texttt{(kaappi ffi)} library calls C functions in shared libraries at runtime.
     \item \texttt{ffi-open} loads a shared library and \texttt{ffi-fn} binds a C function to a Scheme procedure given its type signature.
-    \item The FFI supports integer, floating-point, string, and pointer types, and can pass Scheme procedures to C as callbacks.
+    \item The FFI supports integer, floating-point, string, and pointer types; bytevectors pass buffers via \texttt{ffi-bytevector-ptr}, and Scheme procedures become C function pointers via \texttt{ffi-callback} (fixed signature set, released with \texttt{ffi-callback-release}).
     \item The FFI is inherently unsafe and is disabled by \texttt{--sandbox}; prefer ecosystem packages when they exist.
 \end{itemize}
 

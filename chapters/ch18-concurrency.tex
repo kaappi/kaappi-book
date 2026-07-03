@@ -13,8 +13,8 @@ Modern programs often need to do multiple things at once: serve multiple network
 Library & \texttt{(kaappi fibers)} & \texttt{(srfi 18)} \\
 Scheduling & Cooperative (yield) & Preemptive (OS) \\
 Parallelism & No (single OS thread) & Yes (multiple cores) \\
-Communication & Channels (synchronous) & Deep-copy at boundaries \\
-Overhead & Very low (\textasciitilde 100 bytes) & High (VM + GC per thread) \\
+Communication & Channels (unbounded queues) & Deep-copy at boundaries \\
+Overhead & Low (kilobytes per fiber) & High (VM + GC per thread) \\
 Shared state & Same heap & Separate heaps (safe) \\
 Use case & I/O, event loops & CPU-bound parallelism \\
 \end{tabular}
@@ -97,7 +97,11 @@ Since fibers are cooperative, a fiber that runs a long computation without yield
 \section{Channels}
 \index{channels}\index{make-channel}\index{channel-send}\index{channel-receive}
 
-Channels provide safe communication between fibers. They are synchronous (Go-style): a send blocks until a receiver is ready, and a receive blocks until a value is available.
+Channels provide safe communication between fibers. A channel is an unbounded queue: \texttt{channel-send} appends a value and returns immediately---it never blocks---while \texttt{channel-receive} takes the oldest value, letting other fibers run until one is available.
+
+\begin{note}[Coming from Go]
+Go's unbuffered channels synchronize sender and receiver: a send waits until a receive happens. Kaappi channels are closer to an unbounded buffered channel or an Erlang mailbox---producers never wait. There is no backpressure, so a producer that outruns its consumer grows the queue (and memory) with the backlog.
+\end{note}
 
 \begin{lstlisting}[style=repl]
 > (import (kaappi fibers))
@@ -118,12 +122,13 @@ Channels provide safe communication between fibers. They are synchronous (Go-sty
 (define ch (make-channel))
 
 ;; Producer: sends numbers 0-9
-(spawn (lambda ()
-  (let loop ((i 0))
-    (when (< i 10)
-      (channel-send ch i)
-      (loop (+ i 1))))
-  (channel-send ch 'done)))
+(define producer
+  (spawn (lambda ()
+    (let loop ((i 0))
+      (when (< i 10)
+        (channel-send ch i)
+        (loop (+ i 1))))
+    (channel-send ch 'done))))
 
 ;; Consumer: receives until 'done
 (let loop ()
@@ -158,17 +163,28 @@ Channels provide safe communication between fibers. They are synchronous (Go-sty
             (loop)))))))
     '(1 2 3)))
 
-;; Send work
+;; Send work, then one stop sentinel per worker
 (for-each (lambda (n) (channel-send work-ch n))
           '(10 20 30 40 50 60))
+(for-each (lambda (w) (channel-send work-ch 'stop))
+          workers)
 
-;; Collect results
-(let loop ((n 6) (results '()))
-  (if (= n 0)
-      results
-      (loop (- n 1)
-            (cons (channel-receive result-ch) results))))
+;; Collect results, then wait for the workers to exit
+(define results
+  (let loop ((n 6) (acc '()))
+    (if (= n 0)
+        acc
+        (loop (- n 1)
+              (cons (channel-receive result-ch) acc)))))
+(for-each fiber-join workers)
+(display results)
 \end{lstlisting}
+
+\begin{codeoutput}
+((1 3600) (1 2500) (1 1600) (1 900) (1 400) (1 100))
+\end{codeoutput}
+
+Look at the worker ids: every result came from worker 1. With cooperative scheduling and non-blocking sends, the first worker to run keeps going until it blocks---and since the whole queue is already buffered, it drains everything before workers 2 and 3 get a turn. Fan-out pays off when each task genuinely blocks (waiting on a socket, a timer, or another channel), which hands the queue to the next worker. Always send one stop sentinel per worker: a worker that never receives one stays blocked on the channel forever.
 
 \subsection{Racing Fibers}
 
@@ -188,7 +204,7 @@ You can race multiple fibers by having them send to a shared channel. The first 
 3
 \end{lstlisting}
 
-The result is whichever fiber completes first. The other fiber's value is left in the channel (a second \texttt{channel-receive} would retrieve it).
+The result is whichever fiber completes first. The other fiber's value is left in the channel (a second \texttt{channel-receive} would retrieve it). Note that with cooperative scheduling, two thunks that never block run to completion in spawn order---the first one always wins. Racing becomes meaningful when the thunks block on I/O, timers, or other channels.
 
 \section{OS Threads (SRFI-18)}
 \index{SRFI-18}\index{OS threads}
@@ -318,20 +334,22 @@ A pipeline where data flows through multiple stages via channels. The producer a
 (define squares (make-channel))
 
 ;; Stage 1: produce 1..5
-(spawn (lambda ()
-  (for-each (lambda (n) (channel-send nums n))
-            '(1 2 3 4 5))
-  (channel-send nums 'eof)))
+(define producer
+  (spawn (lambda ()
+    (for-each (lambda (n) (channel-send nums n))
+              '(1 2 3 4 5))
+    (channel-send nums 'eof))))
 
 ;; Stage 2: square each value
-(spawn (lambda ()
-  (let process ()
-    (let ((val (channel-receive nums)))
-      (if (eq? val 'eof)
-          (channel-send squares 'eof)
-          (begin
-            (channel-send squares (* val val))
-            (process)))))))
+(define squarer
+  (spawn (lambda ()
+    (let process ()
+      (let ((val (channel-receive nums)))
+        (if (eq? val 'eof)
+            (channel-send squares 'eof)
+            (begin
+              (channel-send squares (* val val))
+              (process))))))))
 \end{lstlisting}
 
 \begin{lstlisting}
@@ -353,7 +371,7 @@ Each number is squared by one fiber and incremented by the next stage, with the 
 
 \begin{itemize}
     \item Kaappi offers two concurrency models: lightweight cooperative fibers and preemptive OS threads.
-    \item Fibers are scheduled cooperatively and communicate through channels, supporting producer-consumer, fan-out, and racing patterns.
+    \item Fibers are scheduled cooperatively and communicate through unbounded channels---sends never block, receives wait for data---supporting producer-consumer, fan-out, and racing patterns.
     \item OS threads (SRFI-18) use deep-copy semantics and synchronize with mutexes and condition variables.
     \item Use fibers for I/O-bound concurrency and threads for CPU-bound parallelism.
 \end{itemize}
@@ -422,15 +440,17 @@ Implement a worker pool with a fixed number of worker fibers that process jobs f
   ...)
 \end{lstlisting}
 
-Test it by creating a pool of 3 workers and submitting 10 jobs:
+Have each worker exit its loop when it receives \code{'stop}, and send one \code{'stop} per worker once all jobs are submitted. Test the pool with 3 workers and 10 jobs (the harness needs \code{(srfi 132)} for \code{list-sort}):
 
 \begin{lstlisting}
 (let-values (((jobs results)
               (make-worker-pool 3
                 (lambda (n) (* n n)))))
-  ;; Submit 10 jobs
+  ;; Submit 10 jobs, then stop the workers
   (for-each (lambda (n) (channel-send jobs n))
             '(1 2 3 4 5 6 7 8 9 10))
+  (for-each (lambda (i) (channel-send jobs 'stop))
+            '(1 2 3))
   ;; Collect 10 results
   (let loop ((n 10) (acc '()))
     (if (= n 0) (list-sort < acc)
