@@ -1,9 +1,10 @@
 # Known divergences between book listings and piped `kaappi` output.
 # Format: <file-basename>:<line-of-input>  # reason
 #
-# Entries marked TODO are real listing problems that still need a book fix
-# (or an upstream kaappi fix); the others are inherent limits of replaying
-# listings through a pipe (interactivity, nondeterminism, environment).
+# Entries marked "upstream" reflect kaappi bugs that make a correct listing
+# fail when the checker replays a whole chapter as one session; the listings
+# themselves are verified against a fresh REPL. The others are inherent
+# limits of replaying listings through a pipe (interactivity, environment).
 
 # --- interactive REPL features (not available in piped mode) ---
 ch02-installation.tex:189  # tab completion is an interactive REPL feature
@@ -21,47 +22,15 @@ ch10-input-and-output.tex:103  # interactive: depends on user input above
 ch10-input-and-output.tex:105  # interactive: depends on user input above
 ch10-input-and-output.tex:362  # needs an input.txt file on disk
 
-# --- TODO: book shows an invented error format; align with real output ---
-ch11-macros.tex:257            # TODO: assert error rendering differs from kaappi's
-ch14-error-handling.tex:13     # TODO: error display format differs from kaappi's
-ch14-error-handling.tex:15     # TODO: error display format differs from kaappi's
-ch14-error-handling.tex:17     # TODO: error display format differs from kaappi's
-ch14-error-handling.tex:32     # TODO: error display format differs from kaappi's
-
 # --- illustrative code that cannot run (hypothetical procedures) ---
-ch13-records.tex:115           # TODO: output elided as a comment; show the real record output
-ch14-error-handling.tex:260    # hypothetical http-get/fetch example
+ch14-error-handling.tex:258    # hypothetical http-get/fetch example
 
-# --- TODO: investigate; output genuinely differs from the book ---
-ch15-continuations.tex:256     # TODO: re-entrant continuation counter prints "three", not "one"
-ch15-continuations.tex:258     # TODO: re-entrant continuation counter prints "three", not "two"
-ch16-standard-library.tex:53   # TODO: REPL truncates multiple values (upstream kaappi issue)
-ch16-standard-library.tex:81   # TODO: REPL truncates multiple values (upstream kaappi issue)
-ch16-standard-library.tex:151  # TODO: hash table ordering is unspecified; reword example
-ch16-standard-library.tex:153  # TODO: hash table ordering is unspecified; reword example
-ch16-standard-library.tex:155  # TODO: hash table ordering is unspecified; reword example
-ch16-standard-library.tex:171  # TODO: hash-table-ref without default errors; fix example
-ch16-standard-library.tex:231  # TODO: book abridges the regexp-match printed form
-ch16-standard-library.tex:233  # TODO: regexp-replace example returns input unchanged; investigate
-ch16-standard-library.tex:247  # TODO: (import (srfi 158)) fails in the REPL; verify availability
-ch16-standard-library.tex:292  # TODO: (import (srfi 113) (srfi 128)) fails in the REPL; verify availability
-ch16-standard-library.tex:293  # TODO: depends on failed srfi 113/128 import above
-ch16-standard-library.tex:294  # TODO: depends on failed srfi 113/128 import above
-ch16-standard-library.tex:296  # TODO: depends on failed srfi 113/128 import above
-ch16-standard-library.tex:298  # TODO: depends on failed srfi 113/128 import above
-ch16-standard-library.tex:312  # TODO: depends on failed srfi import above
-ch16-standard-library.tex:313  # TODO: depends on failed srfi import above
-
-# --- nondeterministic or environment-dependent outputs ---
-ch16-standard-library.tex:214  # random-integer is nondeterministic
-ch16-standard-library.tex:216  # random-integer is nondeterministic
-ch16-standard-library.tex:218  # random-real is nondeterministic
-ch17-ffi.tex:143               # $HOME differs per machine
-ch17-ffi.tex:147               # $HOME length differs per machine
-ch17-ffi.tex:149               # process id differs per run
-ch17-ffi.tex:151               # wall-clock time differs per run
-
-# --- concurrency: scheduling-dependent output ---
-ch18-concurrency.tex:75        # TODO: fiber output appears at the first join, not the second
-ch18-concurrency.tex:76        # TODO: fiber output appears at the first join, not the second
-ch18-concurrency.tex:105       # TODO: spawn echoes a #<fiber ...> value the book omits
+# --- upstream kaappi bugs (listings verified in a fresh session) ---
+ch16-standard-library.tex:53   # upstream: REPL truncates multiple values (partition)
+ch16-standard-library.tex:81   # upstream: REPL truncates multiple values (unzip2)
+ch16-standard-library.tex:254  # upstream: mid-session (import (srfi 158)) intermittently fails after heap activity
+ch16-standard-library.tex:301  # upstream: mid-session (import (srfi 113) (srfi 128)) intermittently fails after heap activity
+ch16-standard-library.tex:302  # upstream: depends on the srfi 113/128 import above
+ch16-standard-library.tex:303  # upstream: depends on the srfi 113/128 import above
+ch16-standard-library.tex:305  # upstream: depends on the srfi 113/128 import above
+ch16-standard-library.tex:307  # upstream: depends on the srfi 113/128 import above

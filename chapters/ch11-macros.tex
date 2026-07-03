@@ -255,10 +255,10 @@ Scheme does not have a built-in \texttt{while}, but you can add one:
          (error "Assertion failed" 'expr)))))
 > (assert (= (+ 1 1) 2))
 > (assert (= (+ 1 1) 3))
-; Error: Assertion failed (= (+ 1 1) 3)
+runtime error: error.ExceptionRaised
 \end{lstlisting}
 
-Notice that \texttt{'expr} in the template produces the \emph{source code} of the assertion---useful for error messages.
+The failing assertion raises an error object whose message is \texttt{"Assertion failed"} and whose irritant is the \emph{source code} of the assertion---\texttt{'expr} in the template quotes it. The REPL's top-level report is terse, but a handler can read both parts back; Chapter~\ref{ch:errors} shows how.
 
 \subsection{A Timing Macro}
 

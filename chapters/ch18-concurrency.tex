@@ -73,11 +73,11 @@ Fibers run until they voluntarily yield control. Call \texttt{yield}\index{yield
 > (define f1 (counting-fiber "A" 3))
 > (define f2 (counting-fiber "B" 3))
 > (fiber-join f1)
-> (fiber-join f2)
 A:0 B:0 A:1 B:1 A:2 B:2
+> (fiber-join f2)
 \end{lstlisting}
 
-The fibers interleave at each \texttt{yield} point.
+The fibers interleave at each \texttt{yield} point. Note that \texttt{spawn} only queues a fiber---nothing runs until the main fiber gives up control. The first \texttt{fiber-join} does exactly that, so both fibers run to completion there, and the second join returns immediately.
 
 \begin{warning}[Long computations without yield]
 Since fibers are cooperative, a fiber that runs a long computation without yielding will block all other fibers. Insert \texttt{(yield)} in long loops to keep the system responsive.
@@ -102,8 +102,9 @@ Channels provide safe communication between fibers. They are synchronous (Go-sty
 \begin{lstlisting}[style=repl]
 > (import (kaappi fibers))
 > (define ch (make-channel))
-> (spawn (lambda ()
-    (channel-send ch "hello from fiber")))
+> (define sender
+    (spawn (lambda ()
+      (channel-send ch "hello from fiber"))))
 > (channel-receive ch)
 "hello from fiber"
 \end{lstlisting}
@@ -308,46 +309,37 @@ Each element is processed on a separate thread. For CPU-intensive \texttt{f}, th
 
 \section{A Complete Example: Fiber Pipeline}
 
-A pipeline where data flows through multiple stages via channels:
+A pipeline where data flows through multiple stages via channels. The producer and the transformer each run as a fiber; the main fiber acts as the final stage. An \texttt{'eof} sentinel flows through the channels to shut the pipeline down:
 
 \begin{lstlisting}
 (import (kaappi fibers))
 
-(define (pipeline input-ch . stages)
-  (let loop ((ch input-ch) (procs stages))
-    (if (null? procs)
-        ch
-        (let ((out-ch (make-channel)))
-          (spawn (lambda ()
-            (let process ()
-              (let ((val (channel-receive ch)))
-                (unless (eq? val 'eof)
-                  (channel-send out-ch ((car procs) val))
-                  (process))))
-            (channel-send out-ch 'eof)))
-          (loop out-ch (cdr procs))))))
+(define nums (make-channel))
+(define squares (make-channel))
+
+;; Stage 1: produce 1..5
+(spawn (lambda ()
+  (for-each (lambda (n) (channel-send nums n))
+            '(1 2 3 4 5))
+  (channel-send nums 'eof)))
+
+;; Stage 2: square each value
+(spawn (lambda ()
+  (let process ()
+    (let ((val (channel-receive nums)))
+      (if (eq? val 'eof)
+          (channel-send squares 'eof)
+          (begin
+            (channel-send squares (* val val))
+            (process)))))))
 \end{lstlisting}
 
-Usage:
-
 \begin{lstlisting}
-(define source (make-channel))
-
-(define output (pipeline source
-  (lambda (x) (* x x))       ; square
-  (lambda (x) (+ x 1))))     ; add 1
-
-;; Feed data
-(spawn (lambda ()
-  (for-each (lambda (n) (channel-send source n))
-            '(1 2 3 4 5))
-  (channel-send source 'eof)))
-
-;; Collect results
+;; Stage 3: add 1 and print (the main fiber)
 (let loop ()
-  (let ((val (channel-receive output)))
+  (let ((val (channel-receive squares)))
     (unless (eq? val 'eof)
-      (display val) (display " ")
+      (display (+ val 1)) (display " ")
       (loop))))
 \end{lstlisting}
 
@@ -355,7 +347,7 @@ Usage:
 2 5 10 17 26
 \end{codeoutput}
 
-Each number is squared then incremented, with each stage running as a separate fiber.
+Each number is squared by one fiber and incremented by the next stage, with the channels handing values downstream one at a time.
 
 \section*{Summary}
 

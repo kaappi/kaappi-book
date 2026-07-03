@@ -231,37 +231,39 @@ Before \texttt{guard} existed, exceptions were implemented with continuations:
 \subsection{Coroutines}
 \index{coroutines}
 
-A simple coroutine system using continuations:
+A simple coroutine system using continuations. It needs \emph{two} saved continuations: \texttt{return} remembers how to jump back out to the caller, and \texttt{resume} remembers how to jump back into the coroutine:
 
 \begin{lstlisting}
-(define (make-coroutine proc)
-  (let ((resume #f))
-    (define (yield value)
-      (call/cc (lambda (k)
-        (set! resume k)
-        value)))
-    (lambda ()
-      (if resume
-          (resume #f)
-          (proc yield)))))
+(define resume #f)
+(define return #f)
+
+(define (yield value)
+  (call/cc (lambda (k)
+             (set! resume k)      ; where to continue later
+             (return value))))    ; jump out to the caller
+
+(define (coroutine-run proc)
+  (call/cc (lambda (caller)
+             (set! return caller)
+             (if resume
+                 (resume #f)      ; jump back in
+                 (proc yield)))))  ; first run: start proc
 \end{lstlisting}
 
 \begin{lstlisting}[style=repl]
-> (define counter
-    (make-coroutine
-      (lambda (yield)
-        (yield "one")
-        (yield "two")
-        "three")))
-> (counter)
-"one"
-> (counter)
-"two"
-> (counter)
-"three"
+> (define (counter yield)
+    (yield "one")
+    (yield "two")
+    "three")
+> (display (coroutine-run counter))
+one
+> (display (coroutine-run counter))
+two
+> (display (coroutine-run counter))
+three
 \end{lstlisting}
 
-Each call to \texttt{counter} resumes the coroutine from where it last yielded. The first call starts the procedure and yields \texttt{"one"}; subsequent calls continue after the corresponding \texttt{yield}.
+Each call to \texttt{coroutine-run} resumes the coroutine from where it last yielded. The first call starts \texttt{counter} and captures the caller's continuation in \texttt{return}, so \texttt{yield} can escape back out with a value; subsequent calls jump back in through \texttt{resume} and continue after the corresponding \texttt{yield}.
 
 \subsection{Non-Deterministic Choice (Backtracking)}
 \index{backtracking}

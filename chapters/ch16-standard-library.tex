@@ -149,25 +149,32 @@ Hash tables provide O(1) average key lookup---much faster than association lists
 \begin{lstlisting}[style=repl]
 > (hash-table-set! ht "city" "London")
 > (hash-table-keys ht)
-("name" "age" "city")
+("age" "city" "name")
 > (hash-table-values ht)
-("Alice" 30 "London")
+(30 "London" "Alice")
 > (hash-table-walk ht
     (lambda (key value)
       (display key) (display ": ")
       (display value) (newline)))
 name: Alice
-age: 30
 city: London
+age: 30
 \end{lstlisting}
+
+Notice that the iteration order is \emph{unspecified}---it matches neither the insertion order nor each other across calls. Never rely on the order in which a hash table yields its entries; sort the keys first if you need a stable order.
 
 \subsection{Building from Data}
 
+To load a hash table from existing data, such as an association list, iterate over the entries:
+
 \begin{lstlisting}[style=repl]
-> (define ht (alist->hash-table
-               '(("red" . "#ff0000")
-                 ("green" . "#00ff00")
-                 ("blue" . "#0000ff"))))
+> (define color-alist '(("red" . "#ff0000")
+                        ("green" . "#00ff00")
+                        ("blue" . "#0000ff")))
+> (define ht (make-hash-table))
+> (for-each (lambda (entry)
+              (hash-table-set! ht (car entry) (cdr entry)))
+            color-alist)
 > (hash-table-ref ht "green")
 "#00ff00"
 \end{lstlisting}
@@ -212,7 +219,7 @@ The comparator is a two-argument predicate. Use \texttt{<} for ascending numbers
 \begin{lstlisting}[style=repl]
 > (import (srfi 27))
 > (random-integer 100)
-42
+42    (*@\emph{(your numbers will differ)}@*)
 > (random-integer 100)
 73
 > (random-real)
@@ -229,14 +236,14 @@ The comparator is a two-argument predicate. Use \texttt{<} for ascending numbers
 > (regexp-matches '(: "hello") "hello world")
 #f
 > (regexp-search '(: "world") "hello world")
-#<regexp-match>
-> (regexp-replace '(+ digit) "age: 25" "XX")
+#<<regexp-match> "hello world" #((6 11))>
+> (regexp-replace '(+ num) "age: 25" "XX")
 "age: XX"
 > (regexp-extract '(+ alpha) "foo123bar456baz")
 ("foo" "bar" "baz")
 \end{lstlisting}
 
-SRFI-115 uses S-expression syntax for patterns instead of string-based regex. \texttt{(+ digit)} matches one or more digits, \texttt{(+ alpha)} matches one or more letters.\index{regexp-matches}\index{regexp-replace}\index{regexp-extract}
+SRFI-115 uses S-expression syntax for patterns instead of string-based regex. \texttt{(+ num)} matches one or more digits, \texttt{(+ alpha)} matches one or more letters. A match object records the searched string and the span of each match---here characters 6 to 11.\index{regexp-matches}\index{regexp-replace}\index{regexp-extract}
 
 \section{SRFI-158: Generators}
 \index{SRFI-158}\index{generators}
@@ -288,16 +295,21 @@ Generators are useful for processing large or infinite sequences without materia
 \subsection{SRFI-113: Sets and Bags}
 \index{SRFI-113}\index{sets}
 
+A set needs a \emph{comparator} (from SRFI-128) that tells it how to compare elements; \texttt{make-default-comparator} builds one that handles all the common types:
+
 \begin{lstlisting}[style=repl]
 > (import (srfi 113) (srfi 128))
-> (define s (set number-comparator 1 2 3 4 5))
+> (define s (set (make-default-comparator) 1 2 3 4 5))
 > (set-contains? s 3)
 #t
 > (set-contains? s 9)
 #f
-> (set->list (set-union s (set number-comparator 4 5 6 7)))
+> (list-sort < (set->list
+                 (set-union s (set (make-default-comparator) 4 5 6 7))))
 (1 2 3 4 5 6 7)
 \end{lstlisting}
+
+\texttt{set->list} returns the elements in no particular order, so the example sorts them for display.
 
 \subsection{SRFI-189: Maybe and Either}
 \index{SRFI-189}\index{maybe}\index{either}
@@ -309,10 +321,11 @@ Generators are useful for processing large or infinite sequences without materia
 #t
 > (maybe-ref result)
 42
-> (define empty (nothing))
-> (maybe-ref/default empty 0)
+> (maybe-ref/default nothing 0)
 0
 \end{lstlisting}
+
+\texttt{(just v)} wraps a present value; \texttt{nothing} is the singleton ``no value'' object.
 
 \texttt{maybe} is like Python's \texttt{Optional} or Rust's \texttt{Option}---it represents a value that might not exist.
 

@@ -113,13 +113,15 @@ Use lists for homogeneous collections (a list of numbers). Use records for heter
           (make-task "Review PR" 'medium #f)
           (make-task "Buy milk" 'low #t)))
 > (filter (lambda (t) (not (task-done? t))) tasks)
-;; Returns the two incomplete tasks
+(#<<task> "Write chapter" high #f> #<<task> "Review PR" medium #f>)
 > (task-title (car tasks))
 "Write chapter"
 > (set-task-done! (car tasks) #t)
 > (task-done? (car tasks))
 #t
 \end{lstlisting}
+
+Records print as \texttt{\#<<task> ...>} with their field values in definition order, which makes them easy to inspect at the REPL.
 
 \section{Constructors with Fewer Fields}
 

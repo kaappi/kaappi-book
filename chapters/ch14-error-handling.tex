@@ -11,14 +11,12 @@ The simplest way to signal an error is the \texttt{error} procedure:
 
 \begin{lstlisting}[style=repl]
 > (error "something went wrong")
-; Error: something went wrong
-> (error "index out of range" 5)
-; Error: index out of range 5
-> (error "expected a string" 42 'got-number)
-; Error: expected a string 42 got-number
+runtime error: error.ExceptionRaised
 \end{lstlisting}
 
-\texttt{error} creates an \emph{error object}\index{error object} and raises it as an exception. The first argument is a message string; additional arguments are \emph{irritants}\index{irritants}---values that provide context about what went wrong.
+\texttt{error} creates an \emph{error object}\index{error object} and raises it as an exception. The first argument is a message string; additional arguments are \emph{irritants}\index{irritants}---values that provide context about what went wrong, as in \texttt{(error "index out of range" 5)}.
+
+At the top level, the REPL reports only that an exception was raised. The message and irritants are not lost: they travel inside the error object, and any handler that catches it can read them back---as \texttt{guard} does in the next section.
 
 \subsection{Using \texttt{error} in Your Functions}
 
@@ -30,7 +28,7 @@ The simplest way to signal an error is the \texttt{error} procedure:
 > (safe-divide 10 2)
 5
 > (safe-divide 10 0)
-; Error: division by zero 10 0
+runtime error: error.ExceptionRaised
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
