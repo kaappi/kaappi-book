@@ -6,7 +6,7 @@ LATEXMK = latexmk
 LATEXMK_FLAGS = -xelatex $(COMMON_FLAGS)
 XELATEX = xelatex
 
-.PHONY: all clean view once
+.PHONY: all clean view once check-repl
 
 # Full build: latexmk runs XeLaTeX (and makeindex) as many times as needed
 # to resolve the TOC, index, and cross-references.
@@ -21,6 +21,11 @@ once:
 
 view: all
 	open $(BUILD_DIR)/$(JOBNAME).pdf
+
+# Replay every REPL listing through the kaappi binary and diff the output
+# shown in the book against reality. Needs `kaappi` on PATH.
+check-repl:
+	python3 tools/check-repl-listings.py chapters/*.tex
 
 clean:
 	-$(LATEXMK) -C $(COMMON_FLAGS) $(MAIN).tex >/dev/null 2>&1
