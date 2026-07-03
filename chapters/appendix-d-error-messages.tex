@@ -24,11 +24,11 @@ This appendix lists the most frequent error messages you will encounter while le
 
 \textbf{Fix:} Stick to letters, digits, and the extended characters: \texttt{! \$ \% \& * + - . / : < = > ? @ \textasciicircum{} \_ \textasciitilde}
 
-\section{Unbound Variable Errors}
+\section{Undefined Variable Errors}
 
-\subsection{\texttt{unbound variable: foo}}
+\subsection{\texttt{undefined variable 'foo'}}
 
-\textbf{Cause:} You referenced a name that has not been defined.
+\textbf{Cause:} You referenced a name that has not been defined. Kaappi often appends a suggestion (\texttt{Did you mean 'for-each'?}) based on similar known names.
 
 \textbf{Common reasons:}
 \begin{itemize}
@@ -40,11 +40,11 @@ This appendix lists the most frequent error messages you will encounter while le
 
 \textbf{Fix:} Check spelling, add the appropriate \texttt{(import ...)} at the top of your file, or reorder definitions.
 
-\subsection{\texttt{unbound variable: filter} (or \texttt{fold}, \texttt{find}, etc.)}
+\subsection{\texttt{undefined variable 'list-sort'} (or \texttt{stream-car}, \texttt{cut}, etc.)}
 
-\textbf{Cause:} These are in SRFI-1, not \texttt{(scheme base)}.
+\textbf{Cause:} The procedure lives in a \emph{portable} SRFI library that has not been imported. Kaappi's eight built-in SRFIs (including SRFI-1's \texttt{filter} and \texttt{fold}) are always available, but the 64 portable SRFIs load from \texttt{.sld} files only when imported---in the REPL and in scripts alike.
 
-\textbf{Fix:} Add \texttt{(import (srfi 1))} to your script. The REPL makes them available automatically, which is why they work interactively but fail in files.
+\textbf{Fix:} Add the appropriate \texttt{(import (srfi N))}---for example, \texttt{(import (srfi 132))} for \texttt{list-sort}. Appendix~\ref{app:srfi} lists every SRFI and marks which are built in.
 
 \section{Type Errors}
 

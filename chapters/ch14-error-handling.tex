@@ -31,6 +31,18 @@ At the top level, the REPL reports only that an exception was raised. The messag
 runtime error: error.ExceptionRaised
 \end{lstlisting}
 
+\subsection{What an Uncaught Error Looks Like}
+
+When no handler catches an error, Kaappi reports it and abandons the evaluation. Errors detected by the runtime itself---type errors, arity mismatches, undefined variables---are reported with their full detail, and running a script also gets you the file, line, and offending expression:
+
+\begin{Verbatim}[fontsize=\small]
+$ kaappi process.scm
+process.scm:12: error: type error in 'car': expected pair, got 5
+    (car n)
+\end{Verbatim}
+
+Learn to read these reports before learning to catch errors---most of the time, the right response to an unexpected error is to fix the bug it points at, not to handle it.
+
 \begin{note}[Coming from Python]
 \texttt{(error "message" value)} is like Python's \texttt{raise ValueError(f"message: \{value\}")}. The key difference is that Scheme's error objects are structured---the message and irritants are separate fields, not formatted into a string.
 \end{note}
@@ -92,6 +104,22 @@ Error objects created by \texttt{error} can be examined with three procedures:
     \item \texttt{error-object-irritants}\index{error-object-irritants} --- extracts the list of irritant values
 \end{itemize}
 
+\subsection{\texttt{file-error?} and \texttt{read-error?}}
+\index{file-error?}\index{read-error?}
+
+R7RS singles out two error classes with dedicated predicates. \texttt{file-error?} recognizes errors raised by file operations---most commonly, opening a file that does not exist. \texttt{read-error?} recognizes errors raised by \texttt{read} on malformed input:
+
+\begin{lstlisting}[style=repl]
+> (guard (e ((file-error? e) 'no-such-file))
+    (open-input-file "missing.txt"))
+no-such-file
+> (guard (e ((read-error? e) 'bad-syntax))
+    (read (open-input-string ")")))
+bad-syntax
+\end{lstlisting}
+
+Prefer these predicates over matching on message text. Error messages differ between Scheme implementations---and may change between Kaappi versions---but the predicates are part of the standard.
+
 \subsection{Conditional Error Handling}
 
 You can match on the error message or type to handle different errors differently:
@@ -108,6 +136,8 @@ You can match on the error message or type to handle different errors differentl
 \end{lstlisting}
 
 The \texttt{(else (raise e))} clause ensures that unexpected errors are not silently swallowed.
+
+Matching on the message string works here because \texttt{lookup} is our own code and we control the text. It is brittle for anything else: an error message is not part of a procedure's contract and may change without notice. For errors from other code, dispatch on a predicate instead---\texttt{file-error?}, \texttt{read-error?}, or a custom error type as shown later in this chapter.
 
 \begin{warning}[Always re-raise unknown errors]
 Do not write \texttt{(guard (e (\#t \#f)) ...)} to blindly catch everything. This hides bugs. Only catch the specific errors you know how to handle, and re-raise the rest.
@@ -157,7 +187,9 @@ However, the convention is to use \texttt{error} (which creates a proper error o
 (caught "boom")
 \end{lstlisting}
 
-This is lower-level than \texttt{guard}. The handler receives the exception and must decide what to do: it can invoke an escape continuation, re-raise, or (for continuable exceptions) return a value.
+This example leans on \texttt{call/cc}, which is not covered until Chapter~\ref{ch:continuations}. For now, read \texttt{(call/cc (lambda (exit) ...))} as ``capture an early-return procedure named \texttt{exit}''---calling \texttt{exit} abandons the rest of the computation and returns its argument.
+
+\texttt{with-exception-handler} is lower-level than \texttt{guard}. The handler receives the exception and must decide what to do: it can invoke an escape continuation, re-raise, or (for continuable exceptions) return a value.
 
 In most code, \texttt{guard} is preferred because it is clearer and handles re-raising automatically. Use \texttt{with-exception-handler} only when you need the full power (e.g., logging all exceptions without catching them).
 
@@ -222,6 +254,8 @@ This returns two values: the parsed result (or \texttt{\#f} on error) and an err
 \subsection{Asserting Preconditions}
 
 \begin{lstlisting}
+(import (srfi 132))   ; provides list-sort
+
 (define (vector-median v)
   (when (zero? (vector-length v))
     (error "cannot compute median of empty vector" v))
@@ -281,16 +315,13 @@ When writing a library, follow these conventions so that callers can handle your
 
 \begin{lstlisting}
 (define (parse-config filename)
-  (guard (e
-          ((and (error-object? e)
-                (string=? (error-object-message e)
-                          "No such file or directory"))
-           (error "parse-config: file not found" filename)))
+  (guard (e ((file-error? e)
+             (error "parse-config: file not found" filename)))
     (call-with-port (open-input-file filename)
       (lambda (port) (json-read port)))))
 \end{lstlisting}
 
-This wraps the low-level file-not-found error in a domain-specific message while preserving the original filename as an irritant.
+This wraps the low-level file error in a domain-specific message while preserving the offending filename as an irritant. Note the use of \texttt{file-error?} rather than matching the message text---the predicate keeps working even if the underlying message changes.
 
 \section{Error Handling Strategy}
 
@@ -319,6 +350,7 @@ This wraps the low-level file-not-found error in a domain-specific message while
 \begin{itemize}
     \item \texttt{error} signals a condition with a message and irritants, while \texttt{raise} signals any object.
     \item \texttt{guard} catches exceptions with \texttt{cond}-style clauses, and \texttt{with-exception-handler} is the underlying primitive.
+    \item Dispatch on predicates, not message text: \texttt{file-error?} and \texttt{read-error?} identify the standard error classes.
     \item Records make good custom error types, letting handlers distinguish one kind of error from another.
     \item Common patterns include supplying default values on error, guaranteeing cleanup, and asserting preconditions.
 \end{itemize}
@@ -362,9 +394,9 @@ Write a \code{validate-email} procedure that checks a string for basic email val
 > (validate-email "alice@example.com")
 #t
 > (validate-email "no-at-sign")
-; Error: missing @ in email address "no-at-sign"
+error: missing @ in email address "no-at-sign"
 > (validate-email "@example.com")
-; Error: empty local part in email address "@example.com"
+error: empty local part in email address "@example.com"
 \end{lstlisting}
 \end{exercise}
 

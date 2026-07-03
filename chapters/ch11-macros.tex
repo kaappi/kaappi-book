@@ -74,6 +74,20 @@ Let's break this down:
     \item \texttt{...} (ellipsis) means ``zero or more of the preceding element.''
 \end{itemize}
 
+\section{Seeing the Expansion}
+\index{macro expansion!inspecting}\index{expand REPL command@\texttt{,expand} REPL command}
+
+When a macro misbehaves, look at what it expands to. The Kaappi REPL's \texttt{,expand} command shows the expansion of any expression without evaluating it:
+
+\begin{lstlisting}[style=repl]
+> ,expand (when #t (display "yes"))
+(if #t (begin (display "yes")))
+> ,expand (my-when (> 5 3) (display "hello") (newline))
+(if (> 5 3) (begin (display "hello") (newline)))
+\end{lstlisting}
+
+Make \texttt{,expand} a habit while working through this chapter: after each macro you write, expand a sample call and check that the generated code is what you intended. It turns macro debugging from guesswork into reading.
+
 \section{Pattern Matching}
 
 \texttt{syntax-rules} patterns work by structural matching:
@@ -83,6 +97,7 @@ Let's break this down:
     \item An identifier followed by \texttt{...} matches zero or more expressions.
     \item Literal parentheses match literal parentheses in the input.
     \item Identifiers listed in the literals list are matched by name, not as pattern variables.
+    \item The underscore \texttt{\_}\index{underscore pattern} is a wildcard: it matches any single form without binding it. Because the macro name in a call always matches trivially, real-world macros conventionally write the name position as \texttt{\_}: \texttt{((\_ test body ...) ...)}. This book spells the name out for readability, but expect \texttt{\_} in code you read elsewhere.
 \end{itemize}
 
 \subsection{Multiple Clauses}
@@ -106,6 +121,8 @@ A macro can have multiple patterns. The first matching pattern wins:
 
 This is a recursive macro: the third clause expands to another call to \texttt{my-and} with fewer arguments, until it reaches a base case.
 
+If no clause matches a call, expansion fails with a compile-time syntax error at the call site. The \texttt{dotimes} macro later in this chapter shows how to catch a misuse deliberately with \texttt{syntax-error}.
+
 \subsection{Literal Keywords}
 
 The first argument to \texttt{syntax-rules} is a list of identifiers to match literally rather than as pattern variables:
@@ -115,7 +132,7 @@ The first argument to \texttt{syntax-rules} is a list of identifiers to match li
     (syntax-rules (then else)
       ((my-if test then consequent else alternate)
        (cond (test consequent)
-             (#t alternate)))))
+             (else alternate)))))
 > (my-if (> 3 2) then "yes" else "no")
 "yes"
 \end{lstlisting}
@@ -245,6 +262,20 @@ Scheme does not have a built-in \texttt{while}, but you can add one:
 0 1 4 9 16
 \end{lstlisting}
 
+A call that does not match the pattern---say \texttt{(dotimes 5 ...)}, forgetting the parentheses around \texttt{(i 5)}---fails with a syntax error at expansion time. You can make such misuse explicit by adding a catch-all clause that expands to \texttt{syntax-error}\index{syntax-error}, an R7RS form that signals an error during expansion:
+
+\begin{lstlisting}
+(define-syntax dotimes
+  (syntax-rules ()
+    ((dotimes (var count) body ...)
+     (let loop ((var 0))
+       (when (< var count) body ... (loop (+ var 1)))))
+    ((dotimes other ...)
+     (syntax-error "dotimes: expected (variable count)"))))
+\end{lstlisting}
+
+The catch-all clause matches anything the first clause rejected, and the \texttt{syntax-error} in its template stops compilation. The message string also documents, right in the macro definition, what shape of call was expected.
+
 \subsection{An Assertion Macro}
 
 \begin{lstlisting}[style=repl]
@@ -314,6 +345,7 @@ Do \emph{not} use a macro when a function would suffice. Functions are simpler, 
     \item \texttt{syntax-rules} matches input against patterns and rewrites it using output templates.
     \item The ellipsis (\texttt{...}) matches and expands sequences of forms and can be nested.
     \item Scheme macros are hygienic, so introduced identifiers never accidentally capture the user's variables.
+    \item The REPL's \texttt{,expand} command shows what a call expands to---the first tool to reach for when a macro misbehaves.
     \item \texttt{let-syntax} defines local macros; reach for macros only when a function cannot do the job.
 \end{itemize}
 
@@ -341,8 +373,7 @@ Write an \code{assert-equal} macro that takes two expressions, evaluates both, a
 > (assert-equal (+ 1 2) 3)
 ;; no output --- assertion passed
 > (assert-equal (* 2 3) 7)
-; Error: assertion failed: (* 2 3) => 6
-;   is not equal to: 7 => 7
+error: assertion failed: (* 2 3) evaluated to 6, expected 7
 \end{lstlisting}
 \end{exercise}
 

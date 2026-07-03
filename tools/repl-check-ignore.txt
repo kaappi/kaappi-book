@@ -9,21 +9,21 @@
 # --- interactive REPL features (not available in piped mode) ---
 ch02-installation.tex:189  # tab completion is an interactive REPL feature
 ch02-installation.tex:206  # the _ last-result variable is an interactive REPL feature
+ch11-macros.tex:83   # ,expand is an interactive REPL command
+ch11-macros.tex:85   # ,expand is an interactive REPL command
 
 # --- session-dependent error suggestion suffix ---
 ch08-local-bindings.tex:35  # book shows the stable error prefix; kaappi appends a session-dependent "Did you mean ...?" suggestion
 
-# --- examples that read from stdin or the filesystem ---
-ch10-input-and-output.tex:79   # interactive: prompts the user
-ch10-input-and-output.tex:80   # interactive: read-line consumes user input
-ch10-input-and-output.tex:82   # interactive: depends on user input above
-ch10-input-and-output.tex:101  # interactive: read consumes user input
-ch10-input-and-output.tex:103  # interactive: depends on user input above
-ch10-input-and-output.tex:105  # interactive: depends on user input above
-ch10-input-and-output.tex:362  # needs an input.txt file on disk
+# --- examples that read from stdin ---
+ch10-input-and-output.tex:83   # interactive: prompt calls read-line on user input
+ch10-input-and-output.tex:85   # interactive: depends on user input above
+ch10-input-and-output.tex:106  # interactive: read consumes user input
+ch10-input-and-output.tex:108  # interactive: depends on user input above
+ch10-input-and-output.tex:110  # interactive: depends on user input above
 
 # --- illustrative code that cannot run (hypothetical procedures) ---
-ch14-error-handling.tex:258    # hypothetical http-get/fetch example
+ch14-error-handling.tex:292    # hypothetical http-get/fetch example
 
 # --- upstream kaappi bugs (listings verified in a fresh session) ---
 ch16-standard-library.tex:53   # upstream: REPL truncates multiple values (partition)

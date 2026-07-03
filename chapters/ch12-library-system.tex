@@ -17,7 +17,7 @@ Every Scheme program begins by importing the libraries it needs:
 (newline)
 \end{lstlisting}
 
-The REPL automatically imports \texttt{(scheme base)}, but script files must import explicitly. You can import any number of libraries in a single \texttt{import} form. Notice that we import \texttt{(scheme write)} above: in R7RS, \texttt{display} and \texttt{write} are formally defined there, though Kaappi also makes them available through \texttt{(scheme base)}. Including \texttt{(scheme write)} is good practice for portability across Scheme implementations.
+Strictly speaking, Kaappi does not force you to write these imports: every built-in procedure is globally available, in script files as well as in the REPL. Write them anyway. The import list documents which parts of the language a program uses, and other R7RS implementations \emph{require} it---code without imports is not portable. Imports also genuinely matter within Kaappi for the \emph{portable} SRFI libraries described below, which are unavailable until imported. You can import any number of libraries in a single \texttt{import} form. Notice that we import \texttt{(scheme write)} above: in R7RS, \texttt{display} and \texttt{write} are formally defined there, not in \texttt{(scheme base)}.
 
 \subsection{Available Standard Libraries}
 
@@ -54,6 +54,20 @@ Beyond these, Kaappi provides 72 SRFIs importable as \texttt{(srfi N)}:
 > (import (srfi 69))  ; Hash tables
 > (import (srfi 13))  ; String library
 \end{lstlisting}
+
+The REPL also accepts the \texttt{,import} command, which takes the same forms: \texttt{,import (srfi 1)}.
+
+\subsection{Built-in vs.\ Portable SRFIs}
+\index{SRFI!built-in vs.\ portable}
+
+The 72 SRFIs come in two kinds, and the difference shows up in practice:
+
+\begin{itemize}
+    \item \textbf{Eight built-in SRFIs} (1, 9, 13, 18, 39, 69, 133, 170) are implemented inside the runtime and always available---\texttt{filter} from SRFI-1 works even if you forget the import.
+    \item \textbf{64 portable SRFIs} are ordinary \texttt{.sld} libraries loaded on demand. These \emph{must} be imported: \texttt{(list-sort < lst)} fails with an undefined-variable error until you write \texttt{(import (srfi 132))}.
+\end{itemize}
+
+When in doubt, write the import---it is always correct, and it keeps the program portable. Appendix~\ref{app:srfi} catalogs all 72 and marks which are built in.
 
 \section{Import Modifiers}
 \index{import modifiers}
@@ -180,16 +194,17 @@ Kaappi searches for \texttt{.sld} files in this order:
 \begin{enumerate}
     \item The current working directory (\texttt{./})
     \item The \texttt{./lib/} subdirectory
-    \item Directories specified with \texttt{--lib-path}
+    \item Directories specified with \texttt{--lib-path} (repeatable, up to 16)
+    \item The directory containing the script being run
     \item The user library directory (\texttt{\textasciitilde/.kaappi/lib/})
 \end{enumerate}
 
 The library name \texttt{(mylib utils)} maps to the file path \texttt{mylib/utils.sld}. Each component of the library name becomes a directory, except the last which becomes the filename.
 
-To add a custom search path:
+To add custom search paths:
 
 \begin{Verbatim}[fontsize=\small]
-kaappi --lib-path /path/to/libs program.scm
+kaappi --lib-path ./vendor/libs --lib-path ./mylibs program.scm
 \end{Verbatim}
 
 \section{Export Specifications}
@@ -217,6 +232,21 @@ You can export a binding under a different name:
 \end{lstlisting}
 
 Users import \texttt{join} and \texttt{split}, but internally the functions are named \texttt{internal-join} and \texttt{internal-split}.
+
+\subsection{Re-Exporting Imported Bindings}
+\index{re-export}
+
+A library can export names it imported from another library. This supports a \emph{facade}: one library presenting a single interface assembled from several internal ones:
+
+\begin{lstlisting}
+(define-library (mylib all)
+  (export parse tokenize join split)
+  (import (scheme base)
+          (mylib parser)      ; provides parse, tokenize
+          (mylib strings)))   ; provides join, split
+\end{lstlisting}
+
+Users import \texttt{(mylib all)} and get the combined interface, while you remain free to reorganize the internal libraries behind it.
 
 \section{The \texttt{include} Declaration}
 \index{include}
@@ -250,7 +280,12 @@ The file \texttt{parser-impl.scm} is read as if its contents were inside a \text
        (define (get-os) "unknown")))))
 \end{lstlisting}
 
-Kaappi defines the feature identifier \texttt{kaappi}, along with \texttt{r7rs}, \texttt{ieee-float}, \texttt{posix}, and platform-specific identifiers like \texttt{macosx} and \texttt{linux}.
+Kaappi defines the feature identifiers \texttt{kaappi}, \texttt{r7rs}, \texttt{ieee-float}, \texttt{posix}, and \texttt{exact-closed}. The built-in procedure \texttt{(features)}\index{features} returns the list the running interpreter reports:
+
+\begin{lstlisting}[style=repl]
+> (features)
+(r7rs kaappi ieee-float posix)
+\end{lstlisting}
 
 \section{Project Structure}
 
@@ -301,6 +336,7 @@ Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, which is always
 
 \begin{itemize}
     \item \texttt{import} brings library bindings into scope, and the modifiers \texttt{only}, \texttt{except}, \texttt{prefix}, and \texttt{rename} control exactly what is imported.
+    \item Kaappi's built-ins (including eight built-in SRFIs) are globally available, but the 64 portable SRFIs and your own libraries genuinely require \texttt{import}---and portable R7RS code always writes its imports.
     \item \texttt{define-library} declares a library with explicit \texttt{export} and \texttt{import} sets.
     \item Libraries are found through the search path, and \texttt{include} and \texttt{cond-expand} support file inclusion and conditional code.
     \item The \texttt{thottam} package manager publishes and installs third-party packages.
@@ -343,12 +379,12 @@ Write a short program that demonstrates all three imports working. Which approac
 \end{exercise}
 
 \begin{exercise}[Conditional Code with cond-expand]
-Write a library \code{(mylib greeting)} that uses \code{cond-expand} to export a \code{greet} procedure. When the \code{kaappi} feature is available, \code{greet} should include the Kaappi version; on other Scheme implementations it should return a generic greeting. Also add a branch for the \code{posix} feature that appends the hostname using \code{get-environment-variable}.
+Write a library \code{(mylib greeting)} that uses \code{cond-expand} to export a \code{greet} procedure. When the \code{kaappi} feature is present, \code{greet} should mention it; on other Scheme implementations it should return a generic greeting. As a bonus, add an \code{(and kaappi posix)} branch that also includes the login name from \code{(get-environment-variable "USER")}.
 
 \begin{lstlisting}[style=repl]
 > (import (mylib greeting))
 > (greet "Alice")
-"Hello, Alice! (Running on Kaappi, host: myhost)"
+"Hello, Alice! (running on Kaappi, user: baiju)"
 \end{lstlisting}
 \end{exercise}
 

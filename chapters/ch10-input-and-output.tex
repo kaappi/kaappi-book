@@ -76,12 +76,17 @@ Name: Alice
 \texttt{read-line} reads one line of text from standard input (up to the newline, which is consumed but not included):
 
 \begin{lstlisting}[style=repl]
-> (display "Enter your name: ")
-> (define name (read-line))
-Alice
+> (define (prompt msg)
+    (display msg)
+    (flush-output-port)
+    (read-line))
+> (define name (prompt "Enter your name: "))
+Enter your name: Alice
 > (string-append "Hello, " name "!")
 "Hello, Alice!"
 \end{lstlisting}
+
+The call to \texttt{flush-output-port}\index{flush-output-port} forces the prompt out of the output buffer so it is visible before \texttt{read-line} blocks waiting for input. Output may be buffered until a newline is written or the buffer fills; flush whenever a partial line must appear immediately.
 
 At end of file, \texttt{read-line} returns an \emph{eof object}\index{eof object}. You can test for it with \texttt{eof-object?}:
 
@@ -109,7 +114,7 @@ At end of file, \texttt{read-line} returns an \emph{eof object}\index{eof object
 \texttt{read} is the inverse of \texttt{write}: anything produced by \texttt{write} can be read back by \texttt{read}. This makes Scheme's S-expression syntax a built-in serialization format.
 
 \begin{warning}[Security]
-Never use \texttt{read} on untrusted input. It can parse any Scheme datum, including large data structures that consume memory. For untrusted data, use \texttt{read-line} and parse the string yourself.
+Be careful with \texttt{read} on untrusted input. Unlike Python's \texttt{eval}, it cannot execute code---it only builds data structures---but a hostile sender can still exhaust memory with a huge or deeply nested datum. For untrusted data, read a bounded amount with \texttt{read-line} and parse the string yourself.
 \end{warning}
 
 \section{Ports}
@@ -165,6 +170,8 @@ error!
 (close-output-port out)
 \end{lstlisting}
 
+Two behaviors to know before you rely on these. Opening an input file that does not exist raises an error---Chapter~\ref{ch:errors} shows how to catch it with the \texttt{file-error?} predicate. And opening an output file that already exists \emph{truncates} it: the old contents are gone the moment the port opens.
+
 \subsection{\texttt{call-with-port}: Safe Port Handling}
 \index{call-with-port}
 
@@ -181,6 +188,14 @@ To ensure ports are always closed (even if an error occurs), use \texttt{call-wi
 \end{lstlisting}
 
 The port is automatically closed when the procedure returns.
+
+This open-then-call combination is common enough that R7RS provides shorthands: \texttt{call-with-input-file}\index{call-with-input-file} and \texttt{call-with-output-file}\index{call-with-output-file} take the filename directly:
+
+\begin{lstlisting}
+(call-with-input-file "data.txt"
+  (lambda (port)
+    (read-line port)))
+\end{lstlisting}
 
 \subsection{\texttt{with-input-from-file} and \texttt{with-output-to-file}}
 \index{with-input-from-file}\index{with-output-to-file}
@@ -237,6 +252,22 @@ A utility that reads all lines into a list:
                   (newline port))
                 lines))))
 \end{lstlisting}
+
+\subsection{\texttt{file-exists?} and \texttt{delete-file}}
+\index{file-exists?}\index{delete-file}
+
+Two housekeeping procedures round out file handling. Here we use the \texttt{write-lines} helper from above to create a file, then remove it:
+
+\begin{lstlisting}[style=repl]
+> (write-lines "data.txt" '("some" "content"))
+> (file-exists? "data.txt")
+#t
+> (delete-file "data.txt")
+> (file-exists? "data.txt")
+#f
+\end{lstlisting}
+
+Check \texttt{file-exists?} before opening a file for output when silently overwriting it would be destructive.
 
 \section{String Ports}
 \index{string ports}
@@ -336,6 +367,43 @@ A
 
 \end{lstlisting}
 
+Between whole lines and single characters sit \texttt{read-string}\index{read-string} and \texttt{write-string}\index{write-string}. \texttt{(read-string k port)} reads up to \emph{k} characters and returns them as a string:
+
+\begin{lstlisting}[style=repl]
+> (define port (open-input-string "hello world"))
+> (read-string 5 port)
+"hello"
+> (read-string 100 port)
+" world"
+\end{lstlisting}
+
+\section{Binary Ports}
+\index{binary ports}\index{bytevectors}
+
+Every port seen so far is \emph{textual}: it reads and writes characters. R7RS also defines \emph{binary} ports, which carry raw bytes. Open them with \texttt{open-binary-input-file}\index{open-binary-input-file} and \texttt{open-binary-output-file}\index{open-binary-output-file}, and move data with \texttt{read-u8}\index{read-u8}, \texttt{write-u8}\index{write-u8}, \texttt{read-bytevector}\index{read-bytevector}, and \texttt{write-bytevector}\index{write-bytevector}:
+
+\begin{lstlisting}
+;; Read the first four bytes of a file (e.g. to check
+;; a format signature)
+(define (file-magic filename)
+  (call-with-port (open-binary-input-file filename)
+    (lambda (port)
+      (read-bytevector 4 port))))
+\end{lstlisting}
+
+Real PNG files start with the signature bytes 137, 80, 78, 71. We can fabricate a minimal test file with \texttt{write-bytevector} and check it:
+
+\begin{lstlisting}[style=repl]
+> (call-with-port (open-binary-output-file "photo.png")
+    (lambda (port)
+      (write-bytevector (bytevector 137 80 78 71 13 10 26 10)
+                        port)))
+> (file-magic "photo.png")
+#u8(137 80 78 71)
+\end{lstlisting}
+
+Binary reads return bytevectors (Chapter~\ref{ch:data-types}) or, at end of file, the same EOF object as textual reads. A port is either textual or binary, never both---calling \texttt{read-line} on a binary port is an error. Use binary ports for images, compressed data, and network protocols; use textual ports for anything meant to be read by humans.
+
 \section{Putting It Together: A File Processing Example}
 
 Here is a program that reads a text file, numbers each line, and writes the result to a new file:
@@ -356,10 +424,16 @@ Here is a program that reads a text file, numbers each line, and writes the resu
               (loop (read-line in) (+ n 1)))))))))
 \end{lstlisting}
 
-Usage:
+Usage, with \texttt{write-lines} and \texttt{read-all-lines} from earlier in the chapter:
 
 \begin{lstlisting}[style=repl]
+> (write-lines "input.txt" '("alpha" "beta" "gamma"))
 > (number-lines "input.txt" "output.txt")
+> (for-each (lambda (l) (display l) (newline))
+            (read-all-lines "output.txt"))
+1: alpha
+2: beta
+3: gamma
 \end{lstlisting}
 
 \section*{Summary}
@@ -369,6 +443,7 @@ Usage:
     \item \texttt{read-line} reads a line of text and \texttt{read} reads a single Scheme datum.
     \item All I/O flows through ports; \texttt{call-with-port} and the \texttt{with-*-to-file} forms open and close them safely.
     \item String ports perform in-memory I/O, including capturing output as a string.
+    \item Binary ports carry raw bytes as bytevectors; textual ports carry characters. A port is one or the other.
     \item Input procedures return the EOF object when input is exhausted.
 \end{itemize}
 
@@ -398,7 +473,7 @@ Write a function \code{wc} that takes a filename and returns three values (using
 5 lines, 23 words, 142 characters
 \end{lstlisting}
 
-Hint: for counting words in a line, split on whitespace using \code{string-split} from SRFI-13 (importable as \code{(srfi 13)}), or count transitions between whitespace and non-whitespace characters.
+Hint: for counting words in a line, use Kaappi's built-in \code{string-split} (a Kaappi extension to SRFI-13---always available, no import needed), or count transitions between whitespace and non-whitespace characters.
 \end{exercise}
 
 \begin{exercise}[File to List]
