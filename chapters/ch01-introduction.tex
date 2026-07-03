@@ -39,6 +39,8 @@ R7RS-small is what this book teaches. It defines the syntax, semantics, and a se
 
 If you know Python, Scheme will look alien at first. But the differences are more superficial than they appear. Let's compare a few simple tasks.
 
+This book uses Python as its comparison language throughout. If you come from JavaScript or Ruby instead, the parallels carry over almost unchanged---JavaScript's arrow functions and Ruby's blocks play the same role that Python's functions and \texttt{lambda} play in these comparisons.
+
 \subsection{Hello, World}
 
 In Python:
@@ -93,7 +95,7 @@ In Scheme:
   (filter even? (iota 10)))
 \end{lstlisting}
 
-\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely used list library. To use them in a script file, add \texttt{(import (srfi 1))}; in the REPL, type \texttt{,import (srfi 1)}. Do not worry about mastering these now---Chapter~\ref{ch:hof} covers \texttt{filter} and its relatives in depth.
+\texttt{filter} takes a predicate and a list, returning elements that satisfy the predicate. \texttt{iota} generates a list of numbers (like Python's \texttt{range}). \texttt{even?} is a built-in predicate---note the question mark, a Scheme convention for predicates. Both \texttt{filter} and \texttt{iota} come from SRFI-1\index{SRFI-1}, a widely used list library that Kaappi builds in, so they work out of the box. Portable R7RS code declares the dependency with \texttt{(import (srfi 1))}---a convention Chapter~\ref{ch:libraries} explains. Do not worry about mastering these now---Chapter~\ref{ch:hof} covers \texttt{filter} and its relatives in depth.
 
 \subsection{Closures}
 
@@ -152,7 +154,7 @@ Kaappi is a complete implementation of the R7RS-small Scheme standard, written f
 
 \subsection{Standards Conformance}
 
-Kaappi implements the full R7RS-small specification: all 15 standard libraries, all 33 syntax forms, and over 550 built-in procedures. It passes 1,391 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
+Kaappi implements every identifier in the R7RS-small specification: all 14 standard libraries, all 32 syntax forms, and 579 built-in procedures. It passes 1,391 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
 
 \subsection{How It Works}
 
@@ -181,7 +183,7 @@ When you type a Scheme expression, Kaappi processes it through a pipeline:
     \item \textbf{Reader}\index{S-expression} --- parses source text into a data structure (an S-expression).
     \item \textbf{Expander} --- processes macros, transforming syntactic sugar into core forms.
     \item \textbf{Compiler} --- translates the expanded code into register-based bytecode through an intermediate representation with optimization passes.
-    \item \textbf{Virtual machine}\index{virtual machine} --- executes the bytecode on a register-based VM with a generational garbage collector\index{garbage collector}.
+    \item \textbf{Virtual machine}\index{virtual machine} --- executes the bytecode on a register-based VM with a generational mark-and-sweep garbage collector\index{garbage collector}.
 \end{enumerate}
 
 This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 48,000 lines of Zig).
@@ -245,7 +247,7 @@ Visit \texttt{https://kaappi-lang.org/playground/} in your browser. Try evaluati
 \end{exercise}
 
 \begin{exercise}[Install Kaappi]
-Install Kaappi on your system using the install script or a manual download (see Chapter~\ref{ch:installation} for details). Run \code{kaappi --version} in your terminal and confirm you see a version string like \code{Kaappi Scheme v0.5.0}. Then evaluate a simple expression:
+Install Kaappi on your system using the install script or a manual download (see Chapter~\ref{ch:installation} for details). Run \code{kaappi --version} in your terminal and confirm you see a version string like \texttt{Kaappi Scheme v\kaappiversion}. Then evaluate a simple expression:
 
 \begin{lstlisting}[style=repl]
 > (+ 1 2 3)

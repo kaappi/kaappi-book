@@ -19,19 +19,23 @@ Kaappi supports four kinds of numbers, organized in a hierarchy called the \emph
 Every integer is also a rational (it is \texttt{n/1}). Every rational is also a real. Every real is also a complex (with zero imaginary part). The arithmetic procedures work uniformly across all levels.
 
 \begin{center}
-\begin{tikzpicture}[every node/.style={font=\small}]
-\draw[thick, rounded corners] (-3.6,-0.7) rectangle (3.6,0.7);
-\node[anchor=north east] at (3.5,0.6) {\textsf{complex}};
-\node[anchor=south, font=\ttfamily\scriptsize] at (2.6,-0.55) {3+4i};
-\draw[thick, rounded corners] (-2.8,-0.45) rectangle (2.2,0.45);
-\node[anchor=north east] at (2.1,0.35) {\textsf{real}};
-\node[anchor=south, font=\ttfamily\scriptsize] at (1.4,-0.3) {3.14};
-\draw[thick, rounded corners] (-2,-0.2) rectangle (0.9,0.2);
-\node[anchor=north east] at (0.8,0.12) {\textsf{rational}};
-\node[font=\ttfamily\scriptsize] at (-0.1,0) {\textsf{1/3}};
-\draw[thick, rounded corners, fill=notebg] (-1.8,-0.05) rectangle (-0.7,0.05);
-\node[font=\ttfamily\scriptsize] at (-1.25,0) {42};
-\node[anchor=south, font=\textsf\scriptsize] at (-1.25,0.07) {integer};
+\begin{tikzpicture}[
+    ring/.style={rectangle, draw, thick, rounded corners},
+    ringlabel/.style={font=\sffamily\footnotesize, anchor=north west, inner sep=3pt},
+    example/.style={font=\ttfamily\scriptsize, anchor=south east, inner sep=3pt}
+]
+\draw[ring] (-4.5,-2.2) rectangle (4.5,2.2);
+\node[ringlabel] at (-4.5,2.2) {complex};
+\node[example] at (4.5,-2.2) {3+4i};
+\draw[ring] (-3.8,-1.65) rectangle (3.8,1.65);
+\node[ringlabel] at (-3.8,1.65) {real};
+\node[example] at (3.8,-1.65) {3.14};
+\draw[ring] (-3.1,-1.1) rectangle (3.1,1.1);
+\node[ringlabel] at (-3.1,1.1) {rational};
+\node[example] at (3.1,-1.1) {1/3};
+\draw[ring, fill=notebg] (-2.4,-0.55) rectangle (2.4,0.55);
+\node[ringlabel] at (-2.4,0.55) {integer};
+\node[example] at (2.4,-0.55) {42};
 \end{tikzpicture}
 \end{center}
 
@@ -123,12 +127,14 @@ Complex numbers are written in rectangular form with \texttt{+} or \texttt{-} se
 > 3+4i
 3+4i
 > (+ 1+2i 3+4i)
-4+6i
+4.0+6.0i
 > (magnitude 3+4i)
-5
+5.0
 > (sqrt -1)
-0+1i
++i
 \end{lstlisting}
+
+Notice the results: Kaappi performs complex arithmetic on floating-point components, so complex results come back inexact even when the inputs are exact. (The empty real part in \texttt{+i} is shorthand for \texttt{0+1i}.)
 
 \subsection{Numeric Predicates and Comparisons}
 \index{number?}\index{integer?}\index{zero?}\index{positive?}\index{negative?}
@@ -178,6 +184,10 @@ Note that \texttt{<}, \texttt{>}, \texttt{<=}, and \texttt{>=} accept multiple a
 1
 > (modulo 10 3)
 1
+> (remainder -10 3)
+-1
+> (modulo -10 3)
+2
 > (abs -7)
 7
 > (max 3 1 4 1 5)
@@ -189,6 +199,8 @@ Note that \texttt{<}, \texttt{>}, \texttt{<=}, and \texttt{>=} accept multiple a
 > (sqrt 16)
 4
 \end{lstlisting}
+
+\texttt{remainder} and \texttt{modulo} agree for positive operands but differ when signs are mixed: \texttt{remainder} takes the sign of the dividend, while \texttt{modulo} takes the sign of the divisor---the same behavior as Python's \texttt{\%} operator.
 
 \section{Strings}
 \index{strings}
@@ -247,9 +259,21 @@ world
 
 \texttt{string->number} returns \texttt{\#f} (not an error) if the string cannot be parsed as a number. This makes it safe to use on user input.
 
-\subsection{Strings Are Immutable}
+\subsection{Mutating Strings}
+\index{string-set"!}
 
-In R7RS Scheme, strings are immutable by default. You cannot modify a character in place. Instead, you create new strings from existing ones:
+Strings in Scheme are mutable: \texttt{string-set!} replaces the character at an index in place:
+
+\begin{lstlisting}[style=repl]
+> (define s (make-string 3 #\a))
+> (string-set! s 0 #\Z)
+> s
+"Zaa"
+\end{lstlisting}
+
+There is one exception: string \emph{literals} are immutable. Calling \texttt{string-set!} on a string that appears literally in your source code, like \texttt{(define s "abc")}, raises an error. Create fresh, mutable strings with \texttt{make-string} or \texttt{string-copy}.
+
+In practice, idiomatic Scheme rarely mutates strings. Most programs build new strings from existing ones:
 
 \begin{lstlisting}[style=repl]
 > (define greeting "hello")
@@ -259,28 +283,13 @@ In R7RS Scheme, strings are immutable by default. You cannot modify a character 
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
-Python strings are also immutable---operations like \texttt{upper()} return new strings. Scheme works the same way.
+Python strings are always immutable---operations like \texttt{upper()} return new strings. Scheme permits in-place mutation, but the functional style shown above is the norm; treat \texttt{string-set!} as a specialized tool, not a habit.
 \end{note}
 
 \section{Characters}
 \index{characters}
 
-Characters represent individual Unicode codepoints. They are written with a \texttt{\#\textbackslash} prefix:
-
-\begin{lstlisting}[style=repl]
-> #\a
-#\a
-> #\Z
-#\Z
-> #\space
-#\space
-> #\newline
-#\newline
-> #\tab
-#\tab
-\end{lstlisting}
-
-Characters are distinct from strings. A character is a single value; a string is a sequence of characters.
+Chapter~\ref{ch:first-steps} introduced characters: single Unicode codepoints written with a \texttt{\#\textbackslash} prefix, such as \texttt{\#\textbackslash a}, \texttt{\#\textbackslash Z}, and the named forms \texttt{\#\textbackslash space}, \texttt{\#\textbackslash newline}, and \texttt{\#\textbackslash tab}. A character is a single value, distinct from a one-character string. What Chapter~\ref{ch:first-steps} did not cover are the predicates and conversions for working with them.
 
 \subsection{Character Predicates}
 
@@ -307,7 +316,7 @@ Characters are distinct from strings. A character is a single value; a string is
 > (char->integer #\A)
 65
 > (integer->char 955)
-#\x3BB
+#\(*@$\lambda$@*)
 \end{lstlisting}
 
 The last example produces the Greek lambda character---Kaappi has full Unicode support.
@@ -383,10 +392,12 @@ Symbols are commonly used as keys in association lists (alists), as tags in data
 "#00ff00"
 \end{lstlisting}
 
+The dotted \texttt{(red . "\#ff0000")} pairs and the \texttt{cdr} accessor belong to Chapter~\ref{ch:lists}; for now, read \texttt{(assq 'green colors)} as ``look up the entry tagged \texttt{green}'' and \texttt{cdr} as ``take its value.''
+
 \section{Vectors}
 \index{vectors}
 
-Vectors are fixed-size, indexed collections---like Python lists or arrays. They provide O(1) access by index:
+Vectors are fixed-size, indexed collections. Indexing works like a Python list, but a vector cannot grow or shrink after creation---it is closer to a fixed-length array. They provide O(1) access by index:
 
 \begin{lstlisting}[style=repl]
 > (define v (vector 10 20 30 40 50))
@@ -562,7 +573,7 @@ When in doubt, \texttt{equal?} is the safe general-purpose choice; reach for the
 
 \begin{itemize}
     \item Scheme's numeric tower spans integers, exact rationals, real (floating-point) numbers, and complex numbers, with a key distinction between exact and inexact values.
-    \item Strings are immutable sequences of Unicode characters, and characters are a distinct type.
+    \item Strings are sequences of Unicode characters (mutable, except literals---though idiomatic code builds new strings instead), and characters are a distinct type.
     \item Symbols are interned names, and the only booleans are \texttt{\#t} and \texttt{\#f}.
     \item Vectors are fixed-length, mutable, constant-time-indexed sequences; bytevectors hold raw bytes.
     \item Type predicates such as \texttt{number?}, \texttt{string?}, and \texttt{vector?} test a value's type.
@@ -602,7 +613,20 @@ Write a function \code{type-name} that takes a single argument and returns a str
 \end{exercise}
 
 \begin{exercise}[Counting Vowels]
-Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Use \code{string-ref} to access each character by index and recurse from index 0 to \code{(string-length s)}, following the same shape as the Recursive Power exercise from Chapter~\ref{ch:first-steps}. You will need \code{char-downcase} and a series of \code{char=?} checks (or \code{string-contains} on a vowel string). If the recursion does not click yet, revisit this exercise after Chapter~\ref{ch:functions}.
+Write a function \code{count-vowels} that takes a string and returns the number of vowels (a, e, i, o, u---both upper and lower case) it contains. Start from this skeleton, which walks the string by index the same way the Recursive Power exercise from Chapter~\ref{ch:first-steps} counted down its exponent:
+
+\begin{lstlisting}
+(define (count-vowels-from s i)
+  (if (= i (string-length s))
+      0
+      (+ (if (vowel? (string-ref s i)) 1 0)
+         (count-vowels-from s (+ i 1)))))
+
+(define (count-vowels s)
+  (count-vowels-from s 0))
+\end{lstlisting}
+
+Your job is to write the missing \code{vowel?} predicate. You will need \code{char-downcase} and a series of \code{char=?} checks combined with \code{or}. If the recursive skeleton does not click yet, revisit it after Chapter~\ref{ch:functions}.
 
 \begin{lstlisting}[style=repl]
 > (count-vowels "Hello, World!")

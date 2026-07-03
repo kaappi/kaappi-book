@@ -157,7 +157,7 @@ hello
 #t
 \end{lstlisting}
 
-The \texttt{'} (single quote) is called \emph{quote}\index{quote}. It prevents the expression that follows from being evaluated. Without it, \texttt{hello} would be looked up as a variable name, causing an ``unbound variable'' error.
+The \texttt{'} (single quote) is called \emph{quote}\index{quote}. It prevents the expression that follows from being evaluated. Without it, \texttt{hello} would be looked up as a variable name, causing an ``unbound variable'' error. Quote works on entire lists too---\texttt{'(1 2 3)} builds a list of literal data without evaluating it. Chapter~\ref{ch:lists} covers quoting in depth.
 
 \section{Defining Variables}
 \index{define}
@@ -255,13 +255,15 @@ The \texttt{if} expression has three parts: a test, a ``then'' expression, and a
 Because \texttt{if} is an expression (not a statement), it produces a value. You can use it anywhere a value is expected:
 
 \begin{lstlisting}[style=repl]
-> (define (abs x)
+> (define (my-abs x)
     (if (< x 0) (- x) x))
-> (abs -7)
+> (my-abs -7)
 7
-> (abs 3)
+> (my-abs 3)
 3
 \end{lstlisting}
+
+(Scheme already provides this as the built-in \texttt{abs}; we define our own version to show the pattern. Had we called it \texttt{abs}, our definition would silently shadow the built-in one---Scheme lets you redefine anything.)
 
 \begin{note}[Coming from Python]
 This is like Python's ternary expression \texttt{"yes" if 5 > 3 else "no"}, but in Scheme the condition comes first. The pattern is always \texttt{(if test then else)}.
@@ -392,7 +394,7 @@ Write a function \code{(absolute-value n)} that returns the absolute value of \c
 0
 \end{lstlisting}
 
-Compare your solution to the \code{abs} function defined earlier in this chapter. Are they equivalent?
+Compare your solution to the \code{my-abs} function defined earlier in this chapter, and to Scheme's built-in \code{abs}. Are they equivalent?
 \end{exercise}
 
 \begin{exercise}[Recursive Power]

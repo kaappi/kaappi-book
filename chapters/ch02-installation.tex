@@ -55,11 +55,16 @@ Linux & RISC-V 64 & \texttt{kaappi-riscv64-linux} \\
 \end{tabular}
 \end{center}
 
-After downloading, make it executable and move it to a directory in your PATH:
+\begin{note}[Windows]
+There are no native Windows binaries---Kaappi depends on POSIX APIs. On Windows, install the Linux x86\_64 build inside WSL2 (Windows Subsystem for Linux); everything in this book works there.
+\end{note}
+
+Each release also ships a matching \texttt{thottam} package-manager binary per platform (e.g., \texttt{thottam-aarch64-macos})---download it alongside \texttt{kaappi}. After downloading, make the binaries executable and move them to a directory in your PATH:
 
 \begin{Verbatim}[fontsize=\small]
-chmod +x kaappi-aarch64-macos
+chmod +x kaappi-aarch64-macos thottam-aarch64-macos
 mv kaappi-aarch64-macos ~/.local/bin/kaappi
+mv thottam-aarch64-macos ~/.local/bin/thottam
 \end{Verbatim}
 
 You also need the standard library archive. Download \texttt{kaappi-lib.tar.gz} and extract it:
@@ -109,7 +114,7 @@ Check that Kaappi is installed correctly:
 kaappi --version
 \end{Verbatim}
 
-You should see output like \texttt{Kaappi Scheme v0.5.0}. Next, test that evaluation works:
+You should see output like \texttt{Kaappi Scheme v\kaappiversion}. Next, test that evaluation works:
 
 \begin{Verbatim}[fontsize=\small]
 echo '(+ 1 2)' | kaappi
@@ -133,22 +138,26 @@ kaappi
 You will see a welcome banner and a prompt:
 
 \begin{lstlisting}[style=repl]
-Kaappi Scheme v0.5.0
+Kaappi Scheme v(*@\kaappiversion@*)
 Type ,help for commands, ,quit to exit.
 
-> (+ 2 3)
+kaappi> (+ 2 3)
 5
-> (* 6 7)
+kaappi> (* 6 7)
 42
 \end{lstlisting}
 
+\begin{note}[Prompt convention]
+The actual prompt is \texttt{kaappi>}. To keep examples compact, the rest of this book typesets it as a plain \texttt{>}.
+\end{note}
+
 \subsection{Multi-Line Input}
 
-The REPL tracks open parentheses. If your expression is incomplete, it shows a continuation prompt and waits for you to finish:
+The REPL tracks open parentheses. If your expression is incomplete, it shows a \texttt{...} continuation prompt and waits for you to finish:
 
 \begin{lstlisting}[style=repl]
 > (define (square x)
-    (* x x))
+...   (* x x))
 > (square 7)
 49
 \end{lstlisting}
@@ -231,8 +240,8 @@ Output:
 Hello, world!
 \end{codeoutput}
 
-\begin{note}[Import in scripts vs.\ REPL]
-Script files must explicitly import\index{import} the libraries they use. The REPL automatically imports \texttt{(scheme base)}, so expressions like \texttt{(+ 1 2)} work immediately. In a file, you would get an ``unbound variable'' error without the \texttt{import} line.
+\begin{note}[Why the import line?]
+Kaappi pre-loads all of its built-in procedures, so this script would run even without the \texttt{import}\index{import} line. Writing it anyway is a good habit: it documents which libraries your code depends on, and other R7RS implementations require it---they raise an ``unbound variable'' error for anything not imported. Script files in this book include \texttt{import} lines for that reason. Chapter~\ref{ch:libraries} covers the library system in detail.
 \end{note}
 
 \section{Editor Support}
@@ -246,7 +255,7 @@ Install the \texttt{kaappi} extension from the VS Code marketplace. It provides 
 
 \subsection{Neovim, Emacs, and Helix}
 
-Configure your editor's LSP client to use \texttt{kaappi-lsp} (installed alongside \texttt{kaappi}) as the language server for \texttt{.scm} and \texttt{.sld} files.
+Configure your editor's LSP client to use \texttt{kaappi-lsp} as the language server for \texttt{.scm} and \texttt{.sld} files. Note that the install script does not include \texttt{kaappi-lsp}: build it from source (\texttt{zig build} produces it at \texttt{zig-out/bin/kaappi-lsp} alongside the interpreter). The VS Code extension needs no extra step because it bundles its own copy.
 
 \subsection{Shell Completions}
 
