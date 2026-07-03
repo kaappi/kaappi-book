@@ -69,6 +69,10 @@ check type-error-car "type error in 'car': expected pair, got ()" <<'EOF'
 (car '())
 EOF
 
+check type-error-plus 'expected number, got "two"' <<'EOF'
+(+ 1 "two")
+EOF
+
 check arity "'f': expected 2 arguments, got 1" <<'EOF'
 (define (f a b) a)
 (f 1)

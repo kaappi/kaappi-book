@@ -103,13 +103,13 @@ The \texttt{set!} variant of this error reads \texttt{error: set!: unbound varia
 
 \subsection{\texttt{error: type error in 'car': expected pair, got ()}}
 
-\textbf{Cause:} A primitive received an argument of the wrong type. The message names the procedure and shows the offending value---here, \texttt{car} applied to the empty list.
+\textbf{Cause:} A primitive received an argument of the wrong type. The message usually names the procedure and shows the offending value---here, \texttt{car} applied to the empty list. Some primitives, such as the arithmetic operators, report just the expected type:
 
 \begin{lstlisting}[style=repl]
 > (car '())
 ; error: type error in 'car': expected pair, got ()
 > (+ 1 "two")
-; error: type error in '+': got "two"
+; error: expected number, got "two"
 \end{lstlisting}
 
 \textbf{Fix:} Check for the empty list with \code{null?} before calling \code{car}/\code{cdr}. For arithmetic on strings, convert first with \code{string->number}.

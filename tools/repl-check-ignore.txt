@@ -34,3 +34,12 @@ ch16-standard-library.tex:306  # upstream: depends on the srfi 113/128 import ab
 ch16-standard-library.tex:307  # upstream: depends on the srfi 113/128 import above
 ch16-standard-library.tex:309  # upstream: depends on the srfi 113/128 import above
 ch16-standard-library.tex:311  # upstream: depends on the srfi 113/128 import above
+
+# --- appendix D deliberately demonstrates fatal errors ---
+# The read/compile-error listings earlier in the appendix terminate the
+# piped session, so later listings get no output. Each message is verified
+# in a fresh session by scripts/check-appendix-examples.sh (make check-examples).
+appendix-d-error-messages.tex:81   # session killed by the read-error demos above; verified fresh
+appendix-d-error-messages.tex:109  # session killed by the read-error demos above; verified fresh
+appendix-d-error-messages.tex:111  # session killed by the read-error demos above; verified fresh
+appendix-d-error-messages.tex:134  # session killed by the read-error demos above; verified fresh
