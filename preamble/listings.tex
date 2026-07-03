@@ -1,29 +1,20 @@
 % listings.tex - Scheme code listing configuration
 
 \lstdefinelanguage{Scheme}{
+    % Policy: bold syntax (special forms and library declarations) only.
+    % Ordinary procedures (car, map, display, ...) stay unbolded so the
+    % highlighting marks what is evaluated specially, not what is common.
     morekeywords={
-        define, lambda, if, cond, case, and, or, not,
+        define, lambda, if, cond, case, else, and, or,
         when, unless, begin, set!, quote, quasiquote,
+        unquote, unquote-splicing,
         let, let*, letrec, letrec*, let-values, let*-values,
-        do, case-lambda, define-syntax, syntax-rules,
-        let-syntax, letrec-syntax,
+        define-values, do, case-lambda,
+        define-syntax, syntax-rules, let-syntax, letrec-syntax,
         define-library, import, export, include,
-        define-record-type, guard, raise,
-        with-exception-handler, dynamic-wind,
-        call-with-current-continuation, call/cc, call/ec,
-        delay, delay-force, force, make-promise,
-        make-parameter, parameterize,
-        values, call-with-values, apply,
-        map, filter, fold, for-each,
-        cons, car, cdr, list, append, reverse,
-        display, newline, write, read,
-        string-append, number->string, string->number,
-        vector, vector-ref, vector-set!,
-        open-input-file, open-output-file,
-        call-with-port, close-port,
+        define-record-type, guard,
+        delay, delay-force, parameterize,
         cond-expand, only, except, rename, prefix,
-        spawn, yield, channel-send, channel-receive,
-        ffi-open, ffi-fn, ffi-close, ffi-callback,
     },
     sensitive=true,
     morecomment=[l]{;},
