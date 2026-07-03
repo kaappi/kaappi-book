@@ -10,6 +10,11 @@
 \usepackage{enumitem}
 \usepackage{fancyvrb}
 
+% Tables that size themselves to the text block (reference tables in the
+% appendices). Column type Y is a ragged-right X column.
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
 % Graphics
 \usepackage{tikz}
 \usetikzlibrary{positioning, shapes.multipart, arrows.meta}

@@ -7,20 +7,26 @@
 \item[alist]\index{alist}
 An \emph{association list}: a list of pairs used as a key-value map. Keys are in the \texttt{car} of each pair, values in the \texttt{cdr}. Lookup is O(n) via \texttt{assoc} or \texttt{assq}.
 
+\item[arity]\index{arity}
+The number of arguments a procedure accepts. In the REPL, \texttt{,describe} shows a procedure's arity.
+
 \item[atom]\index{atom}
 A value that is not a pair: numbers, strings, symbols, characters, booleans, vectors, and bytevectors are all atoms.
 
 \item[bignum]\index{bignum}
 An arbitrary-precision integer. Kaappi automatically promotes fixnums to bignums on overflow.
 
+\item[binding]\index{binding}
+An association between an identifier and a value, created by \texttt{define}, \texttt{let}, or a procedure call. Chapter~\ref{ch:bindings} covers local bindings.
+
 \item[bytecode]\index{bytecode}
 The low-level instruction format that Kaappi's compiler produces. Executed by the register-based virtual machine.
 
 \item[bytevector]\index{bytevector}
-A fixed-length sequence of bytes (integers 0--255). Created with \texttt{make-bytevector} or \texttt{bytevector}. Used for binary data and I/O buffers.
+A fixed-length sequence of bytes (integers 0--255), created with \texttt{bytevector} or \texttt{make-bytevector}. Used for binary data and I/O buffers.
 
 \item[call/cc]\index{call/cc}
-Short for \texttt{call-with-current-continuation}. Captures the current continuation as a first-class procedure that can be invoked later.
+Short for \texttt{call-with-current-continuation}. Captures the current continuation as a first-class procedure that can be invoked later (Chapter~\ref{ch:continuations}).
 
 \item[car]\index{car}
 The first element of a pair. From ``Contents of the Address Register'' on the IBM 704.
@@ -29,10 +35,10 @@ The first element of a pair. From ``Contents of the Address Register'' on the IB
 The second element of a pair. From ``Contents of the Decrement Register.'' For a proper list, the cdr is the rest of the list.
 
 \item[channel]\index{channel}
-A synchronized communication primitive for fibers. Created with \texttt{make-channel}. \texttt{channel-send} and \texttt{channel-receive} block until both sender and receiver are ready.
+A communication primitive for fibers, created with \texttt{make-channel}. A channel is an unbounded queue: \texttt{channel-send} never blocks, while \texttt{channel-receive} waits until a value is available (Chapter~\ref{ch:concurrency}).
 
 \item[closure]\index{closure}
-A function bundled with the environment in which it was defined. Closures capture free variables from their enclosing scope.
+A function bundled with the environment in which it was defined. Closures capture free variables from their enclosing scope (Chapter~\ref{ch:functions}).
 
 \item[cond-expand]\index{cond-expand}
 A form for conditional compilation. Selects code branches based on features available in the implementation.
@@ -44,19 +50,25 @@ A value raised as an exception. Can be an error object (created by \texttt{error
 A pair: a heap-allocated object with a \texttt{car} and a \texttt{cdr}. The fundamental building block of lists.
 
 \item[continuation]\index{continuation}
-The ``rest of the computation'' from a given point in the program. Scheme allows capturing continuations as first-class values.
+The ``rest of the computation'' from a given point in the program. Scheme allows capturing continuations as first-class values (Chapter~\ref{ch:continuations}).
 
 \item[datum]\index{datum}
 Any Scheme value that can be read by the reader: a number, string, symbol, list, vector, etc. A datum is the external representation of a value.
 
 \item[define-library]\index{define-library}
-The R7RS form for creating a library (module). Specifies exports, imports, and the library body.
+The R7RS form for creating a library (module). Specifies exports, imports, and the library body (Chapter~\ref{ch:libraries}).
 
 \item[dotted pair]\index{dotted pair}
 A pair whose cdr is not a list. Printed as \texttt{(a . b)}.
 
+\item[dynamic extent]\index{dynamic extent}
+The period during which control is inside a given expression's evaluation---from entry until exit, including re-entries via continuations. \texttt{dynamic-wind} and \texttt{parameterize} operate on dynamic extents.
+
 \item[dynamic-wind]\index{dynamic-wind}
 A mechanism that guarantees setup and cleanup thunks are called when control enters or leaves a dynamic extent, even via continuations.
+
+\item[environment]\index{environment}
+The set of bindings visible at a point in a program. Closures capture the environment where they were created.
 
 \item[eof object]\index{eof object}
 A special value returned by input procedures when end-of-file is reached. Tested with \texttt{eof-object?}.
@@ -64,14 +76,17 @@ A special value returned by input procedures when end-of-file is reached. Tested
 \item[exact]\index{exact}
 A number whose value is represented precisely (integers, rationals). Contrasted with inexact (floating-point).
 
+\item[expander]\index{expander}
+The compiler phase that rewrites macro uses into core forms before compilation. Scheme's expander is \emph{hygienic}: expansion cannot accidentally capture user variables.
+
 \item[export]\index{export}
-A declaration in a library that makes a binding available to importers. Specified with the \texttt{export} clause in \texttt{define-library}.
+A declaration in a library that makes a binding available to importers. Specified with the \texttt{export} clause in \texttt{define-library} (Chapter~\ref{ch:libraries}).
 
 \item[FFI (Foreign Function Interface)]\index{FFI}\index{Foreign Function Interface}
-A mechanism for calling C functions from Scheme. Kaappi provides \texttt{(kaappi ffi)} with \texttt{ffi-open}, \texttt{ffi-fn}, and \texttt{ffi-callback}.
+A mechanism for calling C functions from Scheme. Kaappi provides \texttt{(kaappi ffi)} with \texttt{ffi-open}, \texttt{ffi-fn}, and \texttt{ffi-callback} (Chapter~\ref{ch:ffi}).
 
 \item[fiber]\index{fiber}
-A lightweight green thread managed by Kaappi's runtime. Created with \texttt{spawn} from \texttt{(kaappi fibers)}. Fibers are cooperatively scheduled.
+A lightweight green thread managed by Kaappi's runtime. Created with \texttt{spawn} from \texttt{(kaappi fibers)}. Fibers are cooperatively scheduled (Chapter~\ref{ch:concurrency}).
 
 \item[fixnum]\index{fixnum}
 A small integer stored inline (no heap allocation) in Kaappi's NaN-boxed value representation. 48-bit signed range (up to $\pm 2^{47}$).
@@ -82,14 +97,17 @@ An IEEE 754 double-precision floating-point number. Inexact by definition.
 \item[form]\index{form}
 A Scheme expression, particularly one with special syntax (e.g., \texttt{if}, \texttt{define}, \texttt{let}).
 
+\item[green thread]\index{green thread}
+A thread scheduled by the language runtime rather than the operating system. See \emph{fiber}.
+
 \item[guard clause]\index{guard clause}
-An exception-handling form that catches raised exceptions and dispatches on conditions, similar to \texttt{try}/\texttt{except} in Python.
+An exception-handling form that catches raised exceptions and dispatches on conditions, similar to \texttt{try}/\texttt{except} in Python (Chapter~\ref{ch:errors}).
 
 \item[hash table]\index{hash table}
 A mutable key-value data structure with O(1) average lookup. Provided by SRFI-69. Created with \texttt{make-hash-table}.
 
 \item[hygienic macro]\index{hygienic macro}
-A macro system where generated identifiers cannot accidentally capture variables from the macro's call site. Scheme's \texttt{syntax-rules} is hygienic.
+A macro system where generated identifiers cannot accidentally capture variables from the macro's call site. Scheme's \texttt{syntax-rules} is hygienic (Chapter~\ref{ch:macros}).
 
 \item[identifier]\index{identifier}
 A name in Scheme source code. Can contain letters, digits, and extended characters like \texttt{-}, \texttt{?}, and \texttt{!}.
@@ -106,14 +124,20 @@ Additional values attached to an error object, providing context about what went
 \item[lexical scope]\index{lexical scope}
 A scoping rule where a name refers to the binding in the nearest enclosing scope where it was defined. Also called static scope.
 
+\item[macro]\index{macro}
+A syntax transformation that rewrites code before it is compiled. Defined with \texttt{define-syntax} and \texttt{syntax-rules} (Chapter~\ref{ch:macros}). See also \emph{hygienic macro}.
+
 \item[NaN-boxing]\index{NaN-boxing}
 Kaappi's value representation technique: all Scheme values are stored in 64-bit words using the unused bit patterns of IEEE 754 NaN values.
 
 \item[pair]\index{pair}
 See \emph{cons cell}.
 
+\item[parameter object]\index{parameter object}
+A dynamically scoped variable created with \texttt{make-parameter} and rebound for the extent of a body with \texttt{parameterize}. Calling the parameter as a procedure returns its current value.
+
 \item[port]\index{port}
-An abstraction for I/O sources and sinks. Input ports read data; output ports write data. Ports can be connected to files, strings, or the console.
+An abstraction for I/O sources and sinks. Input ports read data; output ports write data. Ports can be connected to files, strings, or the console (Chapter~\ref{ch:io}).
 
 \item[predicate]\index{predicate}
 A procedure that returns \texttt{\#t} or \texttt{\#f}. By convention, predicates end with \texttt{?} (e.g., \texttt{null?}, \texttt{string?}).
@@ -134,19 +158,25 @@ Template syntax using backtick (\texttt{`}) that allows selective unquoting with
 The Revised$^7$ Report on the Algorithmic Language Scheme (2013). The current Scheme standard. ``R7RS-small'' is the core language; ``R7RS-large'' is the extended library effort.
 
 \item[record]\index{record}
-A user-defined structured data type with named fields. Created with \texttt{define-record-type}.
+A user-defined structured data type with named fields. Created with \texttt{define-record-type} (Chapter~\ref{ch:records}).
+
+\item[REPL]\index{REPL}
+Read-eval-print loop: the interactive \texttt{kaappi>} prompt that reads an expression, evaluates it, and prints the result. Supports meta-commands prefixed with a comma (Appendix~\ref{app:cli}).
 
 \item[S-expression]\index{S-expression}
 The syntactic representation of Scheme code and data: atoms and nested lists in parentheses.
 
 \item[sandbox]\index{sandbox}
-A restricted execution mode (\texttt{--sandbox}) that disables file I/O, FFI, and network access for untrusted code.
+A restricted execution mode (\texttt{--sandbox}) for untrusted code. Disables the FFI, file I/O, \texttt{eval}, \texttt{load}, process context access, and OS threads (Appendix~\ref{app:cli}).
 
 \item[shared library]\index{shared library}
 A compiled C library (\texttt{.dylib} on macOS, \texttt{.so} on Linux) that can be loaded at runtime via the FFI.
 
 \item[spawn]\index{spawn}
 The procedure that creates a new fiber from a thunk. The fiber runs concurrently with other fibers on the same OS thread.
+
+\item[special form]\index{special form}
+An expression evaluated by its own rules rather than as a procedure call---\texttt{if}, \texttt{define}, and \texttt{lambda} are special forms. Appendix~\ref{app:r7rs} lists them all.
 
 \item[SRFI]\index{SRFI}
 Scheme Requests for Implementation. Community-designed portable libraries. Kaappi ships 72 SRFIs (8 built-in, 64 portable).
@@ -157,20 +187,20 @@ An interned identifier value. Two symbols with the same name are pointer-equal (
 \item[syntax-rules]\index{syntax-rules}
 The pattern-based macro definition form in R7RS. Matches input against patterns and produces output from templates.
 
-\item[tail call]\index{tail call}
-A procedure call in tail position---the last expression evaluated before returning. Scheme guarantees tail calls use constant stack space.
-
-\item[tail position]\index{tail position}
-A syntactic position where a procedure call is the last action before returning. Calls in tail position are guaranteed not to grow the stack (tail-call optimization).
+\item[tail call]\index{tail call}\index{tail position}
+A procedure call in \emph{tail position}---the last expression evaluated before returning. Scheme guarantees tail calls run in constant stack space, a property known as tail-call optimization (Chapter~\ref{ch:functions}).
 
 \item[TCO]\index{TCO}
-Tail Call Optimization. The guarantee that tail calls do not consume stack space.
+Tail Call Optimization. See \emph{tail call}.
 
 \item[thottam]\index{thottam}
 Kaappi's built-in package manager. Installs, manages, and resolves dependencies for Kaappi ecosystem libraries.
 
 \item[thunk]\index{thunk}
 A zero-argument procedure, used to delay evaluation. \texttt{(lambda () expr)}.
+
+\item[truthiness]\index{truthiness}
+In Scheme, only \texttt{\#f} is false; every other value---including \texttt{0}, \texttt{""}, and the empty list---is true. A frequent trap for programmers coming from Python or JavaScript.
 
 \item[variadic]\index{variadic}
 A function that accepts a variable number of arguments. Defined with dotted parameter syntax: \texttt{(define (f x . rest) ...)}.
@@ -179,6 +209,6 @@ A function that accepts a variable number of arguments. Defined with dotted para
 A fixed-size, mutable, indexed collection with O(1) access by position.
 
 \item[yield]\index{yield}
-Voluntarily suspends the current fiber, allowing other fibers to run. Called implicitly during channel operations.
+Voluntarily suspends the current fiber so other fibers can run. Implicitly called by \texttt{channel-receive} while it waits for a value.
 
 \end{description}

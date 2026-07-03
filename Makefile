@@ -6,7 +6,7 @@ LATEXMK = latexmk
 LATEXMK_FLAGS = -xelatex $(COMMON_FLAGS)
 XELATEX = xelatex
 
-.PHONY: all clean view once check-repl
+.PHONY: all clean view once check-repl check-examples
 
 # Full build: latexmk runs XeLaTeX (and makeindex) as many times as needed
 # to resolve the TOC, index, and cross-references.
@@ -26,6 +26,11 @@ view: all
 # shown in the book against reality. Needs `kaappi` on PATH.
 check-repl:
 	python3 tools/check-repl-listings.py chapters/*.tex
+
+# Verify appendix error messages and code examples against the real
+# kaappi interpreter (needs ../kaappi built, or set KAAPPI=/path/to/kaappi).
+check-examples:
+	bash scripts/check-appendix-examples.sh
 
 clean:
 	-$(LATEXMK) -C $(COMMON_FLAGS) $(MAIN).tex >/dev/null 2>&1

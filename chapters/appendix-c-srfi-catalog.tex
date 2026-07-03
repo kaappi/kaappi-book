@@ -2,7 +2,7 @@
 \index{SRFI!catalog}
 \label{app:srfi}
 
-All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}. Chapter~\ref{ch:stdlib} covers the most commonly used SRFIs in depth.
+All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}. Chapter~\ref{ch:stdlib} covers the most commonly used SRFIs in depth. Each SRFI's full specification, rationale, and reference implementation are published at \url{https://srfi.schemers.org}.
 
 \begin{note}[Built-in vs.\ Portable]
 Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \textbf{*} below) for performance. The remaining 64 are portable Scheme \texttt{.sld} files loaded on demand. Both are imported the same way: \code{(import (srfi N))}.
@@ -16,6 +16,7 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \hline
 1\textbf{*} & Extended list library (fold, filter, find, partition, iota, zip, take, drop) \\
 4 & Homogeneous numeric vector datatypes \\
+9\textbf{*} & Defining record types (define-record-type) \\
 69\textbf{*} & Basic hash tables (make, set!, ref, delete!, walk, keys, values) \\
 111 & Boxes (single-value mutable containers) \\
 113 & Sets and bags with comparator-based equality \\
@@ -95,13 +96,14 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \end{tabular}
 \end{center}
 
-\section{Lazy Evaluation and Generators}
+\section{Iteration, Generators, and Lazy Evaluation}
 
 \begin{center}
 \begin{tabular}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
 41 & Streams (lazy lists with memoization) \\
+42 & Eager comprehensions (list-ec, vector-ec, sum-ec) \\
 45 & Primitives for expressing iterative lazy algorithms \\
 127 & Lazy sequences \\
 158 & Generators and accumulators (lazy pull-based iteration) \\
@@ -122,12 +124,13 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \end{tabular}
 \end{center}
 
-\section{Time and System}
+\section{Time, System, and Concurrency}
 
 \begin{center}
 \begin{tabular}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+18\textbf{*} & Multithreading (threads, mutexes, condition variables) \\
 19 & Time data types and procedures (date, time-utc) \\
 37 & \texttt{args-fold} --- program argument processor \\
 98 & Interface to access environment variables \\
@@ -144,36 +147,6 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \hline
 64 & A Scheme API for test suites (test-begin, test-assert, test-equal) \\
 78 & Lightweight testing (check, check-report) \\
-\end{tabular}
-\end{center}
-
-\section{Concurrency}
-
-\begin{center}
-\begin{tabular}{rp{9cm}}
-\textbf{SRFI} & \textbf{Description} \\
-\hline
-18\textbf{*} & Multithreading (threads, mutexes, condition variables) \\
-\end{tabular}
-\end{center}
-
-\section{Records}
-
-\begin{center}
-\begin{tabular}{rp{9cm}}
-\textbf{SRFI} & \textbf{Description} \\
-\hline
-9\textbf{*} & Defining record types (define-record-type) \\
-\end{tabular}
-\end{center}
-
-\section{Iteration and Comprehensions}
-
-\begin{center}
-\begin{tabular}{rp{9cm}}
-\textbf{SRFI} & \textbf{Description} \\
-\hline
-42 & Eager comprehensions (list-ec, vector-ec, sum-ec) \\
 \end{tabular}
 \end{center}
 

@@ -10,11 +10,13 @@ This appendix collects books, standards documents, and online resources for cont
 
 \item[Structure and Interpretation of Computer Programs] \textit{Harold Abelson, Gerald Jay Sussman, and Julie Sussman} (MIT Press, 1996). The classic introduction to computer science using Scheme. Covers abstraction, recursion, interpreters, and compilation. Available free online from MIT Press.
 
-\item[The Scheme Programming Language, 4th Edition] \textit{R.\ Kent Dybvig} (MIT Press, 2009). A thorough reference and tutorial for the Scheme language. Covers R6RS but most content applies to R7RS. Available free online at \texttt{scheme.com/tspl4/}.
+\item[The Scheme Programming Language, 4th Edition] \textit{R.\ Kent Dybvig} (MIT Press, 2009). A thorough reference and tutorial for the Scheme language. Covers R6RS but most content applies to R7RS. Available free online at \url{https://scheme.com/tspl4/}.
 
 \item[The Little Schemer] \textit{Daniel P.\ Friedman and Matthias Felleisen} (MIT Press, 1996). A short, playful introduction to recursive thinking using Scheme. Structured as a series of questions and answers that build up to writing a Scheme interpreter in Scheme. Highly recommended if you want to deepen your intuition for recursion.
 
 \item[The Seasoned Schemer] \textit{Daniel P.\ Friedman and Matthias Felleisen} (MIT Press, 1996). The sequel to \textit{The Little Schemer}. Covers continuations, mutation, and advanced control flow.
+
+\item[How to Design Programs, 2nd Edition] \textit{Matthias Felleisen, Robert Bruce Findler, Matthew Flatt, and Shriram Krishnamurthi} (MIT Press, 2018). A systematic introduction to program design using a Scheme-family teaching language. Gentler than SICP. Available free online at \url{https://htdp.org}.
 
 \item[Essentials of Programming Languages, 3rd Edition] \textit{Daniel P.\ Friedman and Mitchell Wand} (MIT Press, 2008). Uses Scheme to build interpreters for progressively more complex languages. Excellent for understanding how programming languages work.
 
@@ -24,9 +26,9 @@ This appendix collects books, standards documents, and online resources for cont
 
 \begin{description}[leftmargin=1em, labelindent=0em]
 
-\item[R7RS-small Report] The official language standard that Kaappi implements. Defines all syntax forms, standard libraries, and semantics. Available at \texttt{r7rs.org}. Essential reading once you are comfortable with the language.
+\item[R7RS-small Report] The official language standard that Kaappi implements. Defines all syntax forms, standard libraries, and semantics. Available at \url{https://r7rs.org}. Essential reading once you are comfortable with the language. A follow-on effort, R7RS-large, is standardizing a much larger library set on top of it.
 
-\item[SRFI Process] Scheme Requests for Implementation---the community process for proposing and standardizing library extensions. Browse all SRFIs at \texttt{srfi.schemers.org}. Each SRFI includes a rationale, specification, and reference implementation.
+\item[SRFI Process] Scheme Requests for Implementation---the community process for proposing and standardizing library extensions. Browse all SRFIs at \url{https://srfi.schemers.org}. Each SRFI includes a rationale, specification, and reference implementation. Appendix~\ref{app:srfi} catalogs the 72 SRFIs Kaappi ships.
 
 \end{description}
 
@@ -34,15 +36,19 @@ This appendix collects books, standards documents, and online resources for cont
 
 \begin{description}[leftmargin=1em, labelindent=0em]
 
-\item[Documentation Site] \texttt{kaappi-lang.org/docs/} --- the complete Kaappi reference, including the guided tutorial, language quick reference, and procedure documentation organized by category (600+ procedures).
+\item[Documentation Site] \url{https://kaappi-lang.org} --- the complete Kaappi reference, including the guided tutorial, language quick reference, cookbook, and procedure documentation organized by category (600+ procedures).
 
-\item[Tutorial] \texttt{kaappi-lang.org/docs/guide/tutorial/} --- a 12-section beginner tutorial that complements this book with interactive examples.
+\item[Tutorial] \url{https://kaappi-lang.org/guide/tutorial/} --- a 12-section beginner tutorial that complements this book.
 
-\item[Cookbook] \texttt{kaappi-lang.org/docs/cookbook/} --- practical recipes for common tasks: building REST APIs, parsing JSON, working with databases, writing CLI tools, and testing.
+\item[Tour] \url{https://kaappi-lang.org/tour/} --- 12 interactive lessons that run live code in your browser. A quick way to refresh a concept without leaving the page.
 
-\item[Playground] \texttt{kaappi-lang.org/playground/} --- a browser-based REPL running Kaappi via WebAssembly. Useful for quick experiments without a local install.
+\item[Cookbook] \url{https://kaappi-lang.org/cookbook/} --- practical recipes for common tasks: building REST APIs, parsing JSON, working with databases, writing CLI tools, and testing.
 
-\item[Source Code] \texttt{github.com/kaappi/kaappi} --- the Kaappi implementation in Zig. Reading the source is the best way to understand how the language works at a deep level.
+\item[Playground] \url{https://kaappi-lang.org/playground/} --- a browser-based REPL running Kaappi via WebAssembly. Useful for quick experiments without a local install.
+
+\item[Community] \url{https://kaappi-lang.org/community/} --- where to ask questions, report bugs, and follow development.
+
+\item[Source Code] \url{https://github.com/kaappi/kaappi} --- the Kaappi implementation in Zig. Reading the source is the best way to understand how the language works at a deep level.
 
 \end{description}
 
@@ -50,10 +56,10 @@ This appendix collects books, standards documents, and online resources for cont
 
 \begin{description}[leftmargin=1em, labelindent=0em]
 
-\item[Scheme Community Wiki] \texttt{community.schemewiki.org} --- tutorials, implementation comparisons, and community-maintained documentation.
+\item[Scheme Community Wiki] \url{https://community.schemewiki.org} --- tutorials, implementation comparisons, and community-maintained documentation.
 
-\item[Awesome Scheme] A curated list of Scheme resources, libraries, and tools maintained on GitHub.
+\item[Awesome Scheme] \url{https://github.com/schemedoc/awesome-scheme} --- a curated list of Scheme implementations, libraries, and resources.
 
-\item[Functional Programming Subreddit] \texttt{reddit.com/r/scheme} and \texttt{reddit.com/r/lisp} --- active communities for discussing Scheme and Lisp topics.
+\item[Scheme and Lisp Communities] \url{https://reddit.com/r/scheme} and \url{https://reddit.com/r/lisp} --- active forums for discussing Scheme and Lisp topics.
 
 \end{description}

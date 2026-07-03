@@ -15,6 +15,7 @@ make once       # single raw XeLaTeX pass — fast iteration; TOC, index, refs m
 make view       # full build then open build/kaappi-book.pdf
 make clean      # latexmk -C, then remove build/
 make check-repl # replay every style=repl listing through `kaappi` and diff against the book
+make check-examples  # verify appendix error messages + examples against the kaappi binary
 ```
 
 Output: `build/kaappi-book.pdf` (jobname `kaappi-book`); build log at
@@ -27,6 +28,12 @@ output mismatches. Known divergences (interactive-only features,
 nondeterministic output, and TODO-marked listing bugs) are listed with
 reasons in `tools/repl-check-ignore.txt`. Run it after changing any REPL
 listing.
+
+`make check-examples` runs `scripts/check-appendix-examples.sh`, which executes
+the error cases quoted in Appendix D and the quick-start examples in Appendix E
+against the real interpreter (`../kaappi/zig-out/bin/kaappi`, or `$KAAPPI`).
+Run it whenever those appendices change, and after Kaappi releases that touch
+diagnostics.
 
 ## Project Layout
 
@@ -43,6 +50,7 @@ preamble/
   styles.tex          mdframed environments (note, warning, exercise, codeoutput)
   listings.tex        Scheme language definition, lstlisting styles (scheme, repl)
 chapters/             One .tex per chapter, \input'd from main.tex
+scripts/              check-appendix-examples.sh — appendix verification against ../kaappi
 fonts/                Bundled .ttf (EB Garamond, Source Sans 3, Fira Code)
 build/                Output directory (gitignored)
 .cursorrules          Legacy Cursor rules — partially stale; this file is authoritative
