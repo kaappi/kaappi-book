@@ -66,7 +66,7 @@ When the test is false and there is no alternate, the result is unspecified. In 
 "hot"
 \end{lstlisting}
 
-Each clause is \texttt{(test expr ...)}. The first clause whose test returns true has its expressions evaluated, and the last one's value is returned. The \texttt{else} clause matches if nothing else did.
+Each clause is \texttt{(test expr ...)}. The first clause whose test returns true has its expressions evaluated, and the last one's value is returned. The \texttt{else} clause matches if nothing else did. If no test succeeds and there is no \texttt{else}, the result is unspecified---when you use \texttt{cond} for its value, always include an \texttt{else} clause.
 
 \subsection{The \texttt{=>} Syntax}
 
@@ -101,7 +101,7 @@ Here, \texttt{assv} returns \texttt{(2 "two")} (a true value), and \texttt{=>} p
 "weekday"
 \end{lstlisting}
 
-Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?} (Section~\ref{sec:equality}), which tests equality for numbers, characters, booleans, and symbols (but not strings---two strings with the same content may not be \texttt{eqv?}). For matching against strings, use \texttt{cond} with \texttt{string=?} instead.
+Each clause lists datum values in parentheses. The key is compared using \texttt{eqv?}\index{eqv?} (Section~\ref{sec:equality}), which tests equality for numbers, characters, booleans, and symbols (but not strings---two strings with the same content may not be \texttt{eqv?}). For matching against strings, use \texttt{cond} with \texttt{string=?} instead. As with \texttt{cond}, if no clause matches and there is no \texttt{else}, the result is unspecified.
 
 \begin{lstlisting}[style=repl]
 > (case (+ 2 3)
@@ -152,37 +152,36 @@ Each clause lists datum values in parentheses. The key is compared using \texttt
 
 \subsection{Using \texttt{or} for Defaults}
 
-A common pattern is using \texttt{or} to provide fallback values:
+A common pattern is using \texttt{or} to provide a fallback when a value may be \texttt{\#f}:
 
 \begin{lstlisting}[style=repl]
-> (define (get-port config)
-    (or (cond ((assoc "port" config) => cdr)
-              (else #f))
-        8080))
-> (get-port '())
-8080
-> (get-port '(("port" . 3000)))
+> (define (server-port configured)
+    (or configured 8080))
+> (server-port 3000)
 3000
+> (server-port #f)
+8080
 \end{lstlisting}
 
-If the \texttt{cond} finds a \texttt{"port"} entry, it extracts the value with \texttt{cdr}; otherwise it returns \texttt{\#f}. The \texttt{or} then provides the default when the result is \texttt{\#f}.
+Because searching procedures such as \texttt{assoc} and \texttt{member} return \texttt{\#f} on failure, their results chain naturally into \texttt{or}. Note that \texttt{or} falls through only on \texttt{\#f}---unlike in Python, \texttt{0} and \texttt{""} are true values and will not trigger the default.
 
 \subsection{Using \texttt{and} for Guarded Access}
 
-\texttt{and} is useful for safe chaining when a value might be \texttt{\#f}:
+\texttt{and} is useful for guarding an operation that would error on the wrong input---the guard runs first, and the operation runs only if it passes:
 
 \begin{lstlisting}[style=repl]
-> (define data '(("name" . "Alice")))
-> (and (assoc "name" data)
-       (cdr (assoc "name" data)))
-"Alice"
-> (and (assoc "email" data)
-       (cdr (assoc "email" data)))
+> (define (safe-first lst)
+    (and (pair? lst) (car lst)))
+> (safe-first '(1 2 3))
+1
+> (safe-first '())
 #f
 \end{lstlisting}
 
+If \texttt{lst} is empty, \texttt{(car lst)} would raise an error; the \texttt{and} short-circuits to \texttt{\#f} instead. For the lookup-then-extract pattern---testing an \texttt{assoc} result and then taking its \texttt{cdr}---prefer the \texttt{=>} clause of \texttt{cond} shown earlier, which avoids repeating the lookup.
+
 \begin{note}[Coming from Python]
-Scheme's \texttt{and}/\texttt{or} behave identically to Python's. \texttt{(or val default)} is like Python's \texttt{val or default}. \texttt{(and x (f x))} is like \texttt{x and f(x)}.
+Like Python's \texttt{and}/\texttt{or}, these return the deciding operand rather than a strict boolean, so \texttt{(and x (f x))} works like Python's \texttt{x and f(x)}. The crucial difference is what counts as false: Python treats \texttt{0}, \texttt{""}, and \texttt{[]} as falsy, but Scheme has exactly one false value, \texttt{\#f}. \texttt{(or 0 42)} is \texttt{0}, not \texttt{42}---port idioms like \texttt{val or default} with care.
 \end{note}
 
 \section{\texttt{not}}

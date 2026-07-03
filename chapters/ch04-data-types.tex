@@ -319,7 +319,7 @@ Chapter~\ref{ch:first-steps} introduced characters: single Unicode codepoints wr
 #\(*@$\lambda$@*)
 \end{lstlisting}
 
-The last example produces the Greek lambda character---Kaappi has full Unicode support.
+Characters and their codepoints round-trip. The last example produces the Greek lambda character---Kaappi has full Unicode support.
 
 \section{Booleans}
 \index{booleans}
@@ -343,24 +343,7 @@ Remember: \texttt{not} returns \texttt{\#t} only when given \texttt{\#f}. Every 
 
 \subsection{Boolean Combinators}
 
-\texttt{and} and \texttt{or} are short-circuiting and return the determining value (not necessarily \texttt{\#t} or \texttt{\#f}):
-
-\begin{lstlisting}[style=repl]
-> (and 1 2 3)
-3
-> (and 1 #f 3)
-#f
-> (or #f #f 42)
-42
-> (or #f #f #f)
-#f
-\end{lstlisting}
-
-\texttt{and} returns the last value if all are true, or the first false value. \texttt{or} returns the first true value, or the last value if all are false.
-
-\begin{note}[Coming from Python]
-This is exactly how Python's \texttt{and}/\texttt{or} work: \texttt{1 and 2 and 3} returns \texttt{3}, and \texttt{False or 0 or 42} returns \texttt{42}. Same semantics, different syntax.
-\end{note}
+\texttt{and} and \texttt{or} combine conditions; they short-circuit and return the determining value rather than a strict \texttt{\#t} or \texttt{\#f}. Chapter~\ref{ch:control-flow} covers them in depth alongside the other conditional forms.
 
 \section{Symbols}
 \index{symbols}

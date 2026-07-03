@@ -35,7 +35,7 @@ The key rule: all the \texttt{expr} values are computed \emph{before} any bindin
 > (let ((x 5)
         (y (* x 2)))   ; ERROR: x is not yet bound here
     y)
-; Error: unbound variable: x
+error: undefined variable 'x'
 \end{lstlisting}
 
 This fails because \texttt{x} is not visible to the expression \texttt{(* x 2)}---the bindings are computed in the outer environment. If you need sequential bindings, use \texttt{let*}.
@@ -201,10 +201,9 @@ Inside a \texttt{lambda}, \texttt{let}, or \texttt{define} body, you can use \te
     (define r-squared (* radius radius))
     (define area (* pi r-squared))
     (define circumference (* 2 pi radius))
-    (values area circumference))
+    (list area circumference))
 > (circle-stats 5)
-78.53981633974483
-31.41592653589793
+(78.53981633974483 31.41592653589793)
 \end{lstlisting}
 
 Internal \texttt{define}s are equivalent to \texttt{letrec*}---they can refer to each other and allow mutual recursion. This is the most common way to define local helper functions:
@@ -256,6 +255,16 @@ When a function returns multiple values (using \texttt{values}), you can bind th
     (display "Max: ") (display hi) (newline))
 Min: 1
 Max: 9
+\end{lstlisting}
+
+Two relatives round out the family. \texttt{let*-values}\index{let*-values} is to \texttt{let-values} what \texttt{let*} is to \texttt{let}: later bindings can use earlier ones. And \texttt{define-values}\index{define-values} binds multiple results as ordinary definitions:
+
+\begin{lstlisting}[style=repl]
+> (define-values (lo hi) (min-max '(3 1 4 1 5)))
+> lo
+1
+> hi
+5
 \end{lstlisting}
 
 \section{Choosing the Right Binding Form}
@@ -323,7 +332,7 @@ Several built-in procedures use parameters. In Chapter~\ref{ch:io} you will meet
     \item \texttt{letrec} and \texttt{letrec*} let bindings refer to one another, as for mutually recursive local functions.
     \item Named \texttt{let} is a concise loop, and internal \texttt{define}s behave like \texttt{letrec*}.
     \item \texttt{let} is syntactic sugar for an immediately applied \texttt{lambda}.
-    \item \texttt{let-values} binds the results of an expression that returns multiple values.
+    \item \texttt{let-values}, \texttt{let*-values}, and \texttt{define-values} bind the results of expressions that return multiple values.
     \item Parameters provide dynamic binding: \texttt{parameterize} changes a value for the extent of a computation, then restores it.
 \end{itemize}
 
@@ -388,20 +397,20 @@ Kaappi provides a built-in \code{gcd} procedure---the purpose here is to practic
 \end{exercise}
 
 \begin{exercise}[Mutual Recursion with \code{letrec}]
-Write a function \code{balanced-parens?} that checks whether a string of parentheses is balanced (e.g., \code{"(()())"} is balanced, \code{"(()"} is not). Use \code{letrec} to define two mutually recursive helpers: \code{expect-open} looks for an opening paren or end of input, and \code{expect-close} tracks the nesting depth:
+Write a function \code{count-words} that counts the words in a string, where words are separated by one or more whitespace characters. Treat the problem as a tiny state machine with two states, and use \code{letrec} to define one recursive function per state: \code{between-words} (currently on whitespace) and \code{in-word} (currently inside a word). Each function examines one character and either stays in its state or hands off to the other:
 
 \begin{lstlisting}[style=repl]
-> (balanced-parens? "(()())")
-#t
-> (balanced-parens? "(()")
-#f
-> (balanced-parens? "")
-#t
-> (balanced-parens? ")(")
-#f
+> (count-words "hello world")
+2
+> (count-words "  a  b  ")
+2
+> (count-words "scheme")
+1
+> (count-words "")
+0
 \end{lstlisting}
 
-Hint: convert the string to a list of characters with \code{string->list}, then walk the list recursively. One approach uses a single recursive function with a depth counter, but the exercise asks for \code{letrec} with two cooperating functions to practice mutual recursion.
+Hint: convert the string to a list of characters with \code{string->list} and test each with \code{char-whitespace?}. Count a new word at the moment \code{between-words} hands off to \code{in-word}. Both handoffs are tail calls, so the state machine runs in constant space---two-state problems like this are where mutual recursion genuinely earns its keep.
 \end{exercise}
 
 \begin{exercise}[Rewriting \code{do} as Named \code{let}]

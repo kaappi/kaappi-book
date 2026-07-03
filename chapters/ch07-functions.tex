@@ -2,7 +2,7 @@
 \index{functions}
 \label{ch:functions}
 
-Functions are the primary organizational unit in Scheme. There are no classes, no methods, no modules in the traditional sense---just functions. This chapter covers defining functions, recursion, closures, tail-call optimization, variadic arguments, and returning multiple values.
+Functions are the primary organizational unit in Scheme. There are no classes and no methods---programs are built by defining and composing functions, with libraries (Chapter~\ref{ch:libraries}) grouping them into reusable units. This chapter covers defining functions, recursion, closures, tail-call optimization, variadic arguments and \texttt{case-lambda}, and returning multiple values.
 
 \section{Defining Functions}
 \index{define}
@@ -72,7 +72,7 @@ Anonymous functions are particularly useful when passing short operations to hig
 \section{Recursion}
 \index{recursion}
 
-Scheme has no \texttt{for} or \texttt{while} loops. Repetition is expressed through recursion, and the language is designed to make this efficient and natural.
+Scheme has no dedicated \texttt{for} or \texttt{while} statement---aside from the \texttt{do} form from Chapter~\ref{ch:control-flow}, repetition is expressed through recursion, and the language is designed to make recursion efficient and natural.
 
 \subsection{Simple Recursion}
 
@@ -205,7 +205,7 @@ Here is the tail-recursive version using an accumulator:
 93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
 \end{lstlisting}
 
-The call to \texttt{loop} is the last expression---nothing wraps it---so it runs without growing the stack, even for \texttt{(factorial 1000000)}.
+The call to \texttt{loop} is the last expression---nothing wraps it---so it runs without growing the stack, even for \texttt{(factorial 1000000)}. (The inner \texttt{define} creates a helper procedure visible only inside \texttt{factorial}; these \emph{internal definitions} are covered in Chapter~\ref{ch:bindings}.)
 
 \subsection{Named \texttt{let} for Loops}
 \index{named let}
@@ -261,7 +261,7 @@ Each call to \texttt{make-adder} creates a new closure that captures its own cop
 
 \subsection{Closures with Mutable State}
 
-Closures can capture mutable variables, creating private state:
+Closures can capture mutable variables, creating private state. The \texttt{(let ((n 0)) ...)} form below introduces a local variable \texttt{n} bound to 0---Chapter~\ref{ch:bindings} covers \texttt{let} fully; for now, read it as ``create a variable \texttt{n} visible only inside this body'':
 
 \begin{lstlisting}[style=repl]
 > (define (make-counter)
@@ -313,6 +313,25 @@ The dot before \texttt{numbers} means ``collect all remaining arguments into a l
 "ERROR: file not found"
 \end{lstlisting}
 
+\section{\texttt{case-lambda}: Optional Arguments}
+\index{case-lambda}\index{optional arguments}
+
+Python expresses optional arguments with default values: \texttt{def greet(name, greeting="Hello")}. Scheme's answer is \texttt{case-lambda}, which builds a procedure from several clauses, one per parameter list. When the procedure is called, the clause matching the number of arguments runs:
+
+\begin{lstlisting}[style=repl]
+> (define greet
+    (case-lambda
+      ((name) (greet name "Hello"))
+      ((name greeting)
+       (string-append greeting ", " name "!"))))
+> (greet "Alice")
+"Hello, Alice!"
+> (greet "Alice" "Howdy")
+"Howdy, Alice!"
+\end{lstlisting}
+
+The one-argument clause supplies the default by calling the two-argument clause. A clause's parameter list can also use dot notation---\texttt{((x . rest) ...)}---to catch every remaining arity, just as in a variadic \texttt{define}.
+
 \section{\texttt{apply}}
 \index{apply}
 
@@ -337,12 +356,16 @@ Scheme functions can return multiple values using \texttt{values}:
 \begin{lstlisting}[style=repl]
 > (define (divide a b)
     (values (quotient a b) (remainder a b)))
-> (divide 17 5)
-3
-2
 \end{lstlisting}
 
-To receive multiple values, use \texttt{call-with-values}\index{call-with-values} or the more convenient \texttt{let-values}\index{let-values} (covered in detail in Chapter~\ref{ch:bindings}):
+The caller must explicitly receive the values. The fundamental receiver is \texttt{call-with-values}\index{call-with-values}, which hands them to another function as its arguments:
+
+\begin{lstlisting}[style=repl]
+> (call-with-values (lambda () (divide 17 5)) list)
+(3 2)
+\end{lstlisting}
+
+In practice you will usually reach for the more convenient \texttt{let-values}\index{let-values} (covered in detail in Chapter~\ref{ch:bindings}), which binds each value to a name:
 
 \begin{lstlisting}[style=repl]
 > (let-values (((q r) (divide 17 5)))
@@ -395,8 +418,8 @@ These patterns---composition, partial application, and higher-order functions in
     \item Recursion is Scheme's primary looping mechanism, and tail-recursive calls run in constant space.
     \item Named \texttt{let} expresses loops as local tail recursion.
     \item Closures capture their defining environment, enabling private, mutable state.
-    \item Variadic functions use a rest parameter, and \texttt{apply} spreads a list into individual arguments.
-    \item Procedures can return several results with \texttt{values} and \texttt{call-with-values}.
+    \item Variadic functions use a rest parameter, \texttt{case-lambda} dispatches on argument count (Scheme's optional arguments), and \texttt{apply} spreads a list into individual arguments.
+    \item Procedures can return several results with \texttt{values}, received with \texttt{call-with-values} or \texttt{let-values}.
 \end{itemize}
 
 \section*{Exercises}
@@ -430,22 +453,23 @@ Write a function \code{make-accumulator} that returns a closure. Each time the c
 In Python, you would use a class with \texttt{\_\_call\_\_} or a closure over a \texttt{nonlocal} variable. In Scheme, \code{set!} and a \code{let}-bound variable do the job.
 \end{exercise}
 
-\begin{exercise}[Function Composition]
-Write \code{my-compose} that takes two functions \code{f} and \code{g} and returns a new function that computes \code{(f (g x))}:
+\begin{exercise}[Left-to-Right Composition]
+The chapter defined \code{compose}, which applies the \emph{rightmost} function first: \code{((compose f g) x)} computes \code{(f (g x))}. Many pipelines read more naturally the other way around. Write \code{pipe}, which applies its functions left to right---\code{((pipe f g) x)} computes \code{(g (f x))}:
 
 \begin{lstlisting}[style=repl]
 > (define inc-then-double
-    (my-compose (lambda (x) (* x 2))
-                (lambda (x) (+ x 1))))
+    (pipe (lambda (x) (+ x 1))
+          (lambda (x) (* x 2))))
 > (inc-then-double 3)
 8
-> (define shout (my-compose string-upcase
-                            (lambda (s) (string-append s "!"))))
-> (shout "hello")
+> (define exclaim
+    (pipe (lambda (s) (string-append s "!"))
+          string-upcase))
+> (exclaim "hello")
 "HELLO!"
 \end{lstlisting}
 
-Bonus (after reading Chapter~\ref{ch:hof}): extend \code{my-compose} to accept any number of functions using rest arguments and \code{fold}.
+Can you define \code{pipe} in terms of \code{compose}? Bonus (after reading Chapter~\ref{ch:hof}): extend \code{pipe} to accept any number of functions using rest arguments and \code{fold}.
 \end{exercise}
 
 \begin{exercise}[Variadic Maximum]
@@ -460,7 +484,7 @@ Write a function \code{my-max} that takes one or more numeric arguments and retu
 -1
 \end{lstlisting}
 
-The built-in \code{max} already does this, so name yours \code{my-max}. Use a named \code{let} or \code{fold} to walk the rest arguments.
+The built-in \code{max} already does this, so name yours \code{my-max}. Use a named \code{let} to walk the rest arguments.
 \end{exercise}
 
 \begin{exercise}[Tail-Recursive Fibonacci]
@@ -524,7 +548,7 @@ Write a function \code{deep-reverse} that reverses a list at every level of nest
 ()
 \end{lstlisting}
 
-This requires two recursive cases: when the \code{car} is itself a pair (deep-reverse it before collecting), and when it is an atom (keep it as-is). Use an accumulator for the outer reversal, as in the \code{flatten} example from this chapter.
+This requires two recursive cases: when the \code{car} is itself a pair (deep-reverse it before collecting), and when it is an atom (keep it as-is). Branch on \code{(pair? (car lst))} the way the \code{flatten} example from this chapter does, but collect results into an accumulator so each level comes out reversed.
 \end{exercise}
 
 The next chapter covers local bindings in detail---including a closer look at named \texttt{let}, which you met here as a looping construct.

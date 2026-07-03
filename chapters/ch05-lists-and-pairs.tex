@@ -269,6 +269,17 @@ It returns the tail of the list starting with the match, or \texttt{\#f} if not 
 #f
 \end{lstlisting}
 
+Both procedures come in three variants that differ only in the equality predicate they use (Section~\ref{sec:equality}): \texttt{member} and \texttt{assoc} compare with \texttt{equal?}, \texttt{memq}\index{memq} and \texttt{assq}\index{assq} with \texttt{eq?}, and \texttt{memv}\index{memv} and \texttt{assv}\index{assv} with \texttt{eqv?}. Reach for the \texttt{q} variants when the elements or keys are symbols, and the \texttt{v} variants for numbers and characters---both skip the structural comparison that \texttt{equal?} performs:
+
+\begin{lstlisting}[style=repl]
+> (memq 'c '(a b c d))
+(c d)
+> (memv 3 '(1 2 3 4))
+(3 4)
+> (assq 'green '((red . "#ff0000") (green . "#00ff00")))
+(green . "#00ff00")
+\end{lstlisting}
+
 \begin{note}[Coming from Python]
 An association list\index{alist} is like a Python dictionary, but with O(n) lookup. For small collections (under ~50 entries), alists are simple and effective. For larger collections, use hash tables (covered in Chapter~\ref{ch:stdlib}).
 \end{note}
@@ -342,6 +353,20 @@ Compare the two structures:
 
 Dotted pairs are useful as lightweight two-element structures---association lists use them for key-value entries. But most list-processing procedures (\texttt{length}, \texttt{map}, \texttt{for-each}) expect proper lists and will error on improper ones.
 
+\begin{note}[Mutating pairs]
+\index{set-car"!}\index{set-cdr"!}
+Pairs are mutable: \texttt{set-car!} and \texttt{set-cdr!} replace one half of an existing pair in place.
+
+\begin{lstlisting}[style=repl]
+> (define p (cons 1 2))
+> (set-car! p 99)
+> p
+(99 . 2)
+\end{lstlisting}
+
+Idiomatic Scheme rarely uses them---building a new list is usually clearer and safer, as in the alist-update idiom in the exercises below. One hard rule: never mutate a quoted literal such as \texttt{'(1 2 3)}; R7RS declares that an error. If you intend to mutate, construct the pairs with \texttt{cons} or \texttt{list}.
+\end{note}
+
 \section{Performance Characteristics}
 
 Understanding list performance helps you choose the right data structure:
@@ -367,7 +392,7 @@ Lists excel at sequential processing and stack-like access (always working with 
 \begin{itemize}
     \item A pair (cons cell) holds two values---its \texttt{car} and \texttt{cdr}---and lists are chains of pairs ending in the empty list.
     \item Build lists with \texttt{list}, \texttt{cons}, or quoting, and access them with \texttt{car}, \texttt{cdr}, and \texttt{list-ref}.
-    \item Common operations include \texttt{length}, \texttt{append}, \texttt{reverse}, \texttt{member}, and \texttt{assoc}.
+    \item Common operations include \texttt{length}, \texttt{append}, \texttt{reverse}, and the \texttt{member}/\texttt{assoc} lookup families (\texttt{memq}, \texttt{memv}, \texttt{assq}, \texttt{assv}).
     \item Lists have a recursive structure---empty, or an element plus a smaller list---which Chapter~\ref{ch:functions} exploits to process them.
     \item Lists offer constant-time prepend but linear-time access and length, which guides when to use them.
 \end{itemize}
