@@ -6,8 +6,8 @@
 # listings through a pipe (interactivity, nondeterminism, environment).
 
 # --- interactive REPL features (not available in piped mode) ---
-ch02-installation.tex:180  # tab completion is an interactive REPL feature
-ch02-installation.tex:197  # the _ last-result variable is an interactive REPL feature
+ch02-installation.tex:189  # tab completion is an interactive REPL feature
+ch02-installation.tex:206  # the _ last-result variable is an interactive REPL feature
 
 # --- session-dependent error suggestion suffix ---
 ch08-local-bindings.tex:35  # book shows the stable error prefix; kaappi appends a session-dependent "Did you mean ...?" suggestion

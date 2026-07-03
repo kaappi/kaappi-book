@@ -4,4 +4,4 @@ Tracked work items for the book. Remove items when done.
 
 | Priority | Item | Notes |
 |----------|------|-------|
-| High | Transcript checker (`tools/check-transcripts.sh`) | Extract `style=repl` listings from chapters, run the inputs through the installed `kaappi` binary, and diff the printed outputs against the book. Chapters 1–4 were verified by hand (2026-07-03); build this before giving chapters 5–18 the same accuracy pass, since that is where most transcript drift will hide. |
+| High | Fix TODO-marked REPL listing divergences in chapters 10–18 | The transcript checker now exists (`make check-repl`, `tools/check-repl-listings.py`) and verified all 18 chapters on 2026-07-03: chapters 1–9 are clean; the real divergences it found in chapters 10–18 are recorded as `TODO` entries in `tools/repl-check-ignore.txt` (invented error formats in ch11/ch14, ch15 continuation-counter output, ch16 SRFI imports / `regexp-replace` / hash-ordering / `hash-table-ref` examples, ch18 fiber output). One ch18 listing also blocks forever — the checker prints a timeout warning until it is fixed. Fix each listing and delete its ignore entry. |

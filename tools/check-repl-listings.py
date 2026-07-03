@@ -131,6 +131,8 @@ def extract_units(path):
                 depth += d
                 reading_input = depth > 0 or in_str
             elif cur is not None and reading_input:
+                if raw.startswith("...") and not in_str:
+                    raw = raw[3:]  # "..." is the REPL's continuation prompt
                 cur.input_lines.append(raw)
                 d, in_str = paren_delta(raw, in_str)
                 depth += d
