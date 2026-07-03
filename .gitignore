@@ -45,3 +45,6 @@ Thumbs.db
 *.swo
 .vscode/
 .idea/
+
+# Python (tools/)
+__pycache__/
