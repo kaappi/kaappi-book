@@ -6,7 +6,7 @@ LATEXMK = latexmk
 LATEXMK_FLAGS = -xelatex $(COMMON_FLAGS)
 XELATEX = xelatex
 
-.PHONY: all clean view once
+.PHONY: all clean view once check-examples
 
 # Full build: latexmk runs XeLaTeX (and makeindex) as many times as needed
 # to resolve the TOC, index, and cross-references.
@@ -21,6 +21,11 @@ once:
 
 view: all
 	open $(BUILD_DIR)/$(JOBNAME).pdf
+
+# Verify appendix error messages and code examples against the real
+# kaappi interpreter (needs ../kaappi built, or set KAAPPI=/path/to/kaappi).
+check-examples:
+	bash scripts/check-appendix-examples.sh
 
 clean:
 	-$(LATEXMK) -C $(COMMON_FLAGS) $(MAIN).tex >/dev/null 2>&1

@@ -9,24 +9,26 @@ kaappi [OPTIONS] [FILE]
 kaappi compile FILE [-o OUTPUT]
 \end{Verbatim}
 
-With no arguments, launches the REPL. With a file argument, executes the Scheme source file.
+With no arguments, launches the REPL. With a file argument, executes the Scheme source file. Input can also be piped: \texttt{echo '(+ 1 2)' | kaappi}.
 
 \section{Commands}
 
 \begin{center}
-\begin{tabular}{lp{8cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Command} & \textbf{Description} \\
 \hline
 \texttt{kaappi FILE} & Run a Scheme source file \\
 \texttt{kaappi} & Launch the interactive REPL \\
 \texttt{kaappi compile FILE}\index{compile} & Compile Scheme source to a native binary via LLVM \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Options}
 
 \begin{center}
-\begin{tabular}{lp{7.5cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Flag} & \textbf{Description} \\
 \hline
 \texttt{-h}, \texttt{--help} & Show usage and available flags \\
@@ -37,7 +39,7 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \texttt{--emit-llvm} & Emit LLVM IR text (\texttt{.ll} file) \\
 \texttt{--profile} & Profile execution (per-function timing, call counts) \\
 \texttt{--profile-json FILE} & Write profiling data as JSON \\
-\texttt{--sandbox}\index{--sandbox} & Sandbox mode: blocks FFI, file I/O, eval, load, env access \\
+\texttt{--sandbox}\index{--sandbox} & Sandbox mode; see Section~\ref{sec:sandbox-mode} \\
 \texttt{--timeout MS} & Execution timeout in milliseconds \\
 \texttt{--max-memory BYTES} & Maximum heap memory \\
 \texttt{--disassemble FILE} & Show compiled bytecode without running \\
@@ -45,19 +47,19 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \texttt{--coverage}\index{--coverage} & Report library procedure coverage \\
 \texttt{--coverage-xml FILE} & Write Cobertura XML coverage report \\
 \texttt{--completions SHELL} & Output shell completion script (bash, zsh, or fish) \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Environment Variables}
 
 \begin{center}
-\begin{tabular}{lp{7.5cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Variable} & \textbf{Description} \\
 \hline
 \texttt{KAAPPI\_LIB\_DIR} & Directory containing \texttt{libkaappi\_rt.a} (used by \texttt{kaappi compile}) \\
 \texttt{HOME} & Used to locate \texttt{\textasciitilde/.kaappi/lib/} and \texttt{\textasciitilde/.kaappi/history} \\
-\texttt{NO\_COLOR} & If set, disables REPL syntax highlighting \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Library Search Order}
@@ -68,15 +70,21 @@ When resolving \texttt{(import (lib name))}, Kaappi searches for \texttt{lib/nam
     \item Current working directory (\texttt{./})
     \item The \texttt{./lib/} subdirectory
     \item Directories from \texttt{--lib-path} flags (in order)
-    \item \texttt{\textasciitilde/.kaappi/lib/} (user library directory)
+    \item \texttt{\textasciitilde/.kaappi/lib/} (user library directory, where thottam installs packages)
 \end{enumerate}
 
-\section{REPL Comma-Commands}
+\section{The REPL}
+\index{REPL}
+
+The REPL prompt is \texttt{kaappi>}. Expressions with unbalanced parentheses automatically continue on the next line. History is saved to \texttt{\textasciitilde/.kaappi/history} (up to 1000 entries). Exit with \texttt{,quit}, \texttt{(exit)}, or Ctrl-D on an empty line.
+
+\subsection{Comma-Commands}
 
 The REPL supports meta-commands prefixed with \texttt{,} (comma). The variable \texttt{\_} holds the last result.
 
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Command} & \textbf{Description} \\
 \hline
 \texttt{,help} & Show all available commands \\
@@ -98,7 +106,7 @@ The REPL supports meta-commands prefixed with \texttt{,} (comma). The variable \
 \texttt{,version} & Show Kaappi version \\
 \texttt{,load file} & Load and run a Scheme file \\
 \texttt{,import lib} & Import a library (e.g., \texttt{,import (srfi 1)}) \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Interactive Debugger}
@@ -107,7 +115,8 @@ The REPL supports meta-commands prefixed with \texttt{,} (comma). The variable \
 When a breakpoint fires, Kaappi enters an interactive \texttt{debug>} prompt with its own command set:
 
 \begin{center}
-\begin{tabular}{llp{5.5cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}llY@{}}
 \textbf{Command} & \textbf{Short} & \textbf{Description} \\
 \hline
 \texttt{step} & \texttt{s} & Step into next expression \\
@@ -121,17 +130,19 @@ When a breakpoint fires, Kaappi enters an interactive \texttt{debug>} prompt wit
 \texttt{watch var} & & Break on variable change \\
 \texttt{unwatch var} & & Remove a watch \\
 \texttt{quit} & \texttt{q} & Exit debugger \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Thottam Package Manager}
+\index{thottam}
 
 \begin{Verbatim}[fontsize=\small]
 thottam COMMAND [ARGS]
 \end{Verbatim}
 
 \begin{center}
-\begin{tabular}{lp{7.5cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Command} & \textbf{Description} \\
 \hline
 \texttt{thottam install PKG} & Install a package and its dependencies \\
@@ -139,14 +150,25 @@ thottam COMMAND [ARGS]
 \texttt{thottam list} & List all installed packages \\
 \texttt{thottam update} & Update all packages to latest versions \\
 \texttt{thottam update PKG} & Update a specific package \\
-\texttt{thottam verify} & Verify integrity of installed packages \\
-\texttt{thottam --locked} & Refuse to install packages not in the lockfile \\
+\texttt{thottam verify} & Check installed packages against the lockfile \\
+\texttt{thottam --locked install PKG} & Refuse to install packages not in the lockfile \\
 \texttt{thottam --version} & Show thottam version \\
 \texttt{thottam --completions SHELL} & Output shell completions (bash, zsh, fish) \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
-Packages are installed to \texttt{\textasciitilde/.kaappi/lib/} with a lockfile at \texttt{\textasciitilde/.kaappi/lock.json}.
+\texttt{install} accepts an optional version pin and source URL:
+
+\begin{Verbatim}[fontsize=\small]
+thottam install PKG[@VER][::URL]
+
+thottam install kaappi-web              # latest release
+thottam install kaappi-web@v1.0.0       # exact tag
+thottam install kaappi-net@">=0.2.0"    # version range
+thottam install kaappi-auth::https://github.com/bob/kaappi-auth
+\end{Verbatim}
+
+Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, and the lockfile is kept at \nolinkurl{~/.kaappi/lock.json}.
 
 \section{Native Compilation}
 
@@ -176,16 +198,20 @@ When Kaappi runs a file, it caches the compiled bytecode in a \texttt{.sbc} file
 To force recompilation, delete the \texttt{.sbc} file or modify the source.
 
 \section{Sandbox Mode}
+\label{sec:sandbox-mode}
 
 \texttt{--sandbox} restricts what a program can do:
 
 \begin{itemize}
-    \item FFI is disabled (all \texttt{ffi-*} procedures raise errors)
-    \item File I/O is disabled (\texttt{open-input-file}, \texttt{open-output-file} raise errors)
+    \item FFI is disabled (\texttt{ffi-open}, \texttt{ffi-fn}, and the other \texttt{ffi-*} procedures raise errors)
+    \item File I/O is disabled (\texttt{open-input-file}, \texttt{call-with-output-file}, \texttt{file-exists?}, \texttt{delete-file}, and the rest of \code{(scheme file)})
+    \item All SRFI-170 filesystem operations are disabled
     \item \texttt{eval} and \texttt{load} are disabled
-    \item Environment variable access is blocked
-    \item OS threads are disabled
+    \item Process context is blocked: \texttt{get-environment-variable}, \texttt{command-line}, \texttt{exit}
+    \item OS threads (SRFI-18) are disabled
 \end{itemize}
+
+Pure computation, standard output (\texttt{display}, \texttt{write}), and green fibers remain available.
 
 Useful for running untrusted code safely:
 

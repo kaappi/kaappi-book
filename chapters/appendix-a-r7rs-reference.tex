@@ -2,16 +2,66 @@
 \index{R7RS!quick reference}
 \label{app:r7rs}
 
-This appendix provides a concise reference to the R7RS-small standard. Use it as a lookup when you need to recall a syntax form, procedure signature, or which library something belongs to.
+This appendix provides a concise reference to the R7RS-small standard. Use it as a lookup when you need to recall a syntax form, a procedure signature, or which library something belongs to. Each table names the library that provides its entries; library names abbreviate \code{(scheme ...)}, so \texttt{char} means \code{(scheme char)}.
+
+\section{Standard Libraries}
+\index{standard libraries}
+
+R7RS-small partitions the standard into small libraries. Kaappi provides all of them:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Library} & \textbf{Contents} \\
+\hline
+\texttt{(scheme base)} & Core syntax, numbers, lists, strings, vectors, bytevectors, control flow, basic I/O \\
+\texttt{(scheme case-lambda)} & \texttt{case-lambda} \\
+\texttt{(scheme char)} & Character classification and case conversion \\
+\texttt{(scheme complex)} & Complex number accessors \\
+\texttt{(scheme cxr)} & Compound pair accessors \texttt{caar} \ldots{} \texttt{cddddr} \\
+\texttt{(scheme eval)} & \texttt{eval} and environments \\
+\texttt{(scheme file)} & File ports and file operations \\
+\texttt{(scheme inexact)} & Floating-point functions (\texttt{sqrt}, \texttt{sin}, \texttt{log}, \ldots) \\
+\texttt{(scheme lazy)} & Promises: \texttt{delay}, \texttt{force} \\
+\texttt{(scheme load)} & \texttt{load} \\
+\texttt{(scheme process-context)} & Command line, environment variables, \texttt{exit} \\
+\texttt{(scheme read)} & \texttt{read} \\
+\texttt{(scheme repl)} & \texttt{interaction-environment} \\
+\texttt{(scheme time)} & Clock access: \texttt{current-second}, \texttt{current-jiffy} \\
+\texttt{(scheme write)} & \texttt{write}, \texttt{display} \\
+\end{tabularx}
+\end{center}
+
+\begin{note}[Imports Are Optional in Kaappi]
+Every built-in procedure is available in Kaappi without importing anything---\code{(import (scheme write))} is never required to call \code{display}. Write the imports anyway: they document your dependencies and keep your code portable to other R7RS implementations, where the libraries above must be imported explicitly. The 64 portable SRFIs are the exception: they load from \texttt{.sld} files only when imported (Appendix~\ref{app:srfi}).
+\end{note}
 
 \section{Syntax Forms}
 
+All forms below are in \code{(scheme base)} except \texttt{case-lambda}, which lives in \code{(scheme case-lambda)}, and \texttt{delay}/\texttt{delay-force}, which live in \code{(scheme lazy)}.
+
+\subsection*{Definitions and Procedures}
+
 \begin{center}
-\begin{tabular}{lp{8cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Form} & \textbf{Syntax} \\
 \hline
 \texttt{define} & \texttt{(define var expr)} or \texttt{(define (name params) body ...)} \\
+\texttt{define-values} & \texttt{(define-values (var ...) expr)} \\
 \texttt{lambda} & \texttt{(lambda (params) body ...)} \\
+\texttt{case-lambda} & \texttt{(case-lambda (formals body ...) ...)} \\
+\texttt{set!} & \texttt{(set! var expr)} \\
+\end{tabularx}
+\end{center}
+
+\subsection*{Conditionals and Sequencing}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
 \texttt{if} & \texttt{(if test consequent alternate)} \\
 \texttt{cond} & \texttt{(cond (test expr ...) ... (else expr ...))} \\
 \texttt{case} & \texttt{(case key ((datum ...) expr ...) ... (else expr ...))} \\
@@ -19,153 +69,264 @@ This appendix provides a concise reference to the R7RS-small standard. Use it as
 \texttt{or} & \texttt{(or test ...)} \\
 \texttt{when} & \texttt{(when test body ...)} \\
 \texttt{unless} & \texttt{(unless test body ...)} \\
+\texttt{begin} & \texttt{(begin expr ...)} \\
+\texttt{do} & \texttt{(do ((var init step) ...) (test result) body ...)} \\
+\end{tabularx}
+\end{center}
+
+\subsection*{Binding Forms}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
 \texttt{let} & \texttt{(let ((var expr) ...) body ...)} \\
 \texttt{let*} & \texttt{(let* ((var expr) ...) body ...)} \\
 \texttt{letrec} & \texttt{(letrec ((var expr) ...) body ...)} \\
 \texttt{letrec*} & \texttt{(letrec* ((var expr) ...) body ...)} \\
 \texttt{let-values} & \texttt{(let-values (((v ...) expr) ...) body ...)} \\
-\texttt{do} & \texttt{(do ((var init step) ...) (test result) body ...)} \\
-\texttt{case-lambda} & \texttt{(case-lambda (formals body ...) ...)} \\
-\texttt{begin} & \texttt{(begin expr ...)} \\
+\texttt{let*-values} & \texttt{(let*-values (((v ...) expr) ...) body ...)} \\
+\end{tabularx}
+\end{center}
+
+\subsection*{Quoting}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
 \texttt{quote} & \texttt{'datum} or \texttt{(quote datum)} \\
 \texttt{quasiquote}\index{quasiquote} & \texttt{`template} with \texttt{,expr} and \texttt{,@expr} \\
-\texttt{set!} & \texttt{(set! var expr)} \\
+\end{tabularx}
+\end{center}
+
+\subsection*{Macros}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
 \texttt{define-syntax} & \texttt{(define-syntax name (syntax-rules ...))} \\
 \texttt{syntax-rules} & \texttt{(syntax-rules (literals) (pattern template) ...)} \\
 \texttt{let-syntax} & \texttt{(let-syntax ((name transformer) ...) body ...)} \\
 \texttt{letrec-syntax} & \texttt{(letrec-syntax ((name transformer) ...) body ...)} \\
+\texttt{syntax-error} & \texttt{(syntax-error message args ...)} \\
+\end{tabularx}
+\end{center}
+
+\subsection*{Libraries and Program Structure}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
 \texttt{define-library} & \texttt{(define-library (name ...) declarations ...)} \\
 \texttt{import} & \texttt{(import import-set ...)} \\
+\texttt{include} & \texttt{(include "file" ...)} \\
+\texttt{include-ci} & \texttt{(include-ci "file" ...)} (case-insensitive) \\
+\texttt{cond-expand} & \texttt{(cond-expand (feature-req body ...) ...)} \\
+\end{tabularx}
+\end{center}
+
+\subsection*{Exceptions, Records, Laziness, Parameters}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Form} & \textbf{Syntax} \\
+\hline
 \texttt{guard} & \texttt{(guard (var (test expr ...) ...) body ...)} \\
 \texttt{define-record-type} & \texttt{(define-record-type name ctor pred field ...)} \\
 \texttt{delay}\index{delay} & \texttt{(delay expr)} \\
 \texttt{delay-force} & \texttt{(delay-force expr)} \\
 \texttt{parameterize}\index{parameterize} & \texttt{(parameterize ((param val) ...) body ...)} \\
-\texttt{cond-expand} & \texttt{(cond-expand (feature-req body ...) ...)} \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Numeric Procedures}
 
+Numbers are covered in Chapter~\ref{ch:data-types}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
-\textbf{Procedure} & \textbf{Description} \\
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
-\texttt{+ - * /} & Arithmetic (variadic) \\
-\texttt{= < > <= >=} & Comparison (variadic, chained) \\
-\texttt{zero? positive? negative?} & Sign predicates \\
-\texttt{odd? even?} & Parity predicates \\
-\texttt{abs} & Absolute value \\
-\texttt{max min} & Maximum/minimum (variadic) \\
-\texttt{quotient remainder modulo} & Integer division \\
-\texttt{gcd lcm} & Greatest common divisor, least common multiple \\
-\texttt{floor ceiling truncate round} & Rounding \\
-\texttt{expt sqrt} & Exponentiation, square root \\
-\texttt{exact inexact} & Convert between exact and inexact \\
-\texttt{exact? inexact?} & Test exactness \\
-\texttt{number? integer? rational?} & Type predicates \\
-\texttt{number->string string->number} & Conversion \\
-\end{tabular}
+\texttt{+ - * /} & Arithmetic (variadic) & base \\
+\texttt{= < > <= >=} & Comparison (variadic, chained) & base \\
+\texttt{zero? positive? negative?} & Sign predicates & base \\
+\texttt{odd? even?} & Parity predicates & base \\
+\texttt{abs} & Absolute value & base \\
+\texttt{max min} & Maximum/minimum (variadic) & base \\
+\texttt{quotient remainder modulo} & Integer division & base \\
+\texttt{floor/ truncate/} & Division returning two values & base \\
+\texttt{gcd lcm} & Greatest common divisor, least common multiple & base \\
+\texttt{floor ceiling truncate round} & Rounding & base \\
+\texttt{expt square} & Exponentiation, squaring & base \\
+\texttt{exact-integer-sqrt} & Integer square root with remainder & base \\
+\texttt{sqrt exp log sin cos tan atan} & Floating-point functions & inexact \\
+\texttt{finite? infinite? nan?} & Floating-point predicates & inexact \\
+\texttt{exact inexact} & Convert between exact and inexact & base \\
+\texttt{exact? inexact? exact-integer?} & Test exactness & base \\
+\texttt{number? integer? rational?} & Type predicates & base \\
+\texttt{number->string string->number} & Conversion & base \\
+\end{tabularx}
 \end{center}
 
 \section{Pair and List Procedures}
 
+All in \code{(scheme base)}; the compound accessors \texttt{caar} through \texttt{cddddr} are in \code{(scheme cxr)}. Lists are covered in Chapter~\ref{ch:lists}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Procedure} & \textbf{Description} \\
 \hline
 \texttt{cons car cdr} & Pair construction and access \\
 \texttt{set-car! set-cdr!} & Pair mutation \\
-\texttt{list} & Create a list from arguments \\
+\texttt{list make-list} & Create a list \\
 \texttt{length} & List length \\
 \texttt{append} & Concatenate lists \\
 \texttt{reverse} & Reverse a list \\
-\texttt{list-ref list-tail} & Positional access \\
+\texttt{list-ref list-tail list-set!} & Positional access and mutation \\
 \texttt{map for-each} & Apply procedure to list elements \\
 \texttt{member memv memq} & Search by \texttt{equal?}/\texttt{eqv?}/\texttt{eq?} \\
 \texttt{assoc assv assq} & Association list lookup \\
 \texttt{list-copy} & Shallow copy \\
 \texttt{pair? null? list?} & Predicates \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{String Procedures}
 
+Strings are covered in Chapter~\ref{ch:data-types}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
-\textbf{Procedure} & \textbf{Description} \\
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
-\texttt{string-length} & Number of characters \\
-\texttt{string-ref} & Character at index \\
-\texttt{substring} & Extract a portion \\
-\texttt{string-append} & Concatenate strings \\
-\texttt{string->list list->string} & Convert to/from character lists \\
-\texttt{string-copy} & Copy a string \\
-\texttt{string-upcase string-downcase} & Case conversion \\
-\texttt{string=? string<? string>?} & Comparison \\
-\texttt{number->string string->number} & Numeric conversion \\
-\texttt{symbol->string string->symbol} & Symbol conversion \\
-\end{tabular}
+\texttt{string-length} & Number of characters & base \\
+\texttt{string-ref} & Character at index & base \\
+\texttt{substring} & Extract a portion & base \\
+\texttt{string-append} & Concatenate strings & base \\
+\texttt{string->list list->string} & Convert to/from character lists & base \\
+\texttt{string-copy string-copy!} & Copy a string (into another) & base \\
+\texttt{string-fill!} & Overwrite with a character & base \\
+\texttt{string-map string-for-each} & Higher-order operations & base \\
+\texttt{string=? string<? string>?} & Comparison & base \\
+\texttt{string-ci=? string-ci<?} & Case-insensitive comparison & char \\
+\texttt{string-upcase string-downcase} & Case conversion & char \\
+\texttt{string-foldcase} & Case folding for comparison & char \\
+\texttt{string->symbol symbol->string} & Symbol conversion & base \\
+\texttt{string->vector vector->string} & Vector conversion & base \\
+\end{tabularx}
 \end{center}
 
 \section{Character Procedures}
 
 \begin{center}
-\begin{tabular}{lp{7cm}}
-\textbf{Procedure} & \textbf{Description} \\
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
-\texttt{char-alphabetic? char-numeric?} & Classification \\
-\texttt{char-whitespace?} & Whitespace test \\
-\texttt{char-upper-case? char-lower-case?} & Case test \\
-\texttt{char-upcase char-downcase} & Case conversion \\
-\texttt{char->integer integer->char} & Numeric conversion \\
-\texttt{char=? char<? char>?} & Comparison \\
-\end{tabular}
+\texttt{char-alphabetic? char-numeric?} & Classification & char \\
+\texttt{char-whitespace?} & Whitespace test & char \\
+\texttt{char-upper-case? char-lower-case?} & Case test & char \\
+\texttt{char-upcase char-downcase} & Case conversion & char \\
+\texttt{char-foldcase} & Case folding & char \\
+\texttt{digit-value} & Numeric value of a digit & char \\
+\texttt{char->integer integer->char} & Numeric conversion & base \\
+\texttt{char=? char<? char>?} & Comparison & base \\
+\texttt{char-ci=? char-ci<?} & Case-insensitive comparison & char \\
+\end{tabularx}
 \end{center}
 
 \section{Vector Procedures}
 
+All in \code{(scheme base)}. Vectors are covered in Chapter~\ref{ch:data-types}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Procedure} & \textbf{Description} \\
 \hline
 \texttt{vector make-vector} & Creation \\
 \texttt{vector-ref vector-set!} & Access and mutation \\
 \texttt{vector-length} & Size \\
 \texttt{vector->list list->vector} & Conversion \\
-\texttt{vector-copy vector-fill!} & Copy and fill \\
+\texttt{vector-copy vector-copy!} & Copy (into another vector) \\
+\texttt{vector-append} & Concatenate vectors \\
+\texttt{vector-fill!} & Overwrite with a value \\
 \texttt{vector-map vector-for-each} & Higher-order operations \\
 \texttt{vector?} & Type predicate \\
-\end{tabular}
+\end{tabularx}
+\end{center}
+
+\section{Bytevector Procedures}
+\index{bytevector}
+
+All in \code{(scheme base)}. Bytevectors hold raw bytes (integers 0--255) for binary data.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\textbf{Procedure} & \textbf{Description} \\
+\hline
+\texttt{bytevector make-bytevector} & Creation \\
+\texttt{bytevector-length} & Size in bytes \\
+\texttt{bytevector-u8-ref bytevector-u8-set!} & Access and mutation \\
+\texttt{bytevector-copy bytevector-copy!} & Copy (into another bytevector) \\
+\texttt{bytevector-append} & Concatenate bytevectors \\
+\texttt{utf8->string string->utf8} & Convert to/from UTF-8 text \\
+\texttt{bytevector?} & Type predicate \\
+\end{tabularx}
 \end{center}
 
 \section{I/O Procedures}
 
+I/O is covered in Chapter~\ref{ch:io}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
-\textbf{Procedure} & \textbf{Description} \\
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
-\texttt{display write newline} & Output \\
-\texttt{read read-line read-char} & Input \\
-\texttt{peek-char char-ready?} & Lookahead \\
-\texttt{write-char write-string} & Character/string output \\
-\texttt{open-input-file open-output-file} & File ports \\
-\texttt{close-input-port close-output-port} & Close ports \\
-\texttt{call-with-port} & Safe port handling \\
-\texttt{with-input-from-file} & Redirect input \\
-\texttt{with-output-to-file} & Redirect output \\
-\texttt{open-input-string open-output-string} & String ports \\
-\texttt{get-output-string} & Extract string port contents \\
-\texttt{eof-object?} & End-of-file test \\
-\texttt{current-input-port current-output-port} & Default ports \\
-\texttt{current-error-port} & Error output \\
-\end{tabular}
+\texttt{display write} & Output (human-readable / re-readable) & write \\
+\texttt{write-shared write-simple} & Output with/without shared-structure labels & write \\
+\texttt{read} & Read one datum & read \\
+\texttt{newline write-char write-string} & Character/string output & base \\
+\texttt{read-line read-char read-string} & Textual input & base \\
+\texttt{peek-char char-ready?} & Lookahead & base \\
+\texttt{read-u8 peek-u8 write-u8} & Binary I/O & base \\
+\texttt{open-input-string open-output-string} & String ports & base \\
+\texttt{get-output-string} & Extract string port contents & base \\
+\texttt{open-input-bytevector open-output-bytevector} & Bytevector ports & base \\
+\texttt{open-input-file open-output-file} & File ports & file \\
+\texttt{call-with-input-file call-with-output-file} & File ports with automatic close & file \\
+\texttt{with-input-from-file with-output-to-file} & Redirect default ports & file \\
+\texttt{file-exists? delete-file} & File operations & file \\
+\texttt{call-with-port} & Safe port handling & base \\
+\texttt{close-port close-input-port close-output-port} & Close ports & base \\
+\texttt{flush-output-port} & Flush buffered output & base \\
+\texttt{current-input-port current-output-port} & Default ports & base \\
+\texttt{current-error-port} & Error output & base \\
+\texttt{eof-object eof-object?} & End-of-file value and test & base \\
+\texttt{port? input-port? output-port?} & Port predicates & base \\
+\end{tabularx}
 \end{center}
 
 \section{Control Flow Procedures}
 
+All in \code{(scheme base)}. Continuations are covered in Chapter~\ref{ch:continuations}, exceptions in Chapter~\ref{ch:errors}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Procedure} & \textbf{Description} \\
 \hline
 \texttt{apply} & Call procedure with list of arguments \\
@@ -177,50 +338,61 @@ This appendix provides a concise reference to the R7RS-small standard. Use it as
 \texttt{with-exception-handler} & Install exception handler \\
 \texttt{error-object? error-object-message} & Inspect errors \\
 \texttt{error-object-irritants} & Error context values \\
-\end{tabular}
+\texttt{read-error? file-error?} & Classify error objects \\
+\end{tabularx}
 \end{center}
 
 \section{Boolean and Equivalence}
 
+All in \code{(scheme base)}. See Section~\ref{sec:equality} for choosing between the equality predicates.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Procedure} & \textbf{Description} \\
 \hline
 \texttt{not} & Boolean negation \\
-\texttt{boolean?} & Type predicate \\
+\texttt{boolean? boolean=?} & Type predicate, boolean comparison \\
 \texttt{eq?}\index{eq?} & Pointer identity \\
 \texttt{eqv?} & Value equivalence (numbers, chars) \\
 \texttt{equal?}\index{equal?} & Deep structural equality \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Type Predicates}
 
+All in \code{(scheme base)}.
+
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\small
+\begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Procedure} & \textbf{Description} \\
 \hline
-\texttt{number? string? char? symbol?} & Atomic types \\
-\texttt{boolean? pair? null? vector?} & Compound types \\
-\texttt{bytevector? port? procedure?} & Special types \\
-\texttt{list? eof-object? promise?} & Derived predicates \\
-\end{tabular}
+\texttt{number? string? char? symbol?} & Atomic values \\
+\texttt{pair? null? list? vector? bytevector?} & Compound values \\
+\texttt{boolean? procedure? port?} & Other values \\
+\texttt{eof-object? promise?} & Special values \\
+\end{tabularx}
 \end{center}
 
 \section{Other Procedures}
 
 \begin{center}
-\begin{tabular}{lp{7cm}}
-\textbf{Procedure} & \textbf{Description} \\
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
-\texttt{make-parameter parameterize} & Dynamic binding \\
-\texttt{force make-promise promise?}\index{force}\index{promise} & Lazy evaluation \\
-\texttt{eval environment} & Evaluation \\
-\texttt{load} & Load a file \\
-\texttt{exit} & Terminate the program \\
-\texttt{command-line} & Program arguments \\
-\texttt{get-environment-variable} & Read env var \\
-\texttt{current-second current-jiffy} & Time \\
-\texttt{jiffies-per-second} & Time resolution \\
-\end{tabular}
+\texttt{make-parameter parameterize} & Dynamic binding & base \\
+\texttt{force make-promise promise?}\index{force}\index{promise} & Lazy evaluation & lazy \\
+\texttt{features} & List of feature identifiers & base \\
+\texttt{eval environment} & Evaluation & eval \\
+\texttt{interaction-environment} & The REPL environment & repl \\
+\texttt{load} & Load a file & load \\
+\texttt{exit emergency-exit} & Terminate the program & process-context \\
+\texttt{command-line} & Program arguments & process-context \\
+\texttt{get-environment-variable} & Read env var & process-context \\
+\texttt{current-second current-jiffy} & Time & time \\
+\texttt{jiffies-per-second} & Time resolution & time \\
+\texttt{real-part imag-part magnitude angle} & Complex number accessors & complex \\
+\end{tabularx}
 \end{center}

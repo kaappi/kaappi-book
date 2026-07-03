@@ -8,12 +8,17 @@ Kaappi's package manager \texttt{thottam} provides access to a growing ecosystem
 thottam install package-name
 \end{Verbatim}
 
-After installation, import the library in your Scheme code. All packages are MIT licensed. For the full set of \texttt{thottam} commands (removing, updating, verifying), see Appendix~\ref{app:cli}.
+Dependencies are resolved automatically---installing \texttt{kaappi-web} also pulls in \texttt{kaappi-http} and \texttt{kaappi-json}. Packages land in \texttt{\textasciitilde/.kaappi/lib/} and are immediately importable from any Scheme file. All packages are MIT licensed. For the full set of \texttt{thottam} commands (removing, updating, pinning versions), see Appendix~\ref{app:cli}.
+
+\begin{note}[Native Packages Need System Libraries]
+Packages that wrap C libraries via the FFI compile a small native shim when installed. OpenSSL is needed by \texttt{kaappi-net} and \texttt{kaappi-crypto}, libpq by \texttt{kaappi-pg}, and libsqlite3 by \texttt{kaappi-sqlite}. The pure-Scheme packages have no system requirements.
+\end{note}
 
 \section{Networking and Web}
 
 \begin{center}
-\begin{tabular}{lp{5.5cm}l}
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
 \textbf{Package} & \textbf{Description} & \textbf{Import} \\
 \hline
 kaappi-net\index{kaappi-net} & TCP client/server, TLS client & \texttt{(kaappi net)} \\
@@ -21,68 +26,64 @@ kaappi-http\index{kaappi-http} & HTTP/HTTPS client and server & \texttt{(kaappi 
 kaappi-web\index{kaappi-web} & Web framework (routing, middleware, JSON helpers) & \texttt{(kaappi web)} \\
 kaappi-template & Text and HTML template engine with auto-escaping & \texttt{(kaappi template)} \\
 kaappi-email & SMTP email sending & \texttt{(kaappi email)} \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Data Formats}
 
 \begin{center}
-\begin{tabular}{lp{5.5cm}l}
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
 \textbf{Package} & \textbf{Description} & \textbf{Import} \\
 \hline
 kaappi-json\index{kaappi-json} & JSON reading and writing & \texttt{(kaappi json)} \\
 kaappi-toml & TOML parser and emitter & \texttt{(kaappi toml)} \\
 kaappi-yaml & YAML parser and emitter & \texttt{(kaappi yaml)} \\
 kaappi-csv & RFC 4180 CSV parsing and generation & \texttt{(kaappi csv)} \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \section{Databases}
 
 \begin{center}
-\begin{tabular}{lp{5.5cm}l}
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
 \textbf{Package} & \textbf{Description} & \textbf{Import} \\
 \hline
 kaappi-pg\index{kaappi-pg} & PostgreSQL client (queries, params, pools) & \texttt{(kaappi pg)} \\
 kaappi-sqlite\index{kaappi-sqlite} & SQLite3 embedded database & \texttt{(kaappi sqlite)} \\
 kaappi-redis & Redis client (commands, pub/sub) & \texttt{(kaappi redis)} \\
-\end{tabular}
+\end{tabularx}
 \end{center}
 
-\section{Utilities}
+\section{Utilities and Testing}
 
 \begin{center}
-\begin{tabular}{lp{5.5cm}l}
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
 \textbf{Package} & \textbf{Description} & \textbf{Import} \\
 \hline
 kaappi-crypto\index{kaappi-crypto} & Hashing (SHA-256, SHA-512, MD5), HMAC & \texttt{(kaappi crypto)} \\
 kaappi-log & Structured logging with levels & \texttt{(kaappi log)} \\
 kaappi-cli & CLI argument parsing, subcommands, help & \texttt{(kaappi cli)} \\
-kaappi-math & Extended math (statistics, linear algebra) & \texttt{(kaappi math)} \\
-kaappi-examples & Example applications demonstrating real-world usage & (various) \\
-\end{tabular}
-\end{center}
-
-\section{Testing}
-
-\begin{center}
-\begin{tabular}{lp{5.5cm}l}
-\textbf{Package} & \textbf{Description} & \textbf{Import} \\
-\hline
 kaappi-test & Unit testing (assertions, test suites, CI) & \texttt{(kaappi test)} \\
 kaappi-bdd & BDD-style testing (describe, it, expect) & \texttt{(kaappi bdd)} \\
-\end{tabular}
+kaappi-examples & Example applications demonstrating real-world usage & (various) \\
+\end{tabularx}
 \end{center}
 
 \section{Quick Start Examples}
 
 \subsection{Reading JSON}
 
+JSON objects parse to association lists, arrays to lists---look up keys with \code{assoc}:
+
 \begin{lstlisting}
 (import (kaappi json))
 
-(define data (json-read (open-input-file "config.json")))
-(display (hash-table-ref data "name"))
+(define data
+  (call-with-input-file "config.json" json-read))
+(display (cdr (assoc "name" data)))
 \end{lstlisting}
 
 \subsection{HTTP Request}
@@ -95,6 +96,8 @@ kaappi-bdd & BDD-style testing (describe, it, expect) & \texttt{(kaappi bdd)} \\
 \end{lstlisting}
 
 \subsection{PostgreSQL Query}
+
+Each row comes back as a vector:
 
 \begin{lstlisting}
 (import (kaappi pg))
@@ -110,31 +113,19 @@ kaappi-bdd & BDD-style testing (describe, it, expect) & \texttt{(kaappi bdd)} \\
 
 \subsection{CLI Tool}
 
+Flags and options take a short name, a long name, and a description; parsed values are read back by their long name:
+
 \begin{lstlisting}
 (import (kaappi cli))
 
 (define app
-  (cli "mytool"
-    (version "1.0.0")
-    (description "A helpful tool")
-    (flag "verbose" "v" "Enable verbose output")
-    (argument "file" "Input file")))
+  (cli "greet" "A greeting tool"
+    (flag "-l" "--loud" "Use uppercase")
+    (option "-n" "--times" "Repeat N times" 1)
+    (argument "name" "Name to greet")))
 
-(define opts (cli-parse app (command-line)))
+(define result (run-cli-parse app '("-l" "Ada")))
+(parsed-flag? result "loud")                ; => #t
+(cdr (assoc "name" (parsed-args result)))   ; => "Ada"
+(parsed-ref result "times")                 ; => 1 (default)
 \end{lstlisting}
-
-\section{Managing Packages}
-
-\begin{center}
-\begin{tabular}{lp{7cm}}
-\textbf{Command} & \textbf{Description} \\
-\hline
-\texttt{thottam install pkg} & Install a package \\
-\texttt{thottam remove pkg} & Remove a package \\
-\texttt{thottam list} & List installed packages \\
-\texttt{thottam update} & Update all packages to latest versions \\
-\texttt{thottam verify} & Verify integrity of installed packages \\
-\end{tabular}
-\end{center}
-
-Packages are installed to \texttt{\textasciitilde/.kaappi/lib/} and are immediately importable from any Scheme file.
