@@ -5,7 +5,7 @@
 A \emph{higher-order function} is a function that takes another function as an argument or returns a function as its result. You have already seen examples in earlier chapters---\texttt{map}, named \texttt{let} with a procedure argument, and closures. This chapter explores the standard higher-order functions in depth and shows how they replace loops in idiomatic Scheme.
 
 \begin{note}[SRFI-1 imports]
-Several procedures in this chapter---\texttt{filter}, \texttt{remove}, \texttt{partition}, \texttt{fold}, and \texttt{fold-right}---come from SRFI-1\index{SRFI-1} (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} at the top. The REPL makes them available automatically.
+Several procedures in this chapter---\texttt{filter}, \texttt{remove}, \texttt{partition}, \texttt{any}, \texttt{every}, \texttt{fold}, and \texttt{fold-right}---come from SRFI-1\index{SRFI-1} (the extended list library), not from \texttt{(scheme base)}. In script files, add \texttt{(import (srfi 1))} at the top. The REPL makes them available automatically.
 \end{note}
 
 \section{\texttt{map}: Transform Every Element}
@@ -44,9 +44,11 @@ With a lambda for custom transformations:
 (20 30 40)
 > (map list '(a b c) '(1 2 3))
 ((a 1) (b 2) (c 3))
+> (map + '(1 2 3) '(10 20))
+(11 22)
 \end{lstlisting}
 
-The lists must be the same length. The function receives one argument from each list.
+The function receives one argument from each list. If the lists have different lengths, \texttt{map} stops at the end of the shortest one, as the last example shows.
 
 \begin{note}[Coming from Python]
 \texttt{(map f lst)} is equivalent to Python's \texttt{[f(x) for x in lst]} or \texttt{list(map(f, lst))}. Multi-list map is like \texttt{[f(a, b) for a, b in zip(lst1, lst2)]}.
@@ -115,6 +117,33 @@ for name in ["Alice", "Bob", "Carol"]:
     (list yes no))
 ((2 4 6) (1 3 5))
 \end{lstlisting}
+
+\section{\texttt{any} and \texttt{every}: Testing Across a List}
+\index{any}\index{every}
+
+\texttt{any} returns a true value if the predicate holds for at least one element; \texttt{every} checks that it holds for all of them:
+
+\begin{lstlisting}[style=repl]
+> (any even? '(1 3 5 6))
+#t
+> (any even? '(1 3 5))
+#f
+> (every positive? '(1 2 3))
+#t
+> (every positive? '(1 -2 3))
+#f
+\end{lstlisting}
+
+Both short-circuit: \texttt{any} stops at the first hit, \texttt{every} at the first miss. And like \texttt{and} and \texttt{or}, \texttt{any} returns the predicate's actual result rather than a bare \texttt{\#t}---useful when the test computes something worth keeping:
+
+\begin{lstlisting}[style=repl]
+> (any string->number '("a" "b" "42"))
+42
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{any} and \texttt{every} correspond to Python's \texttt{any()} and \texttt{all()} over a generator expression: \texttt{(any even? lst)} is \texttt{any(x \% 2 == 0 for x in lst)}.
+\end{note}
 
 \section{\texttt{fold}: Reduce a List to a Single Value}
 \index{fold}
@@ -211,7 +240,7 @@ Many list operations are special cases of fold:
 \section{\texttt{apply}: Spreading a List as Arguments}
 \index{apply}
 
-\texttt{apply}, introduced in Chapter~\ref{ch:functions}, calls a function with the elements of a list as individual arguments---\code{(apply + '(1 2 3 4 5))} is \code{15}. One capability we did not cover there: you can provide fixed arguments before the list:
+\texttt{apply}, introduced in Chapter~\ref{ch:functions}, calls a function with the elements of a list as individual arguments---\code{(apply + '(1 2 3 4 5))} is \code{15}. One detail that chapter used without comment: you can provide fixed arguments before the list:
 
 \begin{lstlisting}[style=repl]
 > (apply + 100 '(1 2 3))
@@ -268,29 +297,33 @@ You are not limited to the standard ones. Here are a few useful patterns:
 
 \subsection{Finding the First Match}
 
+SRFI-1 already provides this one as \texttt{find}\index{find}---but it is worth seeing what is inside:
+
 \begin{lstlisting}[style=repl]
-> (define (find pred lst)
+> (define (my-find pred lst)
     (cond
       ((null? lst) #f)
       ((pred (car lst)) (car lst))
-      (else (find pred (cdr lst)))))
-> (find even? '(1 3 5 4 7))
+      (else (my-find pred (cdr lst)))))
+> (my-find even? '(1 3 5 4 7))
 4
-> (find negative? '(1 2 3))
+> (my-find negative? '(1 2 3))
 #f
 \end{lstlisting}
 
 \subsection{Counting Matches}
 
+Also built in as SRFI-1's \texttt{count}\index{count}; here it is as a fold:
+
 \begin{lstlisting}[style=repl]
-> (define (count pred lst)
+> (define (my-count pred lst)
     (fold (lambda (x acc)
             (if (pred x) (+ acc 1) acc))
           0 lst))
-> (count even? '(1 2 3 4 5 6))
+> (my-count even? '(1 2 3 4 5 6))
 3
-> (count char-alphabetic?
-         (string->list "hello, world!"))
+> (my-count char-alphabetic?
+            (string->list "hello, world!"))
 10
 \end{lstlisting}
 
@@ -332,7 +365,7 @@ Higher-order functions are elegant, but they are not always the best choice:
 
 \begin{itemize}
     \item \textbf{Complex state:} When the loop body needs to maintain multiple interacting pieces of state, named \texttt{let} with explicit accumulators is often clearer than contorting a fold.
-    \item \textbf{Early termination:} \texttt{map}, \texttt{filter}, and \texttt{fold} always process the entire list. If you want to stop early (e.g., find the first match), use a recursive function or SRFI-1's \texttt{find}/\texttt{any}/\texttt{every}.
+    \item \textbf{Early termination:} \texttt{map}, \texttt{filter}, and \texttt{fold} always process the entire list. If you want to stop early, use \texttt{find}, \texttt{any}, or \texttt{every}---they return as soon as they have an answer---or a recursive function.
     \item \textbf{Multiple outputs:} If you need both the filtered elements and the rejected ones, use \texttt{partition} rather than calling \texttt{filter} twice.
 \end{itemize}
 
@@ -340,7 +373,7 @@ Higher-order functions are elegant, but they are not always the best choice:
 
 \begin{itemize}
     \item \texttt{map} transforms every element of a list, while \texttt{for-each} applies a procedure for its side effects.
-    \item \texttt{filter}, \texttt{remove}, and \texttt{partition} select elements by a predicate.
+    \item \texttt{filter}, \texttt{remove}, and \texttt{partition} select elements by a predicate, while \texttt{any} and \texttt{every} test whether it holds somewhere or everywhere.
     \item \texttt{fold} reduces a list to a single value and can express \texttt{map}, \texttt{filter}, \texttt{length}, and more.
     \item \texttt{apply} spreads a list as arguments, and higher-order functions compose into data-processing pipelines.
     \item Higher-order functions usually replace explicit recursion, though sometimes plain recursion is clearer.
@@ -363,7 +396,7 @@ Write expressions (using \code{map}, \code{filter}, and \code{assq}/\code{assoc}
 \begin{enumerate}
 \item Extract a list of all names: \code{("Alice" "Bob" "Carol" "Dave")}
 \item Find the names of people aged 18 or older: \code{("Alice" "Carol")}
-\item Find the cities of people in Paris: \code{("Alice" "Carol")}
+\item Find the names of the people who live in Paris: \code{("Alice" "Carol")}
 \end{enumerate}
 \end{exercise}
 
@@ -412,7 +445,7 @@ Implement \code{zip} that pairs up corresponding elements from two lists. If the
 ((x 10) (y 20))
 \end{lstlisting}
 
-The chapter showed a one-liner using multi-list \code{map}. Can you also write it with explicit recursion? Which version handles mismatched lengths correctly?
+The chapter showed a one-liner using multi-list \code{map}, which already stops at the shorter list. Write the recursive version so it behaves the same way---what are the two base cases?
 \end{exercise}
 
 \begin{exercise}[\code{take} and \code{drop}]
