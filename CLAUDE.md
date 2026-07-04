@@ -44,7 +44,8 @@ main.tex              Document root — memoir class (11pt, twoside, openright),
 preamble/
   colors.tex          Color definitions (grayscale palette, darkbrown accent)
   packages.tex        All \usepackage calls
-  fonts.tex           fontspec: EB Garamond (body), Source Sans 3 (headings), Fira Code (mono)
+  fonts.tex           fontspec: EB Garamond (body), Source Sans 3 (headings), Fira Code (mono);
+                      unicode-math + Garamond-Math (math)
   fonts-memoir.tex    Memoir heading font overrides
   decorations.tex     Lambda ornament, section/chapter break rules
   layout.tex          6×9" page geometry, margins, chapter style, page style

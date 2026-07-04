@@ -36,3 +36,11 @@
     Extension = .ttf,
     Scale = 0.85,
 ]
+
+% Math font matched to EB Garamond. Bundled locally (fonts/) for build
+% reproducibility rather than relying on the TeX Live copy. OFL 1.1, same
+% license as the text fonts. unicode-math must load after the text fonts.
+\usepackage{unicode-math}
+\setmathfont{Garamond-Math.otf}[
+    Path = fonts/,
+]
