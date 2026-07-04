@@ -69,7 +69,7 @@ check type-error-car "type error in 'car': expected pair, got ()" <<'EOF'
 (car '())
 EOF
 
-check type-error-plus 'expected number, got "two"' <<'EOF'
+check type-error-plus 'expected number, got #<string>' <<'EOF'
 (+ 1 "two")
 EOF
 
@@ -96,7 +96,7 @@ check guard-message "division by zero" <<'EOF'
   (/ 1 0))
 EOF
 
-check index-out-of-bounds "error.IndexOutOfBounds" <<'EOF'
+check index-out-of-bounds "vector-ref: index 5 out of range" <<'EOF'
 (vector-ref (vector 1) 5)
 EOF
 
