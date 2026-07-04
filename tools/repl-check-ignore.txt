@@ -1,10 +1,14 @@
 # Known divergences between book listings and piped `kaappi` output.
 # Format: <file-basename>:<line-of-input>  # reason
 #
-# Entries marked "upstream" reflect kaappi bugs that make a correct listing
-# fail when the checker replays a whole chapter as one session; the listings
-# themselves are verified against a fresh REPL. The others are inherent
-# limits of replaying listings through a pipe (interactivity, environment).
+# These are inherent limits of replaying listings through a pipe
+# (interactivity, environment, deliberate fatal-error demos) rather than
+# kaappi bugs. Verify listings against a locally built interpreter with
+#   KAAPPI=$PWD/../kaappi/zig-out/bin/kaappi make check-repl
+# (the checker runs from a temp cwd, so $KAAPPI must be an absolute path).
+#
+# (The former "upstream" entries for multiple-value truncation and mid-session
+# import failures were removed once those interpreter bugs were fixed.)
 
 # --- interactive REPL features (not available in piped mode) ---
 ch02-installation.tex:189  # tab completion is an interactive REPL feature
@@ -25,16 +29,6 @@ ch10-input-and-output.tex:110  # interactive: depends on user input above
 
 # --- illustrative code that cannot run (hypothetical procedures) ---
 ch14-error-handling.tex:296    # hypothetical http-get/fetch example
-
-# --- upstream kaappi bugs (listings verified in a fresh session) ---
-ch16-standard-library.tex:55   # upstream: REPL truncates multiple values (partition)
-ch16-standard-library.tex:83   # upstream: REPL truncates multiple values (unzip2)
-ch16-standard-library.tex:258  # upstream: mid-session (import (srfi 158)) intermittently fails after heap activity
-ch16-standard-library.tex:350  # upstream: mid-session (import (srfi 113) (srfi 128)) intermittently fails after heap activity
-ch16-standard-library.tex:351  # upstream: depends on the srfi 113/128 import above
-ch16-standard-library.tex:352  # upstream: depends on the srfi 113/128 import above
-ch16-standard-library.tex:354  # upstream: depends on the srfi 113/128 import above
-ch16-standard-library.tex:356  # upstream: depends on the srfi 113/128 import above
 
 # --- appendix D deliberately demonstrates fatal errors ---
 # The read/compile-error listings earlier in the appendix terminate the
