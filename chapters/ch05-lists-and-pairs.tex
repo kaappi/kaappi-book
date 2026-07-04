@@ -367,6 +367,28 @@ Pairs are mutable: \texttt{set-car!} and \texttt{set-cdr!} replace one half of a
 Idiomatic Scheme rarely uses them---building a new list is usually clearer and safer, as in the alist-update idiom in the exercises below. One hard rule: never mutate a quoted literal such as \texttt{'(1 2 3)}; R7RS declares that an error. If you intend to mutate, construct the pairs with \texttt{cons} or \texttt{list}.
 \end{note}
 
+\begin{note}[Shared Structure and Datum Labels]
+\index{datum labels}\index{write-shared}
+Because pairs are references, the same pair can appear in a structure more than once. R7RS has reader syntax for writing such sharing literally: \texttt{\#0=} labels the datum that follows, and \texttt{\#0\#} refers back to it (any number works, not just 0):
+
+\begin{lstlisting}[style=repl]
+> (define shared '(#0=(a b) #0#))
+> shared
+((a b) (a b))
+> (eq? (car shared) (cadr shared))
+#t
+\end{lstlisting}
+
+Plain \texttt{write} prints the two elements as if they were separate lists; \texttt{write-shared} makes the sharing visible using the same notation:
+
+\begin{lstlisting}[style=repl]
+> (write-shared shared)
+(#0=(a b) #0#)
+\end{lstlisting}
+
+Labels are also how \texttt{write} prints \emph{circular} data---a structure that contains itself, such as \texttt{\#0=(1 2 . \#0\#)}---without looping forever. You will rarely type datum labels yourself, but you will meet them in output whenever a structure contains a cycle.
+\end{note}
+
 \section{Performance Characteristics}
 
 Understanding list performance helps you choose the right data structure:

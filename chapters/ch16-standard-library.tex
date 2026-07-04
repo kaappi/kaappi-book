@@ -417,6 +417,81 @@ A promise is like \texttt{functools.cache} applied to a zero-argument function: 
 
 For programming with entire lazy sequences---infinite lists that materialize on demand---see SRFI-41 (streams) in Appendix~\ref{app:srfi}.
 
+\section{Evaluating Data as Code: \texttt{(scheme eval)}}
+\index{eval}\index{environments}\index{interaction-environment}
+
+Chapter~\ref{ch:io} showed that \texttt{read} turns text into data structures without running anything. The \texttt{(scheme eval)} library supplies the other half: \texttt{eval} takes a data structure and evaluates it as code. Together they close the loop behind the phrase ``code is data''---programs are lists, and lists can become programs.
+
+\texttt{eval} takes two arguments: the expression to evaluate and an \emph{environment} that supplies the bindings the expression may use. Build one with \texttt{environment}, which accepts the same import sets as an \texttt{import} form:
+
+\begin{lstlisting}[style=repl]
+> (import (scheme eval) (scheme repl))
+> (eval '(+ 1 2) (environment '(scheme base)))
+3
+> (define form '(* 6 7))
+> (eval form (environment '(scheme base)))
+42
+\end{lstlisting}
+
+The expression is ordinary list data. You can assemble it with \texttt{list}, \texttt{cons}, or quasiquote (Chapter~\ref{ch:lists}) before handing it over---no string pasting involved.
+
+An environment built by \texttt{environment} contains only the named libraries' bindings; your own definitions are not visible in it. To evaluate an expression against the live top-level environment, where everything you have defined is in scope, use \texttt{interaction-environment} from \texttt{(scheme repl)}:
+
+\begin{lstlisting}[style=repl]
+> (define x 10)
+> (eval '(+ x 1) (interaction-environment))
+11
+\end{lstlisting}
+
+Combining \texttt{read} on a string port (Chapter~\ref{ch:io}) with \texttt{eval} gives the closest analogue to Python's \texttt{eval("x + 5")}:
+
+\begin{lstlisting}[style=repl]
+> (define (eval-string s)
+    (eval (read (open-input-string s))
+          (interaction-environment)))
+> (eval-string "(+ x 5)")
+15
+\end{lstlisting}
+
+\begin{warning}[eval Runs Code]
+\texttt{read} on untrusted input builds data at worst (Chapter~\ref{ch:io}); \texttt{eval} on untrusted input runs arbitrary code---file deletion included. Never feed \texttt{eval} anything that arrives over a network or from a user you do not control. And when the code is known as you write the program, you do not need \texttt{eval} at all: a procedure handles computed \emph{values}, and a macro (Chapter~\ref{ch:macros}) handles computed \emph{syntax}. Reach for \texttt{eval} only when program text genuinely arrives at run time---a configuration file of formulas, a calculator, a REPL of your own.
+\end{warning}
+
+\section{Clocks and Timing: \texttt{(scheme time)}}
+\index{current-second}\index{current-jiffy}\index{jiffies-per-second}
+
+R7RS also ships a minimal clock library, \texttt{(scheme time)}, with exactly three procedures. \texttt{current-second} returns the current time as a number of seconds since January 1, 1970---the same epoch as Python's \texttt{time.time()}. It is the right tool for timestamps, like the record timestamps in Chapter~\ref{ch:records}. For measuring \emph{durations}, use \texttt{current-jiffy}: a monotonically increasing tick count in implementation-defined units, with \texttt{jiffies-per-second} giving the conversion factor. In Kaappi a jiffy is a microsecond:
+
+\begin{lstlisting}[style=repl]
+> (import (scheme time))
+> (jiffies-per-second)
+1000000
+\end{lstlisting}
+
+A small helper turns any thunk into a timed run:
+
+\begin{lstlisting}
+(define (measure thunk)
+  (let* ((start (current-jiffy))
+         (result (thunk))
+         (elapsed (- (current-jiffy) start)))
+    (display "elapsed: ")
+    (display (inexact (/ elapsed (jiffies-per-second))))
+    (display "s")
+    (newline)
+    result))
+\end{lstlisting}
+
+\begin{lstlisting}
+(measure (lambda () (length (iota 1000000))))
+\end{lstlisting}
+
+\begin{codeoutput}[Sample run]
+elapsed: 0.021882s
+\end{codeoutput}
+
+The elapsed line differs on every run---this is a sample, not output to reproduce---and \texttt{measure} then returns the thunk's value, here \texttt{1000000}. Chapter~\ref{ch:macros} wrapped the same pattern in a \texttt{time-it} macro, so the timed expression does not need a \texttt{lambda}.
+
 \section{Choosing the Right Data Structure}
 
 \begin{center}
@@ -442,6 +517,8 @@ Indexed random access & Vector & 133 & O(1) index \\
     \item SRFI-158 provides generators, and other SRFIs add sets and bags, format strings, and the Maybe and Either types.
     \item SRFI-64 is the standard test framework: group checks with \texttt{test-begin}/\texttt{test-end}, and state expectations with \texttt{test-equal}, \texttt{test-assert}, and \texttt{test-error}. SRFI-78's \texttt{check} is the lightweight alternative.
     \item R7RS's own \texttt{(scheme lazy)} library provides \texttt{delay} and \texttt{force} for memoized, on-demand computation.
+    \item \texttt{eval} evaluates list data as code, against either a library environment built by \texttt{environment} or the live \texttt{interaction-environment}. Never use it on untrusted input.
+    \item \texttt{(scheme time)} provides \texttt{current-second} for wall-clock timestamps and \texttt{current-jiffy} with \texttt{jiffies-per-second} for measuring durations.
 \end{itemize}
 
 \section*{Exercises}

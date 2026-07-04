@@ -306,6 +306,8 @@ The failing assertion raises an error object whose message is \texttt{"Assertion
 
 \subsection{A Timing Macro}
 
+This macro reports how long an expression takes to evaluate. \texttt{current-second}, from the standard \texttt{(scheme time)} library (Chapter~\ref{ch:stdlib}), returns the current time in seconds:
+
 \begin{lstlisting}
 (define-syntax time-it
   (syntax-rules ()

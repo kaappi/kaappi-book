@@ -25,6 +25,7 @@ R7RS-small partitions the standard into small libraries. Kaappi provides all of 
 \texttt{(scheme lazy)} & Promises: \texttt{delay}, \texttt{force} \\
 \texttt{(scheme load)} & \texttt{load} \\
 \texttt{(scheme process-context)} & Command line, environment variables, \texttt{exit} \\
+\texttt{(scheme r5rs)} & The R5RS language in one import, for legacy code; also \texttt{scheme-report-environment} and \texttt{null-environment} \\
 \texttt{(scheme read)} & \texttt{read} \\
 \texttt{(scheme repl)} & \texttt{interaction-environment} \\
 \texttt{(scheme time)} & Clock access: \texttt{current-second}, \texttt{current-jiffy} \\
@@ -163,8 +164,10 @@ Numbers are covered in Chapter~\ref{ch:data-types}.
 \texttt{abs} & Absolute value & base \\
 \texttt{max min} & Maximum/minimum (variadic) & base \\
 \texttt{quotient remainder modulo} & Integer division & base \\
-\texttt{floor/ truncate/} & Division returning two values & base \\
+\texttt{floor/ truncate/} & Division returning two values; single-value variants \texttt{floor-quotient}, \texttt{floor-remainder}, \texttt{truncate-quotient}, \texttt{truncate-remainder} & base \\
 \texttt{gcd lcm} & Greatest common divisor, least common multiple & base \\
+\texttt{numerator denominator} & Parts of a rational & base \\
+\texttt{rationalize} & Simplest rational within a tolerance & base \\
 \texttt{floor ceiling truncate round} & Rounding & base \\
 \texttt{expt square} & Exponentiation, squaring & base \\
 \texttt{exact-integer-sqrt} & Integer square root with remainder & base \\
@@ -173,6 +176,7 @@ Numbers are covered in Chapter~\ref{ch:data-types}.
 \texttt{exact inexact} & Convert between exact and inexact & base \\
 \texttt{exact? inexact? exact-integer?} & Test exactness & base \\
 \texttt{number? integer? rational?} & Type predicates & base \\
+\texttt{real? complex?} & Numeric tower predicates & base \\
 \texttt{number->string string->number} & Conversion & base \\
 \end{tabularx}
 \end{center}
@@ -210,16 +214,17 @@ Strings are covered in Chapter~\ref{ch:data-types}.
 \begin{tabularx}{\textwidth}{@{}lYl@{}}
 \textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
+\texttt{string make-string} & Creation (from characters / of a given length) & base \\
 \texttt{string-length} & Number of characters & base \\
-\texttt{string-ref} & Character at index & base \\
+\texttt{string-ref string-set!} & Character access and mutation & base \\
 \texttt{substring} & Extract a portion & base \\
 \texttt{string-append} & Concatenate strings & base \\
 \texttt{string->list list->string} & Convert to/from character lists & base \\
 \texttt{string-copy string-copy!} & Copy a string (into another) & base \\
 \texttt{string-fill!} & Overwrite with a character & base \\
 \texttt{string-map string-for-each} & Higher-order operations & base \\
-\texttt{string=? string<? string>?} & Comparison & base \\
-\texttt{string-ci=? string-ci<?} & Case-insensitive comparison & char \\
+\texttt{string=? string<? string>?} & Comparison (also \texttt{string<=?}, \texttt{string>=?}) & base \\
+\texttt{string-ci=? string-ci<?} & Case-insensitive comparison (also \texttt{>?}, \texttt{<=?}, \texttt{>=?}) & char \\
 \texttt{string-upcase string-downcase} & Case conversion & char \\
 \texttt{string-foldcase} & Case folding for comparison & char \\
 \texttt{string->symbol symbol->string} & Symbol conversion & base \\
@@ -241,8 +246,8 @@ Strings are covered in Chapter~\ref{ch:data-types}.
 \texttt{char-foldcase} & Case folding & char \\
 \texttt{digit-value} & Numeric value of a digit & char \\
 \texttt{char->integer integer->char} & Numeric conversion & base \\
-\texttt{char=? char<? char>?} & Comparison & base \\
-\texttt{char-ci=? char-ci<?} & Case-insensitive comparison & char \\
+\texttt{char=? char<? char>?} & Comparison (also \texttt{char<=?}, \texttt{char>=?}) & base \\
+\texttt{char-ci=? char-ci<?} & Case-insensitive comparison (also \texttt{>?}, \texttt{<=?}, \texttt{>=?}) & char \\
 \end{tabularx}
 \end{center}
 
@@ -289,7 +294,7 @@ All in \code{(scheme base)}. Bytevectors hold raw bytes (integers 0--255) for bi
 
 \section{I/O Procedures}
 
-I/O is covered in Chapter~\ref{ch:io}.
+I/O is covered in Chapter~\ref{ch:io}. First, reading and writing data:
 
 \begin{center}
 \small
@@ -297,16 +302,31 @@ I/O is covered in Chapter~\ref{ch:io}.
 \textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
 \texttt{display write} & Output (human-readable / re-readable) & write \\
-\texttt{write-shared write-simple} & Output with/without shared-structure labels & write \\
+\texttt{write-shared write-simple} & Output with/without shared-structure labels\index{datum labels} (\texttt{\#0=}/\texttt{\#0\#}, Chapter~\ref{ch:lists}) & write \\
 \texttt{read} & Read one datum & read \\
 \texttt{newline write-char write-string} & Character/string output & base \\
 \texttt{read-line read-char read-string} & Textual input & base \\
 \texttt{peek-char char-ready?} & Lookahead & base \\
-\texttt{read-u8 peek-u8 write-u8} & Binary I/O & base \\
+\texttt{read-u8 peek-u8 write-u8} & Binary I/O (byte at a time; \texttt{u8-ready?} tests availability) & base \\
+\texttt{read-bytevector read-bytevector!} & Binary block input & base \\
+\texttt{write-bytevector} & Binary block output & base \\
+\end{tabularx}
+\end{center}
+
+And the ports these operations read from and write to:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
+\hline
 \texttt{open-input-string open-output-string} & String ports & base \\
 \texttt{get-output-string} & Extract string port contents & base \\
 \texttt{open-input-bytevector open-output-bytevector} & Bytevector ports & base \\
+\texttt{get-output-bytevector} & Extract bytevector port contents & base \\
 \texttt{open-input-file open-output-file} & File ports & file \\
+\texttt{open-binary-input-file} & Binary file port (input) & file \\
+\texttt{open-binary-output-file} & Binary file port (output) & file \\
 \texttt{call-with-input-file call-with-output-file} & File ports with automatic close & file \\
 \texttt{with-input-from-file with-output-to-file} & Redirect default ports & file \\
 \texttt{file-exists? delete-file} & File operations & file \\
@@ -317,6 +337,8 @@ I/O is covered in Chapter~\ref{ch:io}.
 \texttt{current-error-port} & Error output & base \\
 \texttt{eof-object eof-object?} & End-of-file value and test & base \\
 \texttt{port? input-port? output-port?} & Port predicates & base \\
+\texttt{binary-port? textual-port?} & Port kind predicates & base \\
+\texttt{input-port-open? output-port-open?} & Test whether a port is still open & base \\
 \end{tabularx}
 \end{center}
 
@@ -331,7 +353,7 @@ All in \code{(scheme base)}. Continuations are covered in Chapter~\ref{ch:contin
 \hline
 \texttt{apply} & Call procedure with list of arguments \\
 \texttt{values call-with-values} & Multiple return values \\
-\texttt{call/cc} & Capture current continuation \\
+\texttt{call/cc} & Capture current continuation (long name: \texttt{call-with-current-continuation}) \\
 \texttt{dynamic-wind} & Entry/exit guarantees \\
 \texttt{raise raise-continuable} & Signal exceptions \\
 \texttt{error} & Create and raise an error object \\
@@ -353,6 +375,7 @@ All in \code{(scheme base)}. See Section~\ref{sec:equality} for choosing between
 \hline
 \texttt{not} & Boolean negation \\
 \texttt{boolean? boolean=?} & Type predicate, boolean comparison \\
+\texttt{symbol=?} & Symbol comparison \\
 \texttt{eq?}\index{eq?} & Pointer identity \\
 \texttt{eqv?} & Value equivalence (numbers, chars) \\
 \texttt{equal?}\index{equal?} & Deep structural equality \\
@@ -387,10 +410,12 @@ All in \code{(scheme base)}.
 \texttt{features} & List of feature identifiers & base \\
 \texttt{eval environment} & Evaluation & eval \\
 \texttt{interaction-environment} & The REPL environment & repl \\
+\texttt{scheme-report-environment} & R5RS environments (also \texttt{null-environment}) & r5rs \\
 \texttt{load} & Load a file & load \\
 \texttt{exit emergency-exit} & Terminate the program & process-context \\
 \texttt{command-line} & Program arguments & process-context \\
-\texttt{get-environment-variable} & Read env var & process-context \\
+\texttt{get-environment-variable} & Read one env var & process-context \\
+\texttt{get-environment-variables} & All env vars as an alist & process-context \\
 \texttt{current-second current-jiffy} & Time & time \\
 \texttt{jiffies-per-second} & Time resolution & time \\
 \texttt{real-part imag-part magnitude angle} & Complex number accessors & complex \\

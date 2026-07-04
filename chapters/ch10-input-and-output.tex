@@ -404,6 +404,48 @@ Real PNG files start with the signature bytes 137, 80, 78, 71. We can fabricate 
 
 Binary reads return bytevectors (Chapter~\ref{ch:data-types}) or, at end of file, the same EOF object as textual reads. A port is either textual or binary, never both---calling \texttt{read-line} on a binary port is an error. Use binary ports for images, compressed data, and network protocols; use textual ports for anything meant to be read by humans.
 
+\section{Scripts: Arguments, Environment Variables, and Exit Codes}
+\index{command-line}\index{exit}\index{environment variables}\index{scripts}
+
+Every example so far has named its own files. Real command-line tools receive their inputs from the outside: arguments, environment variables, and---in the other direction---an exit status for the shell. R7RS covers all three in the \texttt{(scheme process-context)} library.
+
+\texttt{command-line} returns the program's arguments as a list of strings, with the script name first. Save this as \texttt{args.scm}:
+
+\begin{lstlisting}
+(import (scheme base) (scheme write)
+        (scheme process-context))
+
+(display (command-line))
+(newline)
+\end{lstlisting}
+
+\begin{Verbatim}[fontsize=\small]
+kaappi args.scm one two
+\end{Verbatim}
+
+\begin{codeoutput}
+(args.scm one two)
+\end{codeoutput}
+
+Your arguments are \texttt{(cdr (command-line))}---the equivalent of Python's \texttt{sys.argv[1:]}.
+
+\texttt{exit} ends the program immediately with a status code for the shell: \texttt{(exit)} or \texttt{(exit 0)} reports success, and any nonzero value, like \texttt{(exit 1)}, reports failure. There is also \texttt{emergency-exit}, which terminates without running the cleanup actions registered by \texttt{dynamic-wind} (Chapter~\ref{ch:continuations}); prefer \texttt{exit} unless you know you need that.
+
+\texttt{get-environment-variable} looks up one environment variable, returning its string value, or \texttt{\#f} when it is not set:
+
+\begin{lstlisting}[style=repl]
+> (get-environment-variable "HOME")
+"/Users/bmuthuka"
+> (get-environment-variable "NO-SUCH-VARIABLE")
+#f
+\end{lstlisting}
+
+Its companion \texttt{get-environment-variables} returns the entire environment as an association list of name--value string pairs, ready for \texttt{assoc} (Chapter~\ref{ch:lists}).
+
+\begin{note}[Coming from Python]
+\texttt{(command-line)} is \texttt{sys.argv}, and \texttt{(exit 1)} is \texttt{sys.exit(1)}. \texttt{(get-environment-variable "X")} behaves like \texttt{os.environ.get("X")}, down to returning a falsy value when the variable is missing.
+\end{note}
+
 \section{Putting It Together: A File Processing Example}
 
 Here is a program that reads a text file, numbers each line, and writes the result to a new file:
@@ -436,6 +478,26 @@ Usage, with \texttt{write-lines} and \texttt{read-all-lines} from earlier in the
 3: gamma
 \end{lstlisting}
 
+To turn this into a standalone tool, add a driver that reads the two filenames from \texttt{command-line} and complains---on the error port, with a failing exit status---when they are missing. Save the definition of \texttt{number-lines} followed by this driver as \texttt{number-lines.scm}:
+
+\begin{lstlisting}
+(define args (cdr (command-line)))
+
+(unless (= (length args) 2)
+  (display "usage: kaappi number-lines.scm INPUT OUTPUT"
+           (current-error-port))
+  (newline (current-error-port))
+  (exit 1))
+
+(number-lines (car args) (cadr args))
+\end{lstlisting}
+
+\begin{Verbatim}[fontsize=\small]
+kaappi number-lines.scm input.txt output.txt
+\end{Verbatim}
+
+The shell sees exit status 0 on success and 1 on a usage error, which makes the script a well-behaved citizen in pipelines and Makefiles.
+
 \section*{Summary}
 
 \begin{itemize}
@@ -444,6 +506,7 @@ Usage, with \texttt{write-lines} and \texttt{read-all-lines} from earlier in the
     \item All I/O flows through ports; \texttt{call-with-port} and the \texttt{with-*-to-file} forms open and close them safely.
     \item String ports perform in-memory I/O, including capturing output as a string.
     \item Binary ports carry raw bytes as bytevectors; textual ports carry characters. A port is one or the other.
+    \item \texttt{command-line}, \texttt{get-environment-variable}, and \texttt{exit} from \texttt{(scheme process-context)} connect a script to its arguments, environment, and exit status.
     \item Input procedures return the EOF object when input is exhausted.
 \end{itemize}
 
@@ -458,7 +521,7 @@ Write a function \code{cat} that takes a filename and prints its contents to the
   )
 \end{lstlisting}
 
-Test it by creating a small text file and running \code{(cat "test.txt")} in the REPL. This is the Scheme equivalent of the Unix \texttt{cat} command (or Python's \texttt{print(open(f).read())}).
+Test it by creating a small text file and running \code{(cat "test.txt")} in the REPL. This is the Scheme equivalent of the Unix \texttt{cat} command (or Python's \texttt{print(open(f).read())}). As a bonus, turn it into a standalone script: take the filename from \code{command-line}, and exit with status 1 (after printing a usage message) when no filename is given or the file does not exist (\code{file-exists?}).
 \end{exercise}
 
 \begin{exercise}[Word Count]
