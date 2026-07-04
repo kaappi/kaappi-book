@@ -31,9 +31,10 @@ listing.
 
 `make check-examples` runs `scripts/check-appendix-examples.sh`, which executes
 the error cases quoted in Appendix D and the quick-start examples in Appendix E
-against the real interpreter (`../kaappi/zig-out/bin/kaappi`, or `$KAAPPI`).
-Run it whenever those appendices change, and after Kaappi releases that touch
-diagnostics.
+against the real interpreter (auto-detected at `../kaappi/zig-out/bin/kaappi`,
+or `$KAAPPI` set to an *absolute* path — both check scripts invoke the binary
+from a temp cwd, so a relative `$KAAPPI` fails). Run it whenever those
+appendices change, and after Kaappi releases that touch diagnostics.
 
 ## Project Layout
 

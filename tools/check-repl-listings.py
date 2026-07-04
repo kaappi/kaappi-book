@@ -27,13 +27,19 @@ Usage: python3 tools/check-repl-listings.py chapters/*.tex
 Exit status: 0 if no unexpected mismatches, 1 otherwise.
 """
 
+import os
 import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-KAAPPI = "kaappi"
+# Honor $KAAPPI (as documented in CLAUDE.md) so the listings can be checked
+# against a locally built interpreter. Each chapter is replayed in a fresh
+# temp cwd (see run_chapter), so a relative $KAAPPI would resolve against that
+# temp dir and fail -- use an absolute path, e.g.
+#   KAAPPI=$PWD/../kaappi/zig-out/bin/kaappi make check-repl
+KAAPPI = os.environ.get("KAAPPI", "kaappi")
 MARKER_FMT = "@@REPL-CHECK-{}@@"
 BEGIN_RE = re.compile(r"\\begin\{lstlisting\}\[([^\]]*)\]")
 END_MARK = r"\end{lstlisting}"
