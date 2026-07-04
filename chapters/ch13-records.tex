@@ -93,7 +93,7 @@ Pattern matching & Via \texttt{car}/\texttt{cdr} & Via predicate + accessors \\
 Use lists for homogeneous collections (a list of numbers). Use records for heterogeneous structured data (a person with a name, age, and email).
 
 \begin{note}[Coming from Python]
-\texttt{define-record-type} plays the role of a Python \texttt{class} or \texttt{@dataclass}: a named type with named fields, a constructor, and a predicate (like \texttt{isinstance}). One difference to watch for: unlike a \texttt{@dataclass}, two records with identical field values are \emph{not} automatically equal---\texttt{(equal? a b)} is \texttt{\#f} unless \texttt{a} and \texttt{b} are the very same object. Write your own comparison procedure when you need value equality.
+\texttt{define-record-type} plays the role of a Python \texttt{class} or \texttt{@dataclass}: a named type with named fields, a constructor, and a predicate (like \texttt{isinstance}). One difference to watch for: unlike a \texttt{@dataclass}, two records with identical field values are \emph{not} automatically equal---\texttt{(equal? a b)} is \texttt{\#f} unless \texttt{a} and \texttt{b} are the very same object. Write your own comparison procedure when you need value equality.\index{records!equality} This matters most in lookups. \texttt{member} and \texttt{assoc} accept an equality predicate as an optional last argument---\texttt{(member p points point=?)} finds points by value. SRFI-69 hash tables (Chapter~\ref{ch:stdlib}) offer no such hook: keys always compare with \texttt{equal?}, so a record key matches only the identical object. To look up records by content, key the table with plain data instead, such as a list of field values.
 \end{note}
 
 \section{A Larger Example: A Task Manager}

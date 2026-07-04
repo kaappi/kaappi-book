@@ -79,6 +79,41 @@ A:0 B:0 A:1 B:1 A:2 B:2
 
 The fibers interleave at each \texttt{yield} point. Note that \texttt{spawn} only queues a fiber---nothing runs until the main fiber gives up control. The first \texttt{fiber-join} does exactly that, so both fibers run to completion there, and the second join returns immediately.
 
+The flip side of cooperative scheduling is \emph{starvation}\index{starvation}. Here \texttt{slow} grinds through a long computation with no \texttt{yield} in sight, while \texttt{quick} only wants to print one line:
+
+\begin{lstlisting}[style=repl]
+> (define (busy-work n)
+    (if (zero? n) 'done (busy-work (- n 1))))
+> (define slow (spawn (lambda ()
+    (busy-work 1000000)
+    (display "slow finished") (newline))))
+> (define quick (spawn (lambda ()
+    (display "quick finished") (newline))))
+> (fiber-join quick)
+slow finished
+quick finished
+\end{lstlisting}
+
+We asked for \texttt{quick}'s result, but \texttt{slow} was queued first and never gave up control, so \texttt{quick} had to wait out the entire computation. A \texttt{yield} in the loop restores responsiveness:
+
+\begin{lstlisting}[style=repl]
+> (define (busy-work n)
+    (if (zero? n)
+        'done
+        (begin (yield) (busy-work (- n 1)))))
+> (define slow (spawn (lambda ()
+    (busy-work 1000000)
+    (display "slow finished") (newline))))
+> (define quick (spawn (lambda ()
+    (display "quick finished") (newline))))
+> (fiber-join quick)
+quick finished
+> (fiber-join slow)
+slow finished
+\end{lstlisting}
+
+Now \texttt{slow} offers control back on every iteration, so \texttt{quick} runs at the first opportunity while the long computation finishes afterward. Be clear about what \texttt{yield} buys here: \emph{responsiveness}, not \emph{fairness}. It lets other fibers run; it does not promise an even split of processor time (the fan-out example in Section~\ref{sec:fan-out} returns to this).
+
 \begin{warning}[Long computations without yield]
 Since fibers are cooperative, a fiber that runs a long computation without yielding will block all other fibers. Insert \texttt{(yield)} in long loops to keep the system responsive.
 \end{warning}
@@ -144,6 +179,7 @@ Go's unbuffered channels synchronize sender and receiver: a send waits until a r
 \end{codeoutput}
 
 \subsection{Fan-Out: Multiple Workers}
+\label{sec:fan-out}
 
 \begin{lstlisting}
 (import (kaappi fibers))

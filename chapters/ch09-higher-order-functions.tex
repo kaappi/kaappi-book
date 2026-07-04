@@ -234,7 +234,7 @@ Many list operations are special cases of fold:
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
-\texttt{fold} is Python's \texttt{functools.reduce}. \texttt{(fold + 0 '(1 2 3 4 5))} is \texttt{reduce(lambda acc, x: acc + x, [1,2,3,4,5], 0)}. The argument order differs slightly: Scheme's fold gives the element first, accumulator second.
+\texttt{fold} is Python's \texttt{functools.reduce}. \texttt{(fold + 0 '(1 2 3 4 5))} is \texttt{reduce(lambda acc, x: acc + x, [1,2,3,4,5], 0)}. But watch the argument order: it is the \emph{reverse} of Python's. \texttt{reduce} passes the accumulator first (\texttt{acc, x}); \texttt{fold} passes the element first (\texttt{x acc}). Swapping the two is the classic mistake when porting \texttt{reduce} code---if your fold returns a reversed list or a baffling type error, check the argument order first.
 \end{note}
 
 \section{\texttt{apply}: Spreading a List as Arguments}

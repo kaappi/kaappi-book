@@ -148,6 +148,10 @@ Hash tables provide O(1) average key lookup---much faster than association lists
 "unknown"
 \end{lstlisting}
 
+\begin{warning}[Keys always compare with \texttt{equal?}]
+\index{hash tables!key equality}Kaappi accepts SRFI-69's optional equality and hash arguments to \texttt{make-hash-table} but ignores them: every table compares keys with \texttt{equal?}. Strings, lists, and vectors therefore work as keys by value, as the examples above show. Records do not---a record is \texttt{equal?} only to itself (Chapter~\ref{ch:records}), so a record key can be retrieved only with the very same object. To index by a record's contents, use a key built from plain data, such as a list of its field values.
+\end{warning}
+
 \subsection{Iteration}
 
 \begin{lstlisting}[style=repl]
