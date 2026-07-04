@@ -272,6 +272,51 @@ Generators are lazy sequences---they produce values one at a time on demand:\ind
 
 Generators are useful for processing large or infinite sequences without materializing them all in memory.
 
+\section{SRFI-64: Unit Testing}
+\index{SRFI-64}\index{testing}\index{unit testing}\index{test-equal}\index{test-assert}
+
+Every project you keep needs tests, and Scheme's standard test framework is SRFI-64. You group related checks between \texttt{test-begin} and \texttt{test-end}, and state expectations with \texttt{test-equal} (compares with \texttt{equal?}) and \texttt{test-assert} (expects a true value). Each test takes an optional descriptive name:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 64))
+> (test-begin "arith")
+%%%% Starting test arith  (Writing full log to "arith.log")
+> (test-equal "two plus two" 4 (+ 2 2))
+> (test-assert "ten is even" (even? 10))
+> (test-equal "off by one" 5 (+ 2 2))
+FAIL off by one
+> (test-end "arith")
+# of expected passes      2
+# of unexpected failures  1
+\end{lstlisting}
+
+Passing tests are silent. Failures are reported the moment they run, and \texttt{test-end} prints the tally for the group. The full record---every test's name, actual value, and expected value---is written to the log file named after the group (here \texttt{arith.log}), which is where you look when a failure message alone is not enough.
+
+\texttt{test-error} asserts that an expression \emph{raises} an error, which is how you test the failure paths of Chapter~\ref{ch:errors}:
+
+\begin{lstlisting}[style=repl]
+> (test-begin "errors")
+%%%% Starting test errors  (Writing full log to "errors.log")
+> (test-error "car of non-pair" (car 5))
+> (test-end "errors")
+# of expected passes      1
+\end{lstlisting}
+
+In a real project, tests live in their own files---the ecosystem convention is a \texttt{tests/} directory next to \texttt{lib/}---and each file is an ordinary script you run with \texttt{kaappi tests/test-mylib.scm}. Import the library under test, exercise its exports, and let the summary tell you where you stand. Kaappi can also report which exported procedures your tests never called: run the suite with \texttt{kaappi --coverage} (Appendix~\ref{app:cli}).
+
+If SRFI-64 feels heavyweight for a quick script, SRFI-78\index{SRFI-78} offers a one-form alternative: \texttt{check} compares an expression against an expected value and reports immediately:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 78))
+> (check (+ 2 2) => 4)
+(1) (+ 2 2) => 4 ; correct
+> (check-report)
+
+Checks: 1 total, 1 passed, 0 failed.
+\end{lstlisting}
+
+Beyond the SRFIs, the ecosystem provides \texttt{kaappi-test} (a richer test framework with suites and CI-friendly output) and \texttt{kaappi-bdd} (behavior-driven \texttt{describe}/\texttt{it}/\texttt{expect} style); see Appendix~\ref{app:ecosystem}.
+
 \section{Other Useful SRFIs}
 
 \subsection{SRFI-26: Partial Application with \texttt{cut}}
@@ -391,6 +436,7 @@ Indexed random access & Vector & 133 & O(1) index \\
     \item SRFI-1 extends list processing, SRFI-13 extends strings, and SRFI-69 provides hash tables.
     \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random numbers), and SRFI-115 (regular expressions) cover common needs.
     \item SRFI-158 provides generators, and other SRFIs add sets and bags, format strings, and the Maybe and Either types.
+    \item SRFI-64 is the standard test framework: group checks with \texttt{test-begin}/\texttt{test-end}, and state expectations with \texttt{test-equal}, \texttt{test-assert}, and \texttt{test-error}. SRFI-78's \texttt{check} is the lightweight alternative.
     \item R7RS's own \texttt{(scheme lazy)} library provides \texttt{delay} and \texttt{force} for memoized, on-demand computation.
 \end{itemize}
 
@@ -461,6 +507,10 @@ Using SRFI-158, create a procedure \code{(make-fib-generator)} that returns a ge
 \end{lstlisting}
 
 Hint: use \code{make-unfold-generator} or build one manually with a closure that tracks two state variables. In Python, this would be a function with \code{yield}.
+\end{exercise}
+
+\begin{exercise}[Test Suite for Your Own Code]
+Pick two exercises you solved earlier in this chapter (for example, \code{word-frequencies} and \code{parse-email}) and write a SRFI-64 test suite for them in a separate file. Cover the happy path, at least one edge case each (an empty string; a string with no \code{@}), and use \code{test-error} for an input that should raise an error. Run the file with \code{kaappi} and make every test pass. Then break one procedure on purpose, rerun the suite, and read the log file to see how the failure is reported.
 \end{exercise}
 
 In the next chapter, we explore calling C code from Scheme using the foreign function interface.

@@ -12,6 +12,8 @@ This chapter covers \texttt{define-syntax} and \texttt{syntax-rules}---the patte
 
 A macro is a compile-time transformation rule\index{macro expansion}. When Kaappi encounters a macro call, it does not evaluate the arguments---instead, it rewrites the entire expression according to the macro's rules, and then evaluates the result.
 
+One boundary is worth stating up front: macros transform \emph{expressions}, the tree of parenthesized forms the reader has already parsed. They cannot change how characters are read in the first place. Some Lisps let you extend the reader itself with new lexical syntax; Kaappi (like standard R7RS) does not---the token syntax of Chapter~\ref{ch:first-steps} is fixed.\index{reader}
+
 Consider \texttt{when}:
 
 \begin{lstlisting}[style=repl]
@@ -208,6 +210,17 @@ Scheme macros are hygienic: temporary variables introduced by a macro cannot cla
 
 The \texttt{tmp} inside the macro and the \texttt{tmp} in the calling code are different bindings---the macro's \texttt{tmp} is automatically renamed to avoid capture\index{variable capture}. In an unhygienic system (like C's \texttt{\#define}), this would be a bug.
 
+There is no magic here, and \texttt{,expand} lets you watch the mechanism work. During expansion, every identifier that comes from the \emph{template} (rather than from the macro call) is renamed to a fresh, globally unique name:
+
+\begin{lstlisting}[style=repl]
+> ,expand (swap! x y)
+(__hyg_1_let ((__hyg_2_tmp x)) (set! x y) (set! y __hyg_2_tmp))
+\end{lstlisting}
+
+Read the expansion alongside the template. The template's \texttt{tmp} became \texttt{\_\_hyg\_2\_tmp}, so it can never collide with the \texttt{tmp} at the call site. The \texttt{x} and \texttt{y} came from the macro \emph{call}, not the template, so they keep their names and refer to the caller's bindings. Even \texttt{let} was renamed---the expander renames every template identifier uniformly, and the compiler recognizes renamed references to standard forms---which means the macro still works if the caller has shadowed \texttt{let} with a local variable. (The numbers in the fresh names are a session-wide counter, so yours will differ.)
+
+Hygiene, then, is just consistent renaming: template identifiers are renamed away from the caller's namespace, call-site identifiers pass through untouched. \index{gensym}
+
 \begin{note}[Why hygiene matters]
 In C, the macro \texttt{\#define SWAP(a,b) \{int tmp=a; a=b; b=tmp;\}} breaks if you write \texttt{SWAP(tmp, x)} because the user's \texttt{tmp} and the macro's \texttt{tmp} collide. Scheme's system makes this impossible.
 \end{note}
@@ -286,10 +299,10 @@ The catch-all clause matches anything the first clause rejected, and the \texttt
          (error "Assertion failed" 'expr)))))
 > (assert (= (+ 1 1) 2))
 > (assert (= (+ 1 1) 3))
-runtime error: error.ExceptionRaised
+error: Assertion failed (= (+ 1 1) 3)
 \end{lstlisting}
 
-The failing assertion raises an error object whose message is \texttt{"Assertion failed"} and whose irritant is the \emph{source code} of the assertion---\texttt{'expr} in the template quotes it. The REPL's top-level report is terse, but a handler can read both parts back; Chapter~\ref{ch:errors} shows how.
+The failing assertion raises an error object whose message is \texttt{"Assertion failed"} and whose irritant is the \emph{source code} of the assertion---\texttt{'expr} in the template quotes it, which is why the report shows the exact expression that failed. A handler can read both parts back; Chapter~\ref{ch:errors} shows how.
 
 \subsection{A Timing Macro}
 

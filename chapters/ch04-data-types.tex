@@ -57,6 +57,10 @@ Small integers (up to 48 bits) are stored as \emph{fixnums}---unboxed values tha
 
 There is no silent wraparound. If the result does not fit in a fixnum, it becomes a bignum transparently.
 
+\begin{note}[Why 48 bits? A peek under the hood]
+\index{NaN-boxing}Kaappi stores \emph{every} Scheme value in a single 64-bit word using a technique called \emph{NaN-boxing}: an IEEE 754 double has millions of bit patterns that all mean ``not a number,'' and Kaappi hides its other types inside them. A flonum is stored as the double itself, so floating-point math never allocates memory; fixnums, characters, booleans, and pointers to heap objects live in the spare NaN patterns, which leaves 48 bits for a fixnum's payload. You never see any of this from Scheme---overflow promotes to bignums automatically---but it explains the 48, and it is why values cross the C boundary cheaply in Chapter~\ref{ch:ffi}.
+\end{note}
+
 \subsection{Exact Rationals}
 \index{rationals}
 

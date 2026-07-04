@@ -55,6 +55,10 @@ Unlike most languages where \texttt{+} is binary, Scheme's arithmetic operators 
 
 With zero arguments, \texttt{+} returns 0 (the additive identity) and \texttt{*} returns 1 (the multiplicative identity).
 
+\begin{note}[Why prefix notation?]
+It is a deliberate trade, not an accident of history. Because the operator is named once, up front, operators can take any number of arguments---infix \texttt{1 + 2 + 3 + 4} names \texttt{+} three times to add four numbers. Because every expression has the same shape, there is no precedence table, and \texttt{+} is not special syntax but an ordinary procedure you can pass around like any other (Chapter~\ref{ch:hof} exploits this constantly). The uniform shape has one more consequence, and it is the big one: Scheme code is itself a Scheme data structure, which is what makes the macros of Chapter~\ref{ch:macros} possible.
+\end{note}
+
 \section{Atoms}
 \index{atoms}
 
@@ -124,6 +128,10 @@ The boolean values are \texttt{\#t} (true) and \texttt{\#f} (false). There is on
 \begin{warning}[Only \texttt{\#f} is false]
 This is one of the most common sources of bugs when coming from Python. In Scheme, \texttt{(if 0 ...)} takes the ``then'' branch because \texttt{0} is not \texttt{\#f}. If you want to test whether a number is zero, use \texttt{(zero? n)} or \texttt{(= n 0)} explicitly.
 \end{warning}
+
+\begin{note}[Why so strict?]
+Python's rule conflates ``no result'' with ``a result that happens to be empty.'' Scheme's rule keeps them apart: a lookup procedure can return \texttt{0}, \texttt{""}, or the empty list as honest \emph{data} and reserve \texttt{\#f} for ``not found,'' and the caller can tell the difference. Older Lisps went the other way---the empty list doubled as false---and Scheme deliberately separated the two. You will see this convention pay off throughout the standard library.
+\end{note}
 
 \subsection{Characters}
 \index{characters}

@@ -23,7 +23,7 @@ Three things to know about this format:
     \item \textbf{Fallback format.} When no detailed message is available, Kaappi prints the internal error name, e.g.\ \texttt{runtime error: error.StackOverflow}.
 \end{itemize}
 
-A raised exception that reaches the top level is reported as \texttt{runtime error: error.ExceptionRaised}. To see the message it carries, catch it with \code{guard}:
+A raised exception that reaches the top level is reported with the error object's message and irritants, e.g.\ \texttt{error: division by zero}. Handlers can also read both fields programmatically with \code{guard}:
 
 \begin{lstlisting}[style=repl]
 > (guard (e (#t (display (error-object-message e))))
@@ -126,16 +126,18 @@ The \texttt{set!} variant of this error reads \texttt{error: set!: unbound varia
 
 \textbf{Fix:} Check for extra parentheses---\code{((+ 1 2))} computes \texttt{3} and then tries to call it.
 
-\subsection{\texttt{runtime error: error.ExceptionRaised}}
+\subsection{\texttt{error: division by zero} (uncaught exceptions)}
 
-\textbf{Cause:} An exception raised by \code{error}, \code{raise}, or a primitive (such as division by zero) reached the top level uncaught.
+\textbf{Cause:} An exception raised by \code{error}, \code{raise}, or a primitive (such as division by zero) reached the top level uncaught. The report shows the error object's message followed by its irritants, if any.
 
 \begin{lstlisting}[style=repl]
 > (/ 1 0)
-; runtime error: error.ExceptionRaised
+; error: division by zero
+> (error "bad input" 42)
+; error: bad input 42
 \end{lstlisting}
 
-\textbf{Fix:} Wrap the code in \code{guard} to catch the exception and read its message (see Chapter~\ref{ch:errors}). To avoid dividing by zero in the first place, test the divisor: \code{(if (zero? b) ... (/ a b))}.
+\textbf{Fix:} Wrap the code in \code{guard} to catch the exception and handle it (see Chapter~\ref{ch:errors}). To avoid dividing by zero in the first place, test the divisor: \code{(if (zero? b) ... (/ a b))}.
 
 \subsection{\texttt{runtime error: error.IndexOutOfBounds}}
 

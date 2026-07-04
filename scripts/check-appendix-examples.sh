@@ -83,8 +83,12 @@ check not-a-procedure "not a procedure" <<'EOF'
 (x 1)
 EOF
 
-check exception-raised "error.ExceptionRaised" <<'EOF'
+check exception-raised "error: division by zero" <<'EOF'
 (/ 1 0)
+EOF
+
+check error-irritants "error: bad input 42" <<'EOF'
+(error "bad input" 42)
 EOF
 
 check guard-message "division by zero" <<'EOF'

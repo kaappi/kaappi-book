@@ -266,7 +266,9 @@ three
 Each call to \texttt{coroutine-run} resumes the coroutine from where it last yielded. The first call starts \texttt{counter} and captures the caller's continuation in \texttt{return}, so \texttt{yield} can escape back out with a value; subsequent calls jump back in through \texttt{resume} and continue after the corresponding \texttt{yield}.
 
 \subsection{Non-Deterministic Choice (Backtracking)}
-\index{backtracking}
+\index{backtracking}\index{amb}
+
+The classic showpiece for \texttt{call/cc} is nondeterministic choice, known in the Scheme literature as the \texttt{amb} operator. The goal: \texttt{(choose 1 2 3)} returns \texttt{1}---but if the program later calls \texttt{(fail)}, control jumps \emph{back into} that \texttt{choose}, which returns \texttt{2} instead, and everything after it replays with the new value. The program explores alternatives until one works. This is the densest code in the book; read it once, then follow the walkthrough below.
 
 \begin{lstlisting}
 (define fail #f)
@@ -285,7 +287,11 @@ Each call to \texttt{coroutine-run} resumes the coroutine from where it last yie
             (loop (cdr alts))))))))
 \end{lstlisting}
 
-This creates a backtracking mechanism: \texttt{choose} returns each alternative in turn, backtracking when \texttt{fail} is called.
+\texttt{choose} uses both directions of \texttt{call/cc}, just like the coroutine example. The outer capture grabs \texttt{return}---the continuation of the \texttt{(choose ...)} call itself. Invoking \texttt{(return v)} means ``the value of this \texttt{choose} is \texttt{v}; continue from there.'' The inner capture runs once per alternative and grabs \texttt{k}---the point \emph{inside the loop}, just after the current alternative. Invoking \texttt{(k \#f)} re-enters the loop, which moves on to \texttt{(cdr alts)}.
+
+The two are wired together through \texttt{fail}. Before handing out an alternative with \texttt{(return (car alts))}, \texttt{choose} saves the current \texttt{fail} in \texttt{old-fail} and installs a new one that does two things: restore the previous \texttt{fail}, then jump to \texttt{k} to try the next alternative. So \texttt{fail} is a chain of saved resume points---each pending \texttt{choose} contributes a link, and calling \texttt{(fail)} rewinds to the most recent choice point. When a \texttt{choose} runs out of alternatives, \texttt{fail} has already been restored to the \emph{enclosing} choice point, so the failure propagates outward---and at the top level, to whatever \texttt{fail} was originally: below, a procedure that reports there is no solution.
+
+Note that this genuinely requires full \texttt{call/cc}: \texttt{fail} re-enters \texttt{k} after the \texttt{choose} call has already returned, which is exactly what \texttt{call/ec} forbids.
 
 \begin{lstlisting}[style=repl]
 > (set! fail (lambda () (error "no solution")))
@@ -297,7 +303,7 @@ This creates a backtracking mechanism: \texttt{choose} returns each alternative 
 (2 6)
 \end{lstlisting}
 
-The search tries combinations until \texttt{(+ x y)} equals 8: it backtracks through \texttt{(1 4)}, \texttt{(1 5)}, \texttt{(1 6)}, \texttt{(2 4)}, \texttt{(2 5)}, then finds \texttt{(2 6)}.
+The search tries combinations until \texttt{(+ x y)} equals 8: it backtracks through \texttt{(1 4)}, \texttt{(1 5)}, \texttt{(1 6)}, \texttt{(2 4)}, \texttt{(2 5)}, then finds \texttt{(2 6)}. Follow one step of that trace: \texttt{(1 6)} fails, and \texttt{y}'s \texttt{choose} has no alternatives left, so the failure propagates to \texttt{x}'s choice point. Re-entering it makes \texttt{(choose 1 2 3)} return \texttt{2}, and the body of the \texttt{let} replays from that point---including a \emph{fresh} call to \texttt{(choose 4 5 6)}, which starts over at \texttt{4}.
 
 \section{When to Use Continuations}
 

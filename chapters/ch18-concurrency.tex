@@ -186,6 +186,8 @@ Go's unbuffered channels synchronize sender and receiver: a send waits until a r
 
 Look at the worker ids: every result came from worker 1. With cooperative scheduling and non-blocking sends, the first worker to run keeps going until it blocks---and since the whole queue is already buffered, it drains everything before workers 2 and 3 get a turn. Fan-out pays off when each task genuinely blocks (waiting on a socket, a timer, or another channel), which hands the queue to the next worker. Always send one stop sentinel per worker: a worker that never receives one stays blocked on the channel forever.
 
+You might hope that an explicit \texttt{(yield)} inside the worker loop would spread the work evenly. Try it: depending on where you place the call, worker 1 still takes every task, or at best hands one task each to the other workers before draining the rest. The scheduler promises only that \emph{some} runnable fiber runs next---it makes no fairness guarantee, and \texttt{yield} is a hint, not a turnstile. If your tasks are pure computation and you need them spread across workers, fibers are the wrong tool; use OS threads (next section).
+
 \subsection{Racing Fibers}
 
 You can race multiple fibers by having them send to a shared channel. The first result wins:

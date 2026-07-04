@@ -11,12 +11,12 @@ The simplest way to signal an error is the \texttt{error} procedure:
 
 \begin{lstlisting}[style=repl]
 > (error "something went wrong")
-runtime error: error.ExceptionRaised
+error: something went wrong
 \end{lstlisting}
 
 \texttt{error} creates an \emph{error object}\index{error object} and raises it as an exception. The first argument is a message string; additional arguments are \emph{irritants}\index{irritants}---values that provide context about what went wrong, as in \texttt{(error "index out of range" 5)}.
 
-At the top level, the REPL reports only that an exception was raised. The message and irritants are not lost: they travel inside the error object, and any handler that catches it can read them back---as \texttt{guard} does in the next section.
+At the top level, the REPL prints the message and irritants and abandons the evaluation. They are not just display text: they travel inside the error object, and any handler that catches it can read them back---as \texttt{guard} does in the next section.
 
 \subsection{Using \texttt{error} in Your Functions}
 
@@ -28,8 +28,10 @@ At the top level, the REPL reports only that an exception was raised. The messag
 > (safe-divide 10 2)
 5
 > (safe-divide 10 0)
-runtime error: error.ExceptionRaised
+error: division by zero 10 0
 \end{lstlisting}
+
+Note how the irritants \texttt{10} and \texttt{0} appear after the message---this is why you pass the offending values to \texttt{error} instead of formatting them into the string.
 
 \subsection{What an Uncaught Error Looks Like}
 
@@ -58,6 +60,8 @@ Learn to read these reports before learning to catch errors---most of the time, 
     (error "file not found" "data.txt"))
 "caught: file not found"
 \end{lstlisting}
+
+The \texttt{\#t} clause here matches \emph{any} raised object---fine for a first demonstration, but deliberately blunt. Real handlers should name the errors they expect, as the rest of this chapter shows (and as the warning on catch-all handlers below insists).
 
 The general form:
 
@@ -323,6 +327,41 @@ When writing a library, follow these conventions so that callers can handle your
 
 This wraps the low-level file error in a domain-specific message while preserving the offending filename as an irritant. Note the use of \texttt{file-error?} rather than matching the message text---the predicate keeps working even if the underlying message changes.
 
+\section{Hunting Bugs with the Debugger}
+\index{debugger}\index{breakpoints}
+
+\texttt{guard} and \texttt{raise} manage the errors you expect. For the bug you do not understand yet---a procedure returning the wrong value, with no error in sight---the REPL has an interactive debugger. \texttt{,break} sets a breakpoint on any procedure. The next time it is called, evaluation pauses and drops you into a \texttt{debug>} prompt where you can look around:
+
+\begin{lstlisting}
+(define (average lst)
+  (/ (apply + lst) (length lst)))
+
+(define (report lst)
+  (display (average lst))
+  (newline))
+\end{lstlisting}
+
+\begin{lstlisting}[style=repl]
+> ,break average
+Breakpoint set on average
+> (report '(3 4 8))
+Break at average (<repl>:1)
+(*@\textbf{debug>}@*) locals
+  lst = (3 4 8)
+(*@\textbf{debug>}@*) backtrace
+> [2] average
+  [1] report
+  [0] <lambda>
+(*@\textbf{debug>}@*) continue
+5
+\end{lstlisting}
+
+\texttt{locals} shows the paused procedure's bindings---exactly what \texttt{average} received, with no \texttt{display} calls sprinkled through your code. \texttt{backtrace} shows how execution got here, innermost frame first (the \texttt{>} marks the current frame): the expression typed at the REPL called \texttt{report}, which called \texttt{average}. \texttt{continue} resumes the program as if nothing had happened.
+
+From the same prompt, \texttt{step} moves into the next expression, \texttt{next} steps over it, and \texttt{finish} runs to the end of the current procedure. \texttt{watch var} pauses when a variable changes---useful when some piece of state mutates and you cannot see where from. When you are done, \texttt{,delete all} clears every breakpoint. The full command set for both the REPL and the \texttt{debug>} prompt is tabulated in Appendix~\ref{app:cli}.
+
+The debugger complements, rather than replaces, the habits from this chapter: read the error report first (it usually names the culprit), reproduce the problem with the smallest input you can, and only then reach for a breakpoint to watch the wrong value being computed.
+
 \section{Error Handling Strategy}
 
 \begin{itemize}
@@ -353,6 +392,7 @@ This wraps the low-level file error in a domain-specific message while preservin
     \item Dispatch on predicates, not message text: \texttt{file-error?} and \texttt{read-error?} identify the standard error classes.
     \item Records make good custom error types, letting handlers distinguish one kind of error from another.
     \item Common patterns include supplying default values on error, guaranteeing cleanup, and asserting preconditions.
+    \item For bugs rather than errors, \texttt{,break} pauses a running program at a procedure so you can inspect \texttt{locals} and the \texttt{backtrace} before continuing.
 \end{itemize}
 
 \section*{Exercises}
