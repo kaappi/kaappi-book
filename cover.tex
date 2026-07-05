@@ -1,0 +1,214 @@
+% cover.tex - Full-bleed paperback wrap cover for
+% "Kaappi: A Scheme Programming Language".
+%
+% Design: "Kaappi" is coffee (Malayalam/Tamil), so the cover leans into that.
+% A warm espresso background carries a coffee cup whose steam rises into the
+% Scheme lambda -- coffee and lambda calculus in one mark. Cream/caramel
+% typography, a coffee-bean ornament, and a faint coffee-ring stain on the
+% back keep it professional.
+%
+% The cup illustration (images/cover-cup.png, 2048x2048 RGBA, ~379 DPI at its
+% printed size) was generated with the Gemini API (gemini-3-pro-image) and
+% post-processed with a cosine alpha fade at the borders so it blends
+% seamlessly into the espresso background. To regenerate it, run
+% scripts/generate-cover-cup.py (needs GEMINI_API_KEY). Everything else on
+% the cover is vector (TikZ).
+%
+% Built to KDP spec for a 6" x 9" black-&-white, 243-page paperback:
+%   Full cover (with bleed) ..... 12.797" x 9.250"
+%   Trim (front / back) ......... 6.000" x 9.000"
+%   Spine ....................... 0.547" (13.90 mm)
+%   Bleed ....................... 0.125" on every outer edge
+%   Interior safety margin ...... 0.125" (we keep text >= 0.375")
+%   Barcode keep-clear .......... 2.000" x 1.200", lower back cover
+%
+% Compile with XeLaTeX (fontspec needs it):   make cover
+% KDP guide overlay for proofing:             make cover-proof
+% Output: build/cover.pdf, one page sized exactly 12.797" x 9.250".
+%
+% Layout on the flat sheet, left -> right:  BACK COVER | SPINE | FRONT COVER
+% (KDP "Left to Right" reading order.)
+%
+% TikZ gotchas learned the hard way (keep in mind when editing):
+%   - Nodes containing \\ line breaks MUST set text width, or every line
+%     after the first silently reverts to the document's default font.
+%   - pgfmath overflows above ~16384, so never compute i*angle in a loop;
+%     accumulate the angle mod 360 instead.
+%   - remember picture needs two passes; latexmk handles that (make cover),
+%     the proof target runs XeLaTeX twice explicitly.
+
+\documentclass[10pt]{article}
+
+\usepackage[paperwidth=12.797in,paperheight=9.25in,margin=0in]{geometry}
+\pagestyle{empty}
+
+% --- Fonts: the book's typefaces from ./fonts ----------------------------------
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont{EBGaramond}[
+    Path = fonts/, UprightFont = *-Regular, BoldFont = *-Bold,
+    ItalicFont = *-Italic, BoldItalicFont = *-BoldItalic,
+    Extension = .ttf, Numbers = Lining, Ligatures = {Common, TeX}]
+\setsansfont{SourceSans3}[
+    Path = fonts/, UprightFont = *-Regular, BoldFont = *-Bold,
+    ItalicFont = *-Italic, BoldItalicFont = *-BoldItalic,
+    Extension = .ttf, Numbers = Lining, Ligatures = {Common, TeX}]
+\setmonofont{FiraCode}[
+    Path = fonts/, UprightFont = *-Regular, BoldFont = *-Bold, Extension = .ttf]
+% Math font supplies the Garamond lambda used as the brand mark, matching the
+% section-break ornament inside the book.
+\usepackage{unicode-math}
+\setmathfont{Garamond-Math.otf}[Path = fonts/]
+
+% --- Warm espresso palette -----------------------------------------------------
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\definecolor{espresso}{RGB}{24,14,9}     % darkest brown (background; the cup
+                                         % image's edges fade to this exact color)
+\definecolor{cream}{RGB}{241,230,209}    % primary text
+\definecolor{tan}{RGB}{202,182,152}      % secondary text
+\definecolor{caramel}{RGB}{201,140,73}   % accent
+
+% KDP guide overlay: on with \def\GUIDES{} on the command line, else off.
+\newif\ifshowguides
+\ifdefined\GUIDES\showguidestrue\else\showguidesfalse\fi
+
+\begin{document}%
+\begin{tikzpicture}[remember picture, overlay,
+                    shift={(current page.south west)}, x=1in, y=1in]
+
+  % ==== Geometry (inches from the sheet's bottom-left corner) ===================
+  % vertical:   bleedB=0  trimB=0.125  trimT=9.125  bleedT=9.25
+  % horizontal: bleedL=0  backTrimL=0.125  spineL=6.125  spineR=6.672
+  %             frontTrimR=12.672  bleedR=12.797
+  \def\Xf{9.672}   % front-cover centre x
+  \def\Xs{6.3985}  % spine centre x
+  \def\Xb{3.125}   % back-cover centre x
+  \def\Cx{9.672}   % coffee-cup centre x
+
+  % ==== Background: solid espresso; the cup image carries its own glow =========
+  \fill[espresso] (0,0) rectangle (12.797,9.25);
+
+  % ======================================================================
+  % FRONT COVER  (right panel): the steaming cup + lambda
+  % ======================================================================
+  % Gemini-generated illustration (see header). RGBA with a cosine alpha
+  % fade at the borders, so it melts into the espresso background. At 5.4in
+  % the 2048px image prints at ~379 DPI. Content inside the frame: steam tip
+  % ~13% from the top, saucer bottom ~90% -> on the sheet the artwork spans
+  % y 4.14-8.30, x 7.9-11.4: all inside the KDP safe area, clear of the title.
+  \node[inner sep=0] at (\Cx,6.32)
+        {\includegraphics[width=5.4in]{images/cover-cup.png}};
+
+  % --- Title ---
+  \node[text=cream] at (\Xf,3.30)
+        {\sffamily\bfseries\fontsize{90}{90}\selectfont Kaappi};
+
+  % --- Subtitle (letterspaced for a quieter, premium read) ---
+  \node[text=tan] at (\Xf,2.52)
+        {\sffamily\addfontfeatures{LetterSpace=4.0}%
+         \fontsize{20.5}{25}\selectfont A~Scheme Programming Language};
+
+  % --- Coffee-bean ornament flanked by hairlines ---
+  \begin{scope}[shift={(\Xf,2.04)}]
+    \draw[caramel, line width=0.6pt] (-1.30,0) -- (-0.26,0);
+    \draw[caramel, line width=0.6pt] (0.26,0) -- (1.30,0);
+    \begin{scope}[rotate=-30]
+      \fill[caramel] (0,0) ellipse [x radius=0.105, y radius=0.075];
+      \draw[espresso, line width=0.7pt]
+            (-0.085,0) .. controls (-0.02,0.045) and (0.02,-0.045) .. (0.085,0);
+    \end{scope}
+  \end{scope}
+
+  % --- Tagline + author ---
+  \node[text=tan] at (\Xf,1.26)
+        {\sffamily\fontsize{12.5}{15}\selectfont
+         R7RS-small~~\textcolor{caramel}{\textbullet}~~Zig~~%
+         \textcolor{caramel}{\textbullet}~~Batteries Included};
+  \node[text=cream] at (\Xf,0.66)
+        {\sffamily\addfontfeatures{LetterSpace=2.0}%
+         \fontsize{18}{22}\selectfont Baiju Muthukadan};
+
+  % ======================================================================
+  % SPINE  (text reads top-to-bottom per English convention)
+  % ======================================================================
+  \node[text=caramel] at (\Xs,8.45)
+        {\fontsize{15}{15}\selectfont\(\lambda\)};
+  \node[text=cream, rotate=-90] at (\Xs,5.15)
+        {\sffamily\fontsize{13}{13}\selectfont
+         \bfseries Kaappi\mdseries~~~A Scheme Programming Language};
+  \node[text=tan, rotate=-90] at (\Xs,1.45)
+        {\sffamily\fontsize{11}{11}\selectfont Baiju Muthukadan};
+
+  % ======================================================================
+  % BACK COVER  (left panel)
+  % ======================================================================
+  % Faint "coffee ring" stain bleeding off the top edge (kept clear of the
+  % spine fold at x=6.125 so it never wraps onto the spine)
+  \draw[caramel, opacity=0.16, line width=3.5pt]
+        (5.20,8.92) ellipse [x radius=0.58, y radius=0.54];
+  \draw[caramel, opacity=0.10, line width=1.6pt]
+        (5.20,8.92) ellipse [x radius=0.46, y radius=0.43];
+
+  % Brand mark + accent hairline
+  \node[text=cream] at (\Xb,8.42)
+        {\fontsize{30}{30}\selectfont\(\lambda\)};
+  \draw[caramel, line width=0.6pt] (\Xb-1.0,8.00) -- (\Xb+1.0,8.00);
+
+  % Hook line
+  \node[text=cream, align=center, text width=4.7in] at (\Xb,7.45)
+        {\sffamily\bfseries\fontsize{17}{21}\selectfont Scheme will change\\
+         how you think about code.};
+
+  % Blurb
+  \node[text=tan, anchor=north, text width=4.55in, align=left] at (\Xb,6.65)
+    {\fontsize{12.5}{16.5}\selectfont
+     Kaappi is a modern, batteries-included implementation of R7RS-small
+     Scheme---written in Zig and shipped as a single, dependency-free binary.
+     This book teaches the language from first principles, assuming you know
+     Python, JavaScript, or Ruby, but nothing about Lisp.\par\vspace{7pt}
+     Starting at the REPL, you build up through data types, recursion,
+     higher-order functions, macros, and continuations---one runnable example
+     at a time---until Scheme's small set of powerful ideas clicks into place.};
+
+  % Feature list
+  \node[text=tan, anchor=north west, text width=4.55in, align=left]
+        at (0.78,4.05)
+    {\sffamily\bfseries\addfontfeatures{LetterSpace=14.0}%
+     \fontsize{11}{11}\selectfont
+     \textcolor{caramel}{INSIDE THIS BOOK}\par\vspace{6pt}
+     \normalfont\addfontfeatures{LetterSpace=0.0}\fontsize{11.5}{16}\selectfont
+     \textcolor{caramel}{\textbullet}~~First-class functions, closures, and hygienic macros\\
+     \textcolor{caramel}{\textbullet}~~579 built-in procedures, 32 syntax forms, and 72 SRFIs\\
+     \textcolor{caramel}{\textbullet}~~A C~FFI, green-thread concurrency, and a package manager\\
+     \textcolor{caramel}{\textbullet}~~Eighteen chapters of examples, exercises, and REPL sessions};
+
+  % Publisher / edition line
+  \node[text=tan, anchor=south west, align=left, text width=3in] at (0.66,0.52)
+    {\sffamily\fontsize{10.5}{14}\selectfont
+     \textcolor{cream}{\textbf{Baiju Muthukadan}}\\
+     kaappi-lang.org~~\textperiodcentered~~Draft First Edition, 2026};
+
+  % Barcode keep-clear zone: 2.0" x 1.2", 0.25" from the spine-side trim and
+  % from the bottom trim. Amazon prints the barcode here; leave it clear.
+  \fill[white] (3.875,0.375) rectangle (5.875,1.575);
+  \node[text=black!45, align=center, text width=1.9in] at (4.875,0.975)
+        {\sffamily\fontsize{8}{11}\selectfont
+         Barcode area\\ 2.0{''} $\times$ 1.2{''}\\ (leave clear)};
+
+  % ======================================================================
+  % OPTIONAL: KDP proofing guides (trim / bleed / spine folds / safe area)
+  % ======================================================================
+  \ifshowguides
+    \draw[red, line width=0.6pt] (0,0) rectangle (12.797,9.25);
+    \draw[white, line width=0.8pt] (0.125,0.125) rectangle (12.672,9.125);
+    \draw[cyan, dashed, line width=0.6pt] (6.125,0) -- (6.125,9.25);
+    \draw[cyan, dashed, line width=0.6pt] (6.672,0) -- (6.672,9.25);
+    \draw[green!70!white, dotted, line width=0.6pt] (0.25,0.25) rectangle (6.0625,8.875);
+    \draw[green!70!white, dotted, line width=0.6pt] (6.7345,0.25) rectangle (12.547,8.875);
+    \draw[green!70!white, dotted, line width=0.6pt] (6.1875,0.25) rectangle (6.6095,8.875);
+  \fi
+
+\end{tikzpicture}%
+\end{document}

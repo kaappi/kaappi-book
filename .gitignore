@@ -12,6 +12,7 @@ build/
 *.fdb_latexmk
 *.synctex.gz
 *.synctex(busy)
+*.xdv
 
 # Index files
 *.idx
