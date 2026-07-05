@@ -16,6 +16,8 @@ make view       # full build then open build/kaappi-book.pdf
 make clean      # latexmk -C, then remove build/
 make check-repl # replay every style=repl listing through `kaappi` and diff against the book
 make check-examples  # verify appendix error messages + examples against the kaappi binary
+make cover      # print-ready KDP wrap cover → build/cover.pdf
+make cover-proof # cover with KDP trim/bleed/spine-fold/safe-area guide overlay
 ```
 
 Output: `build/kaappi-book.pdf` (jobname `kaappi-book`); build log at
@@ -36,6 +38,31 @@ or `$KAAPPI` set to an *absolute* path — both check scripts invoke the binary
 from a temp cwd, so a relative `$KAAPPI` fails). Run it whenever those
 appendices change, and after Kaappi releases that touch diagnostics.
 
+## Cover
+
+`cover.tex` is a standalone document (article class, own font/color preamble —
+the preamble/ rules for chapter files do not apply to it). It renders the full
+KDP 6×9" paperback wrap (back | spine | front) as one full-bleed sheet, with a
+Gemini-generated cup illustration on the front.
+
+- **Page count is the single knob.** All horizontal geometry derives from
+  `\PageCount` in cover.tex: spine = pages × 0.002252" (KDP black-&-white on
+  white paper; cream/color factors are documented next to it). After an
+  interior reflow, update `\PageCount`, rebuild, and eyeball
+  `make cover-proof`. `make cover-proof PAGES=N` proofs a hypothetical count
+  without editing. A build warning fires when the spine drops below ~0.32"
+  (≈142 pages), where the 13pt spine text no longer fits.
+- **Cup art**: `images/cover-cup.png` (2048² RGBA, ~379 DPI as placed) comes
+  from `scripts/generate-cover-cup.py` (needs `GEMINI_API_KEY`), which also
+  applies the cosine alpha edge-fade that blends the raster into the espresso
+  background — never replace the image with one lacking the fade. Generation
+  is nondeterministic: verify the steam still reads as a clean λ (Y-branch,
+  not a crossing χ), then rebuild.
+- **TikZ pitfalls** (multi-line nodes need `text width` or later lines lose
+  the font; pgfmath overflows ~16384; tiny decimals with units lose precision
+  — use `\fpeval` first; `remember picture` needs two passes) are documented
+  in the cover.tex header comment. Read it before editing the file.
+
 ## Project Layout
 
 ```
@@ -52,7 +79,10 @@ preamble/
   styles.tex          mdframed environments (note, warning, exercise, codeoutput)
   listings.tex        Scheme language definition, lstlisting styles (scheme, repl)
 chapters/             One .tex per chapter, \input'd from main.tex
+cover.tex             Standalone KDP paperback wrap cover (see Cover above)
+images/               Cover artwork (Gemini-generated cup illustration)
 scripts/              check-appendix-examples.sh — appendix verification against ../kaappi
+                      generate-cover-cup.py — regenerate the cover cup art (Gemini API)
 fonts/                Bundled .ttf (EB Garamond, Source Sans 3, Fira Code)
 build/                Output directory (gitignored)
 .cursorrules          Legacy Cursor rules — partially stale; this file is authoritative
