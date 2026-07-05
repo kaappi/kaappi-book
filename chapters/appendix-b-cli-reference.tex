@@ -203,11 +203,17 @@ To force recompilation, delete the \texttt{.sbc} file or modify the source.
 \texttt{--sandbox} restricts what a program can do:
 
 \begin{itemize}
-    \item FFI is disabled (\texttt{ffi-open}, \texttt{ffi-fn}, and the other \texttt{ffi-*} procedures raise errors)
-    \item File I/O is disabled (\texttt{open-input-file}, \texttt{call-with-output-file}, \texttt{file-exists?}, \texttt{delete-file}, and the rest of \code{(scheme file)})
+    \item FFI is disabled (\texttt{ffi-open},
+    \texttt{ffi-fn}, and the other \texttt{ffi-*} procedures
+    raise errors)
+    \item File I/O is disabled (\texttt{open-input-file},
+    \texttt{call-with-output-file}, \texttt{file-exists?},
+    \texttt{delete-file}, and the rest of \code{(scheme file)})
     \item All SRFI-170 filesystem operations are disabled
     \item \texttt{eval} and \texttt{load} are disabled
-    \item Process context is blocked: \texttt{get-environment-variable}, \texttt{command-line}, \texttt{exit}
+    \item Process context is blocked
+    (\texttt{command-line}, \texttt{exit},
+    environment variables)
     \item OS threads (SRFI-18) are disabled
 \end{itemize}
 

@@ -4,16 +4,23 @@
 \setstocksize{228.6mm}{152.4mm}
 \settrimmedsize{228.6mm}{152.4mm}{*}
 
-% Margins: inner 19mm (0.75"), outer 10mm (0.39")
-\setlrmarginsandblock{19mm}{10mm}{*}
-% Top 15mm, bottom 15mm
-\setulmarginsandblock{15mm}{15mm}{*}
+% Margins: inner 20mm (0.79"), outer 15mm (0.59")
+% KDP 307pp minimum: gutter 0.625" (15.875mm), outside/top/bottom 0.25" (6.35mm)
+\setlrmarginsandblock{20mm}{15mm}{*}
+% Top 15mm, bottom 20mm (extra bottom space for footer page numbers)
+\setulmarginsandblock{15mm}{20mm}{*}
 
 % Header and footer spacing
 \setheadfoot{14pt}{22pt}
 \setheaderspaces{*}{10pt}{*}
 
 \checkandfixthelayout
+
+% TOC page number box: default 1.55em is too narrow for bold 3-digit numbers
+\makeatletter
+\renewcommand{\@pnumwidth}{2em}
+\renewcommand{\@tocrmarg}{2.5em}
+\makeatother
 
 % Chapter style
 \makeatletter

@@ -123,7 +123,10 @@ SRFI-13 extends Scheme's string operations significantly:
 \end{lstlisting}
 
 \begin{note}[Coming from Python]
-\texttt{string-join} is Python's \texttt{", ".join(["one", "two", "three"])}. \texttt{string-split} is Python's \texttt{"a,b,c,d".split(",")}.
+\texttt{string-join} is Python's
+\texttt{", ".join([...])}.
+\texttt{string-split} is Python's
+\texttt{"a,b,c,d".split(",")}.
 \end{note}
 
 One portability caveat: \texttt{string-split} is a Kaappi extension to \texttt{(srfi 13)}. The SRFI itself defines \texttt{string-tokenize} instead, so code that uses \texttt{string-split} may need adjusting on other Schemes.
@@ -512,13 +515,29 @@ Indexed random access & Vector & 133 & O(1) index \\
 
 \begin{itemize}
     \item SRFIs are community-standard libraries; Kaappi ships 72 of them, each imported with \texttt{(import (srfi N))}.
-    \item SRFI-1 extends list processing, SRFI-13 extends strings, and SRFI-69 provides hash tables.
-    \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random numbers), and SRFI-115 (regular expressions) cover common needs.
-    \item SRFI-158 provides generators, and other SRFIs add sets and bags, format strings, and the Maybe and Either types.
-    \item SRFI-64 is the standard test framework: group checks with \texttt{test-begin}/\texttt{test-end}, and state expectations with \texttt{test-equal}, \texttt{test-assert}, and \texttt{test-error}. SRFI-78's \texttt{check} is the lightweight alternative.
-    \item R7RS's own \texttt{(scheme lazy)} library provides \texttt{delay} and \texttt{force} for memoized, on-demand computation.
-    \item \texttt{eval} evaluates list data as code, against either a library environment built by \texttt{environment} or the live \texttt{interaction-environment}. Never use it on untrusted input.
-    \item \texttt{(scheme time)} provides \texttt{current-second} for wall-clock timestamps and \texttt{current-jiffy} with \texttt{jiffies-per-second} for measuring durations.
+    \item SRFI-1 extends list processing, SRFI-13 extends strings,
+    and SRFI-69 provides hash tables.
+    \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random
+    numbers), and SRFI-115 (regular expressions) cover common needs.
+    \item SRFI-158 provides generators, and other SRFIs add sets
+    and bags, format strings, and the Maybe and Either types.
+    \item SRFI-64 is the standard test framework
+    (\texttt{test-begin}, \texttt{test-end},
+    \texttt{test-equal}, \texttt{test-assert},
+    \texttt{test-error}). SRFI-78's \texttt{check}
+    is a lightweight alternative.
+    \item R7RS's own \texttt{(scheme lazy)} library provides
+    \texttt{delay} and \texttt{force} for memoized, on-demand
+    computation.
+    \item \texttt{eval} evaluates list data as code, against
+    either a library environment built by
+    \texttt{environment} or the live
+    \texttt{interaction-\allowbreak environment}. Never use it on
+    untrusted input.
+    \item \texttt{(scheme time)} provides
+    \texttt{current-second} for wall-clock timestamps and
+    \texttt{current-jiffy} with
+    \texttt{jiffies-per-second} for measuring durations.
 \end{itemize}
 
 \section*{Exercises}
@@ -554,7 +573,9 @@ Write a procedure \code{(word-frequencies str)} that takes a string of words (se
 (("the" . 3) ("cat" . 2))
 \end{lstlisting}
 
-Hint: use \code{string-split} from SRFI-13 to tokenize and \code{list-sort} from SRFI-132 for sorting. The Python equivalent is \texttt{Counter(s.split())} from the \texttt{collections} module.
+Hint: use \code{string-split} (SRFI-13) to tokenize
+and \code{list-sort} (SRFI-132) for sorting. In Python
+this would be \texttt{Counter(s.split())}.
 \end{exercise}
 
 \begin{exercise}[Email Validation with Regexps]

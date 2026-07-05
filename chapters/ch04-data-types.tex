@@ -540,13 +540,13 @@ Finally, \texttt{=} compares \emph{numeric value only} and works across exactnes
 \end{lstlisting}
 
 \begin{center}
-\begin{tabular}{lll}
+\begin{tabular}{llp{3.2cm}}
 \textbf{Predicate} & \textbf{Compares} & \textbf{Use for} \\
 \hline
 \texttt{eq?} & object identity & symbols, booleans \\
-\texttt{eqv?} & identity, plus value for numbers/chars & characters, exact numbers \\
+\texttt{eqv?} & identity + value for numbers/chars & characters, exact numbers \\
 \texttt{equal?} & structure, recursively & lists, strings, vectors \\
-\texttt{=} & numeric value, ignoring exactness & numbers \\
+\texttt{=} & numeric value & numbers \\
 \end{tabular}
 \end{center}
 

@@ -317,7 +317,7 @@ And the ports these operations read from and write to:
 
 \begin{center}
 \small
-\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\begin{tabularx}{\textwidth}{@{}p{4.8cm}Yl@{}}
 \textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
 \texttt{open-input-string open-output-string} & String ports & base \\
@@ -353,7 +353,7 @@ All in \code{(scheme base)}. Continuations are covered in Chapter~\ref{ch:contin
 \hline
 \texttt{apply} & Call procedure with list of arguments \\
 \texttt{values call-with-values} & Multiple return values \\
-\texttt{call/cc} & Capture current continuation (long name: \texttt{call-with-current-continuation}) \\
+\texttt{call/cc} & Capture current continuation (\texttt{call-with-\allowbreak current-\allowbreak continuation}) \\
 \texttt{dynamic-wind} & Entry/exit guarantees \\
 \texttt{raise raise-continuable} & Signal exceptions \\
 \texttt{error} & Create and raise an error object \\
@@ -402,7 +402,7 @@ All in \code{(scheme base)}.
 
 \begin{center}
 \small
-\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\begin{tabularx}{\textwidth}{@{}p{4.6cm}Yl@{}}
 \textbf{Procedure} & \textbf{Description} & \textbf{Library} \\
 \hline
 \texttt{make-parameter parameterize} & Dynamic binding & base \\

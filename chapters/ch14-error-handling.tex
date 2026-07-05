@@ -169,7 +169,7 @@ However, the convention is to use \texttt{error} (which creates a proper error o
 \subsection{\texttt{raise} vs.\ \texttt{error}}
 
 \begin{center}
-\begin{tabular}{lp{7cm}}
+\begin{tabular}{lp{6cm}}
 \textbf{Form} & \textbf{Use when} \\
 \hline
 \texttt{(error msg irritants ...)} & Signaling an error with a message---the common case \\
@@ -388,8 +388,12 @@ The debugger complements, rather than replaces, the habits from this chapter: re
 
 \begin{itemize}
     \item \texttt{error} signals a condition with a message and irritants, while \texttt{raise} signals any object.
-    \item \texttt{guard} catches exceptions with \texttt{cond}-style clauses, and \texttt{with-exception-handler} is the underlying primitive.
-    \item Dispatch on predicates, not message text: \texttt{file-error?} and \texttt{read-error?} identify the standard error classes.
+    \item \texttt{guard} catches exceptions with
+    \texttt{cond}-style clauses, and
+    \texttt{with-exception-\allowbreak handler} is the underlying primitive.
+    \item Dispatch on predicates, not message text:
+    \texttt{file-error?} and \texttt{read-error?} identify
+    the standard error classes.
     \item Records make good custom error types, letting handlers distinguish one kind of error from another.
     \item Common patterns include supplying default values on error, guaranteeing cleanup, and asserting preconditions.
     \item For bugs rather than errors, \texttt{,break} pauses a running program at a procedure so you can inspect \texttt{locals} and the \texttt{backtrace} before continuing.

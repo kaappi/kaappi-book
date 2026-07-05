@@ -7,7 +7,7 @@ Modern programs often need to do multiple things at once: serve multiple network
 \section{Two Models of Concurrency}
 
 \begin{center}
-\begin{tabular}{lp{4.2cm}p{4.2cm}}
+\begin{tabular}{lp{3.5cm}p{3.5cm}}
 \textbf{Aspect} & \textbf{Fibers} & \textbf{OS Threads (SRFI-18)} \\
 \hline
 Library & \texttt{(kaappi fibers)} & \texttt{(srfi 18)} \\
@@ -325,7 +325,7 @@ In practice, the deep-copy model means you rarely need mutexes. Use them only if
 \section{Choosing Between Fibers and Threads}
 
 \begin{center}
-\begin{tabular}{lll}
+\begin{tabular}{llp{3.2cm}}
 \textbf{Scenario} & \textbf{Use} & \textbf{Why} \\
 \hline
 Multiple HTTP connections & Fibers & I/O-bound, many tasks \\

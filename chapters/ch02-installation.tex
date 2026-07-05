@@ -27,7 +27,8 @@ Standard libraries (SRFIs and Scheme base libraries) are extracted to \texttt{\t
 To install to a different location, set the \texttt{INSTALL\_DIR} environment variable:
 
 \begin{Verbatim}[fontsize=\small]
-curl -fsSL https://kaappi-lang.org/install.sh | INSTALL_DIR=/usr/local/bin bash
+curl -fsSL https://kaappi-lang.org/install.sh \
+  | INSTALL_DIR=/usr/local/bin bash
 \end{Verbatim}
 
 \begin{warning}[PATH configuration]
@@ -123,7 +124,7 @@ echo '(+ 1 2)' | kaappi
 This should print \texttt{3}. If both commands succeed, your installation is ready.
 
 \begin{note}[No install yet?]
-If you want to follow along before installing, Kaappi provides a browser-based playground\index{playground} at \texttt{https://kaappi-lang.org/playground/} that runs the same interpreter via WebAssembly. It is perfect for trying examples, though you will eventually want a local install for file I/O and the full feature set.
+If you want to follow along before installing, Kaappi provides a browser-based playground\index{playground} at \texttt{https://kaappi-lang.org/\allowbreak playground/} that runs the same interpreter via WebAssembly. It is perfect for trying examples, though you will eventually want a local install for file I/O and the full feature set.
 \end{note}
 
 \section{The REPL}

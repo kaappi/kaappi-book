@@ -141,9 +141,14 @@ The \texttt{set!} variant of this error reads \texttt{error: set!: unbound varia
 
 \subsection{\texttt{error: vector-ref: index 5 out of range for length 1}}
 
-\textbf{Cause:} \texttt{vector-ref}, \texttt{string-ref}, or \texttt{bytevector-u8-ref} called with an index beyond the length. The message names the procedure, the out-of-range index, and the sequence length.
+\textbf{Cause:} \texttt{vector-ref}, \texttt{string-ref},
+or \texttt{bytevector-u8-ref} called with an index beyond
+the length. The message names the procedure, the
+out-of-range index, and the sequence length.
 
-\textbf{Fix:} Ensure \texttt{0 <= index < length}. Use \texttt{vector-length}, \texttt{string-length}, or \texttt{bytevector-length} to check bounds.
+\textbf{Fix:} Check that the index is between 0 and
+the sequence length minus one. Use the matching
+length procedure to verify bounds.
 
 \subsection{\texttt{runtime error: error.StackOverflow}}
 

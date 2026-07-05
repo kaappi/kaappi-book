@@ -41,9 +41,13 @@ The \texttt{define-record-type} form takes:
 
 \begin{enumerate}
     \item \textbf{Type name} --- \texttt{<point>} (the angle brackets are a convention, not syntax).
-    \item \textbf{Constructor}\index{constructor} --- \texttt{(make-point x y)} specifies the constructor name and which fields it initializes.
+    \item \textbf{Constructor}\index{constructor} ---
+    \texttt{(make-point x y)} specifies the constructor name and
+    which fields it initializes.
     \item \textbf{Predicate}\index{predicate!record} --- \texttt{point?} tests whether a value is an instance of this record type.
-    \item \textbf{Field specifications} --- each is \texttt{(field-name accessor)} or \texttt{(field-name accessor mutator)}.
+    \item \textbf{Field specifications} --- each
+    field is \texttt{(name accessor)} or
+    \texttt{(name accessor mutator)}.
 \end{enumerate}
 
 \section{Accessors and Mutators}
@@ -79,7 +83,7 @@ Fields without a mutator are immutable---once set by the constructor, they canno
 \section{Records vs.\ Lists}
 
 \begin{center}
-\begin{tabular}{lp{4.5cm}p{4.5cm}}
+\begin{tabular}{lp{3.8cm}p{3.8cm}}
 \textbf{Aspect} & \textbf{Lists} & \textbf{Records} \\
 \hline
 Type checking & Not possible (\texttt{pair?} matches all lists) & Unique predicate per type \\
@@ -222,7 +226,10 @@ For immutable records, the ``update'' pattern creates a new record with one fiel
 The original record is unchanged. This functional update style is safe for concurrent code and easy to reason about.
 
 \begin{note}[Coming from Python]
-This pattern is like Python's \texttt{dataclasses.replace(obj, age=31)} or using \texttt{NamedTuple.\_replace()}. Scheme does not have built-in syntax for it, so you write the helper function yourself.
+This pattern is like \texttt{dataclasses.\allowbreak replace(obj, age=31)} or
+\texttt{NamedTuple.\_replace()}.
+Scheme has no built-in syntax for it, so you
+write the helper yourself.
 \end{note}
 
 \section{Printing Records}

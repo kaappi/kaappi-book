@@ -139,7 +139,10 @@ error!
 \end{lstlisting}
 
 \begin{note}[Current ports are parameters]
-\texttt{current-input-port}, \texttt{current-output-port}, and \texttt{current-error-port} are ordinary parameter objects (Chapter~\ref{ch:bindings}). That means you can redirect all output within a computation using \texttt{parameterize}---no procedure needs to be told about the redirection explicitly.
+The current-port procedures are parameter objects
+(Chapter~\ref{ch:bindings}). You can redirect all output
+within a computation using \texttt{parameterize}---no
+procedure needs to know about the redirection.
 \end{note}
 
 \subsection{Port Predicates}
@@ -367,7 +370,11 @@ A
 
 \end{lstlisting}
 
-Between whole lines and single characters sit \texttt{read-string}\index{read-string} and \texttt{write-string}\index{write-string}. \texttt{(read-string k port)} reads up to \emph{k} characters and returns them as a string:
+Between whole lines and single characters,
+\texttt{read-string}\index{read-string} reads up to
+\emph{k} characters as a string, and
+\texttt{write-string}\index{write-string} writes a
+string (or a substring) to a port:
 
 \begin{lstlisting}[style=repl]
 > (define port (open-input-string "hello world"))

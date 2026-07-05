@@ -201,8 +201,8 @@ Here is the tail-recursive version using an accumulator:
           acc
           (loop (- i 1) (* acc i))))
     (loop n 1))
-> (factorial 100)
-93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
+> (factorial 20)
+2432902008176640000
 \end{lstlisting}
 
 The call to \texttt{loop} is the last expression---nothing wraps it---so it runs without growing the stack, even for \texttt{(factorial 1000000)}. (The inner \texttt{define} creates a helper procedure visible only inside \texttt{factorial}; these \emph{internal definitions} are covered in Chapter~\ref{ch:bindings}.)

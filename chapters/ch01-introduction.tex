@@ -168,10 +168,10 @@ When you type a Scheme expression, Kaappi processes it through a pipeline:
     lbl/.style={font=\scriptsize, above, midway}
 ]
 \node[stage] (src) {Source};
-\node[stage, right=0.8cm of src] (read) {Reader};
-\node[stage, right=0.8cm of read] (exp) {Expander};
-\node[stage, right=0.8cm of exp] (comp) {Compiler};
-\node[stage, right=0.8cm of comp] (vm) {VM};
+\node[stage, right=0.6cm of src] (read) {Reader};
+\node[stage, right=0.6cm of read] (exp) {Expander};
+\node[stage, right=0.6cm of exp] (comp) {Compiler};
+\node[stage, right=0.6cm of comp] (vm) {VM};
 \draw[arr] (src) -- (read) node[lbl] {text};
 \draw[arr] (read) -- (exp) node[lbl] {S-expr};
 \draw[arr] (exp) -- (comp) node[lbl] {core};
