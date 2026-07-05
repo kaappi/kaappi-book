@@ -32,10 +32,12 @@ cover:
 
 # Same cover with the KDP guide overlay (trim, bleed, spine folds, safe
 # area) for proofing. Two passes resolve remember-picture on a fresh jobname.
+# Pass PAGES=N to proof a different interior page count (spine width and
+# sheet width recompute); for the final PDF, edit \PageCount in cover.tex.
 cover-proof:
 	@mkdir -p $(BUILD_DIR)
-	$(XELATEX) $(COVER_FLAGS) -jobname=cover-proof "\def\GUIDES{}\input{cover.tex}"
-	$(XELATEX) $(COVER_FLAGS) -jobname=cover-proof "\def\GUIDES{}\input{cover.tex}"
+	$(XELATEX) $(COVER_FLAGS) -jobname=cover-proof "\def\GUIDES{}$(if $(PAGES),\def\PAGES{$(PAGES)},)\input{cover.tex}"
+	$(XELATEX) $(COVER_FLAGS) -jobname=cover-proof "\def\GUIDES{}$(if $(PAGES),\def\PAGES{$(PAGES)},)\input{cover.tex}"
 
 view-cover: cover
 	open $(BUILD_DIR)/cover.pdf

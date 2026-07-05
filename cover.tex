@@ -14,17 +14,22 @@
 % scripts/generate-cover-cup.py (needs GEMINI_API_KEY). Everything else on
 % the cover is vector (TikZ).
 %
-% Built to KDP spec for a 6" x 9" black-&-white, 243-page paperback:
-%   Full cover (with bleed) ..... 12.797" x 9.250"
+% Built to KDP spec for a 6" x 9" black-&-white paperback. All horizontal
+% geometry is parameterized on \PageCount (see the preamble block below):
+%   Spine ....................... \PageCount x 0.002252"  (243pp -> 0.547")
+%   Full cover (with bleed) ..... 12.25" + spine  x  9.250"  (243pp -> 12.797")
 %   Trim (front / back) ......... 6.000" x 9.000"
-%   Spine ....................... 0.547" (13.90 mm)
 %   Bleed ....................... 0.125" on every outer edge
 %   Interior safety margin ...... 0.125" (we keep text >= 0.375")
 %   Barcode keep-clear .......... 2.000" x 1.200", lower back cover
 %
+% When the interior page count changes: update \PageCount, rebuild, and
+% eyeball `make cover-proof`. For a quick what-if proof without editing:
+%   make cover-proof PAGES=400
+%
 % Compile with XeLaTeX (fontspec needs it):   make cover
 % KDP guide overlay for proofing:             make cover-proof
-% Output: build/cover.pdf, one page sized exactly 12.797" x 9.250".
+% Output: build/cover.pdf, one page at the exact KDP sheet size.
 %
 % Layout on the flat sheet, left -> right:  BACK COVER | SPINE | FRONT COVER
 % (KDP "Left to Right" reading order.)
@@ -39,7 +44,38 @@
 
 \documentclass[10pt]{article}
 
-\usepackage[paperwidth=12.797in,paperheight=9.25in,margin=0in]{geometry}
+% --- Book parameters: the page count drives all horizontal geometry -----------
+% KDP spine width = page count x per-page paper thickness:
+%   0.002252 in/page  black & white on white paper   <- this book
+%   0.0025   in/page  black & white on cream paper
+%   0.002347 in/page  standard color
+% Everything downstream (sheet width, spine folds, panel centres, proofing
+% guides) derives from these two numbers. \def\PAGES{N} on the command line
+% overrides \PageCount for what-if proofs (see the Makefile's cover-proof).
+\newcommand{\SpinePerPage}{0.002252}
+\ifdefined\PAGES
+  \newcommand{\PageCount}{\PAGES}
+\else
+  \newcommand{\PageCount}{243}
+\fi
+% Multiply in exact decimal (\fpeval) BEFORE attaching the unit: TeX rounds a
+% dimension's fraction to 1/65536 before unit scaling, so "0.002252in" is
+% really 0.0022583in and the error would grow with every page (243 pages
+% -> 0.0016" too wide). \SpineInches is the exact decimal, e.g. "0.547236".
+\newcommand{\SpineInches}{\fpeval{\PageCount*\SpinePerPage}}
+\newlength{\SpineWidth}
+\setlength{\SpineWidth}{\SpineInches in}
+% KDP allows spine text only on 80+ page books, and wants 0.0625" clearance
+% between spine type and each fold. The 13pt spine type is ~0.18" tall, so
+% below ~0.32" of spine it must shrink (or go entirely for very thin books).
+\ifdim\SpineWidth<0.32in
+  \PackageWarningNoLine{cover}{Spine is only \the\SpineWidth: shrink or drop
+    the spine text (13pt type needs ~0.32in of spine)}
+\fi
+\newlength{\SheetWidth}  % 2 x 6.0" covers + 2 x 0.125" bleed + spine
+\setlength{\SheetWidth}{\dimexpr 12.25in+\SpineWidth\relax}
+
+\usepackage[paperwidth=\SheetWidth,paperheight=9.25in,margin=0in]{geometry}
 \pagestyle{empty}
 
 % --- Fonts: the book's typefaces from ./fonts ----------------------------------
@@ -79,16 +115,23 @@
                     shift={(current page.south west)}, x=1in, y=1in]
 
   % ==== Geometry (inches from the sheet's bottom-left corner) ===================
+  % Derived from \PageCount via \SpineWidth (preamble). Back-cover positions
+  % are spine-independent; the spine and front shift with the page count.
   % vertical:   bleedB=0  trimB=0.125  trimT=9.125  bleedT=9.25
-  % horizontal: bleedL=0  backTrimL=0.125  spineL=6.125  spineR=6.672
-  %             frontTrimR=12.672  bleedR=12.797
-  \def\Xf{9.672}   % front-cover centre x
-  \def\Xs{6.3985}  % spine centre x
+  % horizontal: bleedL=0  backTrimL=0.125  spineL=6.125  spineR=spineL+spine
+  %             frontTrimR=spineR+6  bleedR=\SheetW
+  \pgfmathsetmacro{\SpineIn}{\SpineInches}     % spine width in inches (exact)
+  \pgfmathsetmacro{\SpineL}{6.125}             % back/spine fold
+  \pgfmathsetmacro{\SpineR}{\SpineL+\SpineIn}  % spine/front fold
+  \pgfmathsetmacro{\SheetW}{\SpineR+6.125}     % right bleed edge
+  \pgfmathsetmacro{\Xs}{\SpineL+\SpineIn/2}    % spine centre x
+  \pgfmathsetmacro{\Xf}{\SpineR+3.0}           % front-cover centre x
   \def\Xb{3.125}   % back-cover centre x
-  \def\Cx{9.672}   % coffee-cup centre x
+  \def\Cx{\Xf}     % coffee-cup centre x
 
   % ==== Background: solid espresso; the cup image carries its own glow =========
-  \fill[espresso] (0,0) rectangle (12.797,9.25);
+  % (overshoot the right edge a hair so pgfmath rounding can't leave a sliver)
+  \fill[espresso] (0,0) rectangle (\SheetW+0.01,9.25);
 
   % ======================================================================
   % FRONT COVER  (right panel): the steaming cup + lambda
@@ -96,8 +139,8 @@
   % Gemini-generated illustration (see header). RGBA with a cosine alpha
   % fade at the borders, so it melts into the espresso background. At 5.4in
   % the 2048px image prints at ~379 DPI. Content inside the frame: steam tip
-  % ~13% from the top, saucer bottom ~90% -> on the sheet the artwork spans
-  % y 4.14-8.30, x 7.9-11.4: all inside the KDP safe area, clear of the title.
+  % ~13% from the top, saucer bottom ~90% -> artwork spans y 4.14-8.30 and
+  % \Xf +/- 1.7 horizontally: inside the KDP safe area, clear of the title.
   \node[inner sep=0] at (\Cx,6.32)
         {\includegraphics[width=5.4in]{images/cover-cup.png}};
 
@@ -201,13 +244,18 @@
   % OPTIONAL: KDP proofing guides (trim / bleed / spine folds / safe area)
   % ======================================================================
   \ifshowguides
-    \draw[red, line width=0.6pt] (0,0) rectangle (12.797,9.25);
-    \draw[white, line width=0.8pt] (0.125,0.125) rectangle (12.672,9.125);
-    \draw[cyan, dashed, line width=0.6pt] (6.125,0) -- (6.125,9.25);
-    \draw[cyan, dashed, line width=0.6pt] (6.672,0) -- (6.672,9.25);
-    \draw[green!70!white, dotted, line width=0.6pt] (0.25,0.25) rectangle (6.0625,8.875);
-    \draw[green!70!white, dotted, line width=0.6pt] (6.7345,0.25) rectangle (12.547,8.875);
-    \draw[green!70!white, dotted, line width=0.6pt] (6.1875,0.25) rectangle (6.6095,8.875);
+    % bleed edge, trim box, spine folds, then safe areas (0.125" inside the
+    % trim; 0.0625" off each fold) -- all derived from the spine geometry
+    \draw[red, line width=0.6pt] (0,0) rectangle (\SheetW,9.25);
+    \draw[white, line width=0.8pt] (0.125,0.125) rectangle (\SheetW-0.125,9.125);
+    \draw[cyan, dashed, line width=0.6pt] (\SpineL,0) -- (\SpineL,9.25);
+    \draw[cyan, dashed, line width=0.6pt] (\SpineR,0) -- (\SpineR,9.25);
+    \draw[green!70!white, dotted, line width=0.6pt]
+          (0.25,0.25) rectangle (\SpineL-0.0625,8.875);
+    \draw[green!70!white, dotted, line width=0.6pt]
+          (\SpineR+0.0625,0.25) rectangle (\SheetW-0.25,8.875);
+    \draw[green!70!white, dotted, line width=0.6pt]
+          (\SpineL+0.0625,0.25) rectangle (\SpineR-0.0625,8.875);
   \fi
 
 \end{tikzpicture}%
