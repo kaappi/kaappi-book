@@ -337,6 +337,10 @@ Simple background task & Fibers & Lower overhead \\
 \end{tabular}
 \end{center}
 
+\begin{note}[Why fibers suit I/O-bound work]
+A blocking-looking call like \texttt{(read-line port)} only suspends the fiber that made it, not the whole program. Kaappi runs a per-OS-thread I/O reactor: when a read or write would block, the calling fiber parks and the reactor waits on the underlying file descriptor, waking the fiber once data is ready. \texttt{thread-sleep!} gets the same treatment, parking on a timer instead of blocking the thread. This is why a fiber-based server can hold thousands of connections open on a single OS thread and GC heap---a slow connection parks its own fiber without freezing the rest. The ecosystem's \texttt{http-listen-fiber} (Appendix~\ref{app:ecosystem}) is a fiber-per-connection HTTP server built on exactly this.
+\end{note}
+
 \section{A Complete Example: Parallel Map}
 
 Here is a function that maps a procedure over a list using OS threads for parallelism:
