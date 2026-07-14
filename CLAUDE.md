@@ -1,7 +1,8 @@
 # Kaappi Book
 
 A XeLaTeX book teaching the Kaappi Scheme programming language to programmers
-who already know Python/JS/Ruby. Draft first edition, 18 chapters + 7 appendices.
+who already know Python/JS/Ruby. First edition, 18 chapters + 7 appendices.
+Published on [Amazon KDP](https://www.amazon.com/dp/B0H7PK7LB5).
 
 Part of the [kaappi multi-repo workspace](../CLAUDE.md).
 
