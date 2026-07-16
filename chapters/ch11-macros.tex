@@ -88,7 +88,7 @@ When a macro misbehaves, look at what it expands to. The Kaappi REPL's \texttt{,
 (if (> 5 3) (begin (display "hello") (newline)))
 \end{lstlisting}
 
-Make \texttt{,expand} a habit while working through this chapter: after each macro you write, expand a sample call and check that the generated code is what you intended. It turns macro debugging from guesswork into reading.
+Make \texttt{,expand} a habit while working through this chapter: after each macro you write, expand a sample call and check that the generated code is what you intended. It turns macro debugging from guesswork into reading. The same view exists outside the REPL: \texttt{kaappi expand file.scm}\index{kaappi expand} prints a whole program after macro expansion, which is handy when a macro misbehaves only in the middle of a real file.
 
 \section{Pattern Matching}
 

@@ -16,7 +16,7 @@ error[KP3000]: something went wrong
 
 \texttt{error} creates an \emph{error object}\index{error object} and raises it as an exception. The first argument is a message string; additional arguments are \emph{irritants}\index{irritants}---values that provide context about what went wrong, as in \texttt{(error "index out of range" 5)}.
 
-At the top level, the REPL prints the message and irritants and abandons the evaluation. They are not just display text: they travel inside the error object, and any handler that catches it can read them back---as \texttt{guard} does in the next section.
+At the top level, the REPL prints the message and irritants and abandons the evaluation. They are not just display text: they travel inside the error object, and any handler that catches it can read them back---as \texttt{guard} does in the next section. The \texttt{[KP3000]} tag is a \emph{diagnostic code}: every error Kaappi reports carries one, and Section~\ref{sec:error-codes} shows how to put them to work.
 
 \subsection{Using \texttt{error} in Your Functions}
 
@@ -142,11 +142,52 @@ You can match on the error message or type to handle different errors differentl
 
 The \texttt{(else (raise e))} clause ensures that unexpected errors are not silently swallowed.
 
-Matching on the message string works here because \texttt{lookup} is our own code and we control the text. It is brittle for anything else: an error message is not part of a procedure's contract and may change without notice. For errors from other code, dispatch on a predicate instead---\texttt{file-error?}, \texttt{read-error?}, or a custom error type as shown later in this chapter.
+Matching on the message string works here because \texttt{lookup} is our own code and we control the text. It is brittle for anything else: an error message is not part of a procedure's contract and may change without notice. For errors from other code, dispatch on a predicate instead---\texttt{file-error?}, \texttt{read-error?}, a custom error type as shown later in this chapter---or, for errors raised by the interpreter itself, on the stable code shown next.
 
 \begin{warning}[Always re-raise unknown errors]
 Do not write \texttt{(guard (e (\#t \#f)) ...)} to blindly catch everything. This hides bugs. Only catch the specific errors you know how to handle, and re-raise the rest.
 \end{warning}
+
+\subsection{Stable Error Codes}
+\label{sec:error-codes}
+\index{error codes}\index{error-object-code}\index{diagnostics library@\texttt{(kaappi diagnostics)}}
+
+Every diagnostic Kaappi reports carries a stable code---the \texttt{KP3002} in \texttt{error[KP3002]: type error in 'car'}---and the built-in \texttt{(kaappi diagnostics)} library reads it back programmatically. \texttt{error-object-code} returns the code as a symbol, or \texttt{\#f} for a value that has none:
+
+\begin{lstlisting}[style=repl]
+> (import (kaappi diagnostics))
+> (guard (e (#t (error-object-code e)))
+    (car '()))
+KP3002
+> (guard (e (#t (error-object-code e)))
+    (error "bad input" 42))
+#f
+\end{lstlisting}
+
+Note the second result: codes identify \emph{interpreter} diagnostics. Error objects you create with \texttt{error} carry no code---the \texttt{KP3000} the printer shows for them means only ``user-raised error''---so inside your own code you still dispatch on messages or custom error types. Codes shine when you must catch one specific runtime failure without depending on its message text:
+
+\begin{lstlisting}[style=repl]
+> (guard (e ((eq? (error-object-code e) 'KP3004)
+             'caught-division))
+    (/ 1 0))
+caught-division
+\end{lstlisting}
+
+\texttt{error-object-code} is total---it accepts any value, error object or not, and never raises---so it is safe as the first test in a \texttt{guard} clause. And when a code in a report means nothing to you, ask the interpreter what it stands for:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+$ kaappi explain KP3004
+KP3004  division-by-zero
+runtime · error
+
+division by zero
+
+An exact division, 'modulo', 'remainder', or 'quotient' had a zero
+divisor. Guard the divisor, or use inexact arithmetic where the result
+is a floating-point infinity or NaN instead of an error.
+\end{Verbatim}
+
+Appendix~\ref{app:errors} walks through the most common codes; \texttt{kaappi explain --all} lists every one.
 
 \section{Raising Exceptions with \texttt{raise}}
 \index{raise}
