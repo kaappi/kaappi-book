@@ -68,31 +68,40 @@ Gemini-generated cup illustration on the front.
 
 ## Releasing
 
-The book reaches readers through three channels. Only the website's
-*download link* follows a new release automatically — the other two
-surfaces are manual copies that go stale until someone updates them.
+The book reaches readers through three channels. The website's *download
+link* follows a new release automatically, its *embedded viewer* follows a
+one-line version bump in the site repo, and the KDP paperback is a fully
+manual upload.
 
 1. **GitHub release (canonical PDF).** No workflow or Makefile target;
    after a full `make` (checks green, page count/cover verified), release
-   by hand:
+   by hand — the `SHA256SUMS` asset is **required**, the site's fetch
+   script verifies against it:
 
    ```bash
-   gh release create vX.Y.Z build/kaappi-book.pdf \
+   cd build && shasum -a 256 kaappi-book.pdf > SHA256SUMS && cd ..
+   gh release create vX.Y.Z build/kaappi-book.pdf build/SHA256SUMS \
      --title "vX.Y.Z — <edition name>" --notes "<what changed>"
    ```
 
-   `v1.0.0` is the First Edition. The single asset must be named
-   `kaappi-book.pdf`: the website's download table links to
+   `v1.0.0` is the First Edition; `v1.1.0` the Kaappi 0.15.0 refresh. The
+   PDF asset must be named `kaappi-book.pdf`: the website's download table
+   links to
    `github.com/kaappi/kaappi-book/releases/latest/download/kaappi-book.pdf`,
    which always resolves to the newest release's asset of that name.
 
 2. **Website embedded viewer** ([kaappi-lang.org/book](https://kaappi-lang.org/book/)).
-   `../kaappi.github.io/docs/book.md` renders the PDF in an iframe from a
-   copy **committed** to the site repo at `docs/assets/kaappi-book.pdf` —
-   unlike the playground's `kaappi.wasm`, it is *not* fetched at build or
-   deploy time. After cutting a release, copy the identical PDF there and
-   commit in the site repo, or the online viewer keeps serving the previous
-   edition. Also keep in sync on that page:
+   `../kaappi.github.io/docs/book.md` renders the PDF in an iframe from
+   `docs/assets/kaappi-book.pdf`, which is **gitignored and fetched at
+   deploy time** by `../kaappi.github.io/scripts/fetch-book.sh` — the same
+   pattern as the playground's `kaappi.wasm`. The script downloads the
+   release pinned by `book_version` in the site's `mkdocs.yml` and
+   verifies it against that release's `SHA256SUMS`. After cutting a
+   release, bump `book_version` and push; the deploy does the rest.
+   (Direct iframe embedding of the release URL does not work: GitHub
+   serves assets with `Content-Disposition: attachment` behind an
+   expiring signed URL, so browsers download instead of rendering.)
+   Still manual on that page:
    - `docs/assets/book-cover.png` — 500×750 front-panel crop of
      `build/cover.pdf`, committed to the site repo. Regenerate only when
      the front artwork, title, or author line changes; spine-width changes
