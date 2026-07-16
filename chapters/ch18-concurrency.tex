@@ -13,7 +13,7 @@ Modern programs often need to do multiple things at once: serve multiple network
 Library & \texttt{(kaappi fibers)} & \texttt{(srfi 18)} \\
 Scheduling & Cooperative (yield) & Preemptive (OS) \\
 Parallelism & No (single OS thread) & Yes (multiple cores) \\
-Communication & Channels (unbounded queues) & Deep-copy at boundaries \\
+Communication & Channels & Channels + deep-copy \\
 Overhead & Low (kilobytes per fiber) & High (VM + GC per thread) \\
 Shared state & Same heap & Separate heaps (safe) \\
 Use case & I/O, event loops & CPU-bound parallelism \\
@@ -132,10 +132,10 @@ Since fibers are cooperative, a fiber that runs a long computation without yield
 \section{Channels}
 \index{channels}\index{make-channel}\index{channel-send}\index{channel-receive}
 
-Channels provide safe communication between fibers. A channel is an unbounded queue: \texttt{channel-send} appends a value and returns immediately---it never blocks---while \texttt{channel-receive} takes the oldest value, letting other fibers run until one is available.
+Channels provide safe communication between fibers. A channel is a queue: \texttt{channel-send} appends a value and \texttt{channel-receive} takes the oldest one, letting other fibers run until a value is available. By default the queue is unbounded and a send returns immediately; \texttt{(make-channel n)} caps it at \texttt{n} queued values, and a send to a full bounded channel blocks the sending fiber until a receive frees a slot.
 
 \begin{note}[Coming from Go]
-Go's unbuffered channels synchronize sender and receiver: a send waits until a receive happens. Kaappi channels are closer to an unbounded buffered channel or an Erlang mailbox---producers never wait. There is no backpressure, so a producer that outruns its consumer grows the queue (and memory) with the backlog.
+Go's unbuffered channels synchronize sender and receiver: a send waits until a receive happens. Kaappi's default channel is closer to an unbounded buffered channel or an Erlang mailbox---producers never wait, so one that outruns its consumer grows the queue (and memory) with the backlog. A bounded channel \texttt{(make-channel n)} behaves like Go's \texttt{make(chan T, n)}: once \texttt{n} values are queued, senders wait---backpressure that keeps the producer honest. There is no zero-capacity rendezvous.
 \end{note}
 
 \begin{lstlisting}[style=repl]
@@ -147,6 +147,56 @@ Go's unbuffered channels synchronize sender and receiver: a send waits until a r
 > (channel-receive ch)
 "hello from fiber"
 \end{lstlisting}
+
+\subsection{Bounded Channels: Backpressure}
+\index{backpressure}\index{channels!bounded}
+
+Give \texttt{make-channel} a capacity and the channel pushes back on a producer that gets ahead. Here the channel holds at most one value, so the producer's second send cannot complete until the consumer has taken the first:
+
+\begin{lstlisting}[style=repl]
+> (define ch (make-channel 1))
+> (define producer
+    (spawn (lambda ()
+      (channel-send ch 'a)
+      (display "sent a") (newline)
+      (channel-send ch 'b)
+      (display "sent b") (newline))))
+> (channel-receive ch)
+sent a
+a
+> (channel-receive ch)
+sent b
+b
+> (fiber-join producer)
+\end{lstlisting}
+
+Follow the interleaving. The producer does not run until the first \texttt{channel-receive} blocks and hands over the scheduler; it sends \texttt{'a} into the free slot, prints, then blocks trying to send \texttt{'b} into the now-full channel. Each receive frees a slot and lets the producer take exactly one more step. That lock-step rhythm is the point: a bounded channel converts ``producer floods memory'' into ``producer waits its turn.''
+
+\subsection{Timeouts and Closing}
+\index{channel-close"!}\index{channels!timeouts}
+
+Both \texttt{channel-receive} and \texttt{channel-send} accept an optional timeout in seconds, plus a value to return if it expires instead of raising an error:
+
+\begin{lstlisting}[style=repl]
+> (channel-receive (make-channel) 0.05 'nothing)
+nothing
+\end{lstlisting}
+
+When a stream of values ends, close the channel. \texttt{channel-close!} marks it finished: receivers drain whatever is still queued and then get an EOF object---the same value a port returns at end of input (Chapter~\ref{ch:io})---while further sends raise an error. \texttt{channel-closed?} tests for it.
+
+\begin{lstlisting}[style=repl]
+> (define ch (make-channel))
+> (channel-send ch 10)
+> (channel-close! ch)
+> (channel-receive ch)
+10
+> (channel-receive ch)
+#<eof>
+> (channel-send ch 99)
+error[KP3000]: channel-send: send on closed channel
+\end{lstlisting}
+
+One more safety net: if a receive (or a \texttt{fiber-join}) can never be satisfied because every other fiber is blocked or finished, Kaappi does not hang. It raises a catchable error naming the deadlock. You will meet it the first time you forget to close a channel or send a sentinel---read it as a precise bug report, not a nuisance.
 
 \subsection{Producer-Consumer Pattern}
 \index{producer-consumer}
@@ -299,11 +349,37 @@ Values crossing thread boundaries are \emph{deep-copied}:
     \item At \texttt{thread-join!}: the return value is deep-copied from the child thread back to the parent.
 \end{itemize}
 
-This means threads cannot share mutable state---there are no race conditions, no data corruption, and no need for locks in most code.
+This means threads cannot share mutable state---there are no race conditions, no data corruption, and no need for locks in most code. The one sanctioned shared object is a channel, covered next.
 
 \begin{note}[Coming from Python]
 Python's \texttt{multiprocessing} module works similarly: separate memory spaces, data copied between processes. Kaappi's threads are lighter (same process, shared code) but have the same safety guarantee of no shared mutable state.
 \end{note}
+
+\subsection{Channels Across Threads}
+\index{channels!across threads}
+
+Waiting for \texttt{thread-join!} is not the only way to hear back from a thread. A channel handed to the thread's thunk is \emph{promoted} to a shared, thread-safe channel, and both sides talk through it while the thread runs---results can stream back long before the join:
+
+\begin{lstlisting}
+(import (kaappi fibers) (srfi 18))
+
+(define (start-worker out)
+  (thread-start!
+    (make-thread
+      (lambda ()
+        (channel-send out (* 6 7))))))
+
+(define ch (make-channel))
+(define t (start-worker ch))
+(channel-receive ch)  ;=> 42
+(thread-join! t)
+\end{lstlisting}
+
+Each value sent across still crosses by copy, so the no-shared-mutable-state guarantee survives; the channel itself is the only object both threads touch. Everything from the previous sections works across threads too: capacities give you backpressure between threads, and \texttt{channel-close!} signals end-of-stream.
+
+\begin{warning}[Hand the channel over explicitly]
+A thread may only use a channel that was \emph{handed} to it---captured by the thunk as a parameter or a \texttt{let}-bound local, as \texttt{out} is above. Reaching a channel through a global variable from inside the thunk does not promote it: the child's send fails and the parent's receive deadlocks. When a thread needs a channel, pass it in.
+\end{warning}
 
 \subsection{Mutexes and Condition Variables}
 \index{mutex}\index{condition variables}
@@ -329,11 +405,11 @@ In practice, the deep-copy model means you rarely need mutexes. Use them only if
 \textbf{Scenario} & \textbf{Use} & \textbf{Why} \\
 \hline
 Multiple HTTP connections & Fibers & I/O-bound, many tasks \\
-Many connections across cores & Threads $\times$ fibers & \texttt{http-listen-parallel} \\
+Many connections across cores & Threads $\times$ fibers & \texttt{http-listen-}\allowbreak\texttt{parallel} \\
 Event loop / GUI & Fibers & Cooperative scheduling \\
 Pipeline processing & Fibers + channels & Natural producer-consumer \\
 CPU-heavy computation & OS threads & True parallelism \\
-Parallel map over data & OS threads & Multi-core utilization \\
+Parallel map over data & Pooled threads & \texttt{parallel-map} \\
 Simple background task & Fibers & Lower overhead \\
 \end{tabular}
 \end{center}
@@ -365,6 +441,34 @@ Here is a function that maps a procedure over a list using OS threads for parall
 \end{lstlisting}
 
 Each element is processed on a separate thread. For CPU-intensive \texttt{f}, this achieves near-linear speedup on multi-core machines.
+
+\section{The \texttt{(kaappi parallel)} Library}
+\index{kaappi parallel}\index{parallel-map}\index{make-pool}\index{processor-count}
+
+The pattern above---one thread per element, join in order---is common enough that Kaappi ships a library for it. \texttt{(kaappi parallel)} provides \texttt{parallel-map} and \texttt{parallel-for-each}, built on a fixed pool of worker threads draining a shared task channel:
+
+\begin{lstlisting}[style=repl]
+> (import (kaappi parallel))
+> (parallel-map (lambda (n) (* n n)) '(1 2 3 4 5))
+(1 4 9 16 25)
+\end{lstlisting}
+
+For finer control, build the pool yourself. \texttt{(make-pool n)} starts \texttt{n} worker threads; \texttt{pool-submit} hands one a thunk and immediately returns a task handle; \texttt{task-wait} collects that task's result; \texttt{pool-shutdown!} stops the workers:
+
+\begin{lstlisting}[style=repl]
+> (define pool (make-pool 2))
+> (define task
+    (pool-submit pool (lambda () (+ 40 2))))
+> (task-wait task)
+42
+> (pool-shutdown! pool)
+\end{lstlisting}
+
+\texttt{(processor-count)} reports how many CPU cores the machine has---the natural pool size. Under \texttt{--sandbox} and on WASM, where OS threads do not exist, the same API degrades gracefully to fiber workers: your program still runs, just without the parallelism.
+
+\begin{note}[One task per element has a cost]
+\texttt{parallel-map} submits one pool task per list element, so every element pays a cross-thread round trip; it suits lists up to a few hundred elements whose per-element work is substantial. For bigger inputs, chunk: submit one \texttt{pool-submit} task per core, each covering a slice of the input with an ordinary sequential loop. The tasks-as-envelopes model is the same one \texttt{thread-start!} uses, so thunks and results cross by copy here too.
+\end{note}
 
 \section{A Complete Example: Fiber Pipeline}
 
@@ -410,12 +514,38 @@ A pipeline where data flows through multiple stages via channels. The producer a
 
 Each number is squared by one fiber and incremented by the next stage, with the channels handing values downstream one at a time.
 
+The \texttt{'eof} sentinel is the hand-rolled version of what \texttt{channel-close!} provides: close a channel after the last send, and once the queue drains every receive returns an EOF object. The same producer, with the consumer testing \texttt{eof-object?} instead of comparing against a sentinel:
+
+\begin{lstlisting}
+(define nums2 (make-channel))
+
+(define producer2
+  (spawn (lambda ()
+    (for-each (lambda (n) (channel-send nums2 n))
+              '(1 2 3 4 5))
+    (channel-close! nums2))))
+
+(let loop ()
+  (let ((val (channel-receive nums2)))
+    (unless (eof-object? val)
+      (display (* val val)) (display " ")
+      (loop))))
+\end{lstlisting}
+
+\begin{codeoutput}
+1 4 9 16 25
+\end{codeoutput}
+
+Closing scales better than a sentinel when a channel has several readers: every blocked receiver wakes and sees EOF, whereas a sentinel is consumed by whichever single reader happens to take it (the fan-out example sent one \texttt{'stop} per worker for exactly that reason).
+
 \section*{Summary}
 
 \begin{itemize}
     \item Kaappi offers two concurrency models: lightweight cooperative fibers and preemptive OS threads.
-    \item Fibers are scheduled cooperatively and communicate through unbounded channels---sends never block, receives wait for data---supporting producer-consumer, fan-out, and racing patterns.
-    \item OS threads (SRFI-18) use deep-copy semantics and synchronize with mutexes and condition variables.
+    \item Fibers are scheduled cooperatively and communicate through channels---unbounded by default, bounded for backpressure---supporting producer-consumer, fan-out, and racing patterns.
+    \item Channel sends and receives take optional timeouts; \code{channel-close!} signals end-of-stream (receivers drain, then get an EOF object); an unsatisfiable wait raises a deadlock error instead of hanging.
+    \item OS threads (SRFI-18) use deep-copy semantics and synchronize with mutexes and condition variables; a channel handed to a thread's thunk is promoted and shared, so threads can stream results back before the join.
+    \item \code{(kaappi parallel)} adds \code{parallel-map} and worker pools (\code{make-pool}, \code{pool-submit}, \code{task-wait}) over pooled OS threads.
     \item Use fibers for I/O-bound concurrency and threads for CPU-bound parallelism.
 \end{itemize}
 
@@ -502,7 +632,7 @@ Have each worker exit its loop when it receives \code{'stop}, and send one \code
                     acc)))))
 \end{lstlisting}
 
-Why would you use a fixed pool of workers instead of spawning one fiber per job? (Hint: think about what happens with 10,000 jobs that each open a network connection.) This is analogous to Python's \code{concurrent.futures.ThreadPoolExecutor}.
+Why would you use a fixed pool of workers instead of spawning one fiber per job? (Hint: think about what happens with 10,000 jobs that each open a network connection.) This is analogous to Python's \code{concurrent.futures.ThreadPoolExecutor}---and to \code{make-pool} from \code{(kaappi parallel)}, which applies the same design across OS threads.
 \end{exercise}
 
 This completes Part~IV. The appendices that follow provide quick references for the R7RS standard and the Kaappi CLI.

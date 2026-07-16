@@ -2,28 +2,28 @@
 \index{error messages}\index{troubleshooting}
 \label{app:errors}
 
-This appendix lists the most frequent error messages you will encounter while learning Kaappi, along with their causes and fixes. Every message shown here is the actual output of the interpreter. Errors fall into three categories---read-time, compile-time, and runtime---plus library and FFI errors.
+This appendix lists the most frequent error messages you will encounter while learning Kaappi, along with their causes and fixes. Every message shown here is the actual output of the interpreter. Errors fall into three categories---read-time, compile-time, and runtime---plus library and FFI errors, and every diagnostic carries a stable \texttt{KP} code you can look up.
 
 \section{How Kaappi Reports Errors}
-\index{error messages!format}
+\index{error messages!format}\index{diagnostic codes}
 
-When an error occurs while running a file, Kaappi prints the source location, the message, and the offending line:
+When an error occurs while running a file, Kaappi prints the source location, a diagnostic code, the message, and the offending line:
 
 \begin{lstlisting}[style=repl]
-program.scm:3: error: undefined variable 'lenght'.
-Did you mean 'length'?
-    (lenght items)
+program.scm:1:1: error[KP3001]: undefined variable 'dispaly'. Did you mean 'display'?
+    (dispaly "hi")
 \end{lstlisting}
 
-Three things to know about this format:
+Four things to know about this format:
 
 \begin{itemize}
-    \item \textbf{Location prefix.} \texttt{program.scm:3:} names the file and line. Read-time errors add a column number. In the REPL the prefix is omitted.
-    \item \textbf{Did-you-mean suggestions.} For misspelled variables, Kaappi suggests the closest known binding.
-    \item \textbf{Fallback format.} When no detailed message is available, Kaappi prints the internal error name, e.g.\ \texttt{runtime error: error.StackOverflow}.
+    \item \textbf{Location prefix.} \texttt{program.scm:1:1:} names the file, line, and column of the offending expression---down to the exact sub-form---and the source line is echoed beneath the message. When the failure happens inside a procedure, a \texttt{called from} line points at the call site. In the REPL the location prefix is omitted.
+    \item \textbf{Diagnostic codes.} The \texttt{[KP3001]} tag identifies the diagnostic independently of its wording: \texttt{KP1xxx} are read-time, \texttt{KP2xxx} compile-time and library, \texttt{KP3xxx} runtime, and \texttt{KP4xxx} the lint warnings of \texttt{kaappi check}. Run \texttt{kaappi explain KP3001}\index{kaappi explain} for any code's meaning, a minimal example, and the fix; programs can dispatch on codes with \texttt{error-object-code} (Section~\ref{sec:error-codes}).
+    \item \textbf{Did-you-mean suggestions.} For misspelled variables, Kaappi suggests the closest known binding. The suggestion depends on what is in scope, so this appendix quotes only the stable part of each message.
+    \item \textbf{Machine-readable output.} \texttt{--diagnostics=json} emits every diagnostic as LSP-shaped JSON on stderr for editors and scripts (Appendix~\ref{app:cli}).
 \end{itemize}
 
-A raised exception that reaches the top level is reported with the error object's message and irritants, e.g.\ \texttt{error: division by zero}. Handlers can also read both fields programmatically with \code{guard}:
+A raised exception that reaches the top level is reported with the error object's message and irritants, e.g.\ \texttt{error[KP3004]: division by zero}. Handlers can also read both fields programmatically with \code{guard}:
 
 \begin{lstlisting}[style=repl]
 > (guard (e (#t (display (error-object-message e))))
@@ -36,36 +36,38 @@ division by zero
 
 The reader reports these when it cannot parse your source into Scheme data, with a \texttt{file:line:col:} prefix.
 
-\subsection{\texttt{read error: error.UnexpectedEof}}
+\subsection{\texttt{read error[KP1001]: unexpected end of input}}
 
 \textbf{Cause:} Input ended while a list, string, or block comment was still open. Usually a missing closing parenthesis.
 
 \begin{lstlisting}[style=repl]
 (define (square x)
   (* x x)
-; program.scm:3:1: read error: error.UnexpectedEof
+; program.scm:3:1: read error[KP1001]:
+;   unexpected end of input
 \end{lstlisting}
 
 \textbf{Fix:} Add the missing \texttt{)}. Use an editor with bracket matching; the REPL's multi-line mode tracks open parens for you.
 
-\subsection{\texttt{read error: error.UnexpectedRightParen}}
+\subsection{\texttt{read error[KP1003]: unexpected ')'}}
 
 \textbf{Cause:} More closing \texttt{)} than opening \texttt{(}.
 
 \begin{lstlisting}[style=repl]
 (display (+ 1 2)))
-; program.scm:1:18: read error: error.UnexpectedRightParen
+; program.scm:1:19: read error[KP1003]:
+;   unexpected ')'
 \end{lstlisting}
 
 \textbf{Fix:} Remove the extra parenthesis.
 
-\subsection{\texttt{read error: error.UnterminatedString}}
+\subsection{\texttt{read error[KP1006]: unterminated string literal}}
 
 \textbf{Cause:} A string literal is missing its closing double quote.
 
 \textbf{Fix:} Add the closing \texttt{"}, or check for unescaped quotes inside the string. Use \texttt{\textbackslash"} to include a literal quote.
 
-\subsection{\texttt{read error: error.InvalidEscape}}
+\subsection{\texttt{read error[KP1007]: invalid escape sequence}}
 
 \textbf{Cause:} A string contains an escape sequence Kaappi does not recognize, such as \texttt{\textbackslash q}. Valid escapes are \texttt{\textbackslash n}, \texttt{\textbackslash r}, \texttt{\textbackslash t}, \texttt{\textbackslash a}, \texttt{\textbackslash b}, \texttt{\textbackslash\textbackslash}, \texttt{\textbackslash"}, \texttt{\textbackslash|}, and \texttt{\textbackslash x<hex>;}.
 
@@ -73,20 +75,20 @@ The reader reports these when it cannot parse your source into Scheme data, with
 
 \section{Compile-Time Errors}
 
-\subsection{\texttt{compile error: error.InvalidSyntax}}
+\subsection{\texttt{compile error[KP2001]: invalid syntax}}
 
 \textbf{Cause:} A special form is malformed---\texttt{let} with no bindings or body, \texttt{lambda} with no parameter list, \texttt{if} with no branches, \texttt{define} with no value.
 
 \begin{lstlisting}[style=repl]
 > (lambda)
-; compile error: error.InvalidSyntax
+; compile error[KP2001]: invalid syntax
 \end{lstlisting}
 
 \textbf{Fix:} Supply all required sub-expressions. \texttt{lambda} needs at least a parameter list and a body: \code{(lambda (x) x)}.
 
 \section{Runtime Errors}
 
-\subsection{\texttt{error: undefined variable 'foo'}}
+\subsection{\texttt{error[KP3001]: undefined variable 'foo'}}
 
 \textbf{Cause:} You referenced a name that has no binding. When a similarly spelled binding exists, Kaappi appends a suggestion: \texttt{Did you mean 'log'?}
 
@@ -99,47 +101,49 @@ The reader reports these when it cannot parse your source into Scheme data, with
 
 \textbf{Fix:} Check the spelling, reorder definitions, or add the missing \texttt{(import ...)}.
 
-The \texttt{set!} variant of this error reads \texttt{error: set!: unbound variable 'y'}---\texttt{set!} requires an existing binding, so use \code{define} for the initial one.
+The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbound variable 'y'}---\texttt{set!} requires an existing binding, so use \code{define} for the initial one.
 
-\subsection{\texttt{error: type error in 'car': expected pair, got ()}}
+\subsection{\texttt{error[KP3002]: type error in 'car': expected pair, got ()}}
 
 \textbf{Cause:} A primitive received an argument of the wrong type. The message names the procedure, the expected type, and the offending argument---here, \texttt{car} applied to the empty list. Some primitives, such as the arithmetic operators, show the argument's type rather than its value:
 
 \begin{lstlisting}[style=repl]
 > (car '())
-; error: type error in 'car': expected pair, got ()
+; error[KP3002]: type error in 'car':
+;   expected pair, got ()
 > (+ 1 "two")
-; error: type error in 'arithmetic': expected number, got #<string>
+; error[KP3002]: type error in 'arithmetic':
+;   expected number, got #<string>
 \end{lstlisting}
 
 \textbf{Fix:} Check for the empty list with \code{null?} before calling \code{car}/\code{cdr}. For arithmetic on strings, convert first with \code{string->number}.
 
-\subsection{\texttt{error: 'f': expected 2 arguments, got 1}}
+\subsection{\texttt{error[KP3003]: 'f': expected 2 arguments, got 1}}
 
 \textbf{Cause:} A procedure was called with the wrong number of arguments. Variadic procedures report \texttt{expected at least N arguments}.
 
-\textbf{Fix:} Check the procedure's signature. Use \texttt{,describe f} in the REPL to see its arity.
+\textbf{Fix:} Check the procedure's signature. Use \texttt{,describe f} in the REPL to see its arity. \texttt{kaappi check} catches wrong-arity calls to built-ins before the program runs.
 
-\subsection{\texttt{error: not a procedure}}
+\subsection{\texttt{error[KP3005]: not a procedure}}
 
 \textbf{Cause:} The first element of a call expression evaluated to something that is not callable: \texttt{(42 1)}, or \texttt{(x y)} where \texttt{x} holds a number.
 
 \textbf{Fix:} Check for extra parentheses---\code{((+ 1 2))} computes \texttt{3} and then tries to call it.
 
-\subsection{\texttt{error: division by zero} (uncaught exceptions)}
+\subsection{\texttt{error[KP3004]: division by zero} (uncaught exceptions)}
 
-\textbf{Cause:} An exception raised by \code{error}, \code{raise}, or a primitive (such as division by zero) reached the top level uncaught. The report shows the error object's message followed by its irritants, if any.
+\textbf{Cause:} An exception raised by \code{error}, \code{raise}, or a primitive (such as division by zero) reached the top level uncaught. The report shows the error object's message followed by its irritants, if any. Exceptions the runtime raises carry their own specific code, like \texttt{KP3004} here; error objects your code creates with \code{error} are reported under the generic \texttt{KP3000}:
 
 \begin{lstlisting}[style=repl]
 > (/ 1 0)
-; error: division by zero
+; error[KP3004]: division by zero
 > (error "bad input" 42)
-; error: bad input 42
+; error[KP3000]: bad input 42
 \end{lstlisting}
 
 \textbf{Fix:} Wrap the code in \code{guard} to catch the exception and handle it (see Chapter~\ref{ch:errors}). To avoid dividing by zero in the first place, test the divisor: \code{(if (zero? b) ... (/ a b))}.
 
-\subsection{\texttt{error: vector-ref: index 5 out of range for length 1}}
+\subsection{\texttt{error[KP3006]: vector-ref: index 5 out of range for length 1}}
 
 \textbf{Cause:} \texttt{vector-ref}, \texttt{string-ref},
 or \texttt{bytevector-u8-ref} called with an index beyond
@@ -150,7 +154,7 @@ out-of-range index, and the sequence length.
 the sequence length minus one. Use the matching
 length procedure to verify bounds.
 
-\subsection{\texttt{runtime error: error.StackOverflow}}
+\subsection{\texttt{error[KP3008]: stack overflow}}
 
 \textbf{Cause:} Non-tail-recursive function with very deep recursion. The call stack grows automatically up to 32768 frames; only recursion deeper than that overflows.
 
@@ -158,13 +162,13 @@ length procedure to verify bounds.
 
 \section{Library and Import Errors}
 
-\subsection{\texttt{error: library not found: (mylib.utils)}}
+\subsection{\texttt{error[KP2001]: library not found: (mylib.utils)}}
 
 \textbf{Cause:} Kaappi cannot find the file \texttt{mylib/utils.sld} on any search path. (The message prints the library name with dots.)
 
 \textbf{Fix:} Ensure the \texttt{.sld} file exists at the correct path relative to your working directory, \texttt{./lib/}, or a \texttt{--lib-path} directory. Ecosystem libraries are installed with \texttt{thottam install} and auto-discovered from \texttt{\textasciitilde/.kaappi/lib/}. See Appendix~\ref{app:cli} for the full search order.
 
-\subsection{\texttt{error: circular import: (mylib.a)}}
+\subsection{\texttt{error[KP2001]: circular import: (mylib.a)}}
 
 \textbf{Cause:} Library A imports B, and B imports A.
 
@@ -172,21 +176,21 @@ length procedure to verify bounds.
 
 \section{FFI Errors}
 
-\subsection{\texttt{error: ffi-open: cannot open shared library}}
+\subsection{\texttt{error[KP3002]: ffi-open: dlopen(...)}}
 
-\textbf{Cause:} \texttt{ffi-open} cannot find or load the shared library file (\texttt{.dylib} on macOS, \texttt{.so} on Linux).
+\textbf{Cause:} \texttt{ffi-open} cannot find or load the shared library file (\texttt{.dylib} on macOS, \texttt{.so} on Linux). The message passes along the system loader's own report---\texttt{dlopen} on macOS lists every path it tried.
 
 \textbf{Fix:} Build the native library first (\texttt{make} in its directory), then use the full path, pass \texttt{--lib-path}, or set \texttt{DYLD\_LIBRARY\_PATH} (macOS) / \texttt{LD\_LIBRARY\_PATH} (Linux).
 
-\subsection{\texttt{error: ffi-fn: symbol not found}}
+\subsection{\texttt{error[KP3002]: ffi-fn: symbol not found}}
 
-\textbf{Cause:} The shared library loaded, but does not contain the requested function.
+\textbf{Cause:} The shared library loaded, but does not contain the requested function. The message includes the loader's own report (\texttt{dlsym} on macOS).
 
 \textbf{Fix:} Check the function name for typos. List the library's exported symbols with \texttt{nm -gU lib.dylib} (macOS) or \texttt{nm -D lib.so} (Linux).
 
-\subsection{\texttt{error: ffi-open: not allowed in sandbox mode}}
+\subsection{\texttt{error[KP2001]: sandbox: cannot load library from file}}
 
-\textbf{Cause:} Running with the \texttt{--sandbox} flag, which disables the FFI (along with file I/O, \texttt{eval}, and more---see Appendix~\ref{app:cli}).
+\textbf{Cause:} Running with the \texttt{--sandbox} flag, which blocks loading libraries from files---including \texttt{(kaappi ffi)} itself, so sandboxed programs cannot reach the FFI at all (file I/O, \texttt{eval}, and more are also disabled; see Appendix~\ref{app:cli}).
 
 \textbf{Fix:} Remove \texttt{--sandbox} if you need FFI access.
 
@@ -219,4 +223,4 @@ Behavior that silently surprises programmers coming from Python or JavaScript:
 \end{tabularx}
 \end{center}
 
-Breakpoints drop you into the interactive debugger; its command set is listed in Appendix~\ref{app:cli}.
+Breakpoints drop you into the interactive debugger; its command set is listed in Appendix~\ref{app:cli}. Outside the REPL, \texttt{kaappi check file.scm} reports compile-time problems and lint findings without running the program, and \texttt{kaappi explain CODE} documents any diagnostic this appendix does not cover.

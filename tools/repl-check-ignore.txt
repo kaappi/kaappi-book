@@ -5,14 +5,14 @@
 # (interactivity, environment, deliberate fatal-error demos) rather than
 # kaappi bugs. Verify listings against a locally built interpreter with
 #   KAAPPI=$PWD/../kaappi/zig-out/bin/kaappi make check-repl
-# (the checker runs from a temp cwd, so $KAAPPI must be an absolute path).
+# (the checker runs from a temp cwd, so $KAAPPI must be an absolute path.)
 #
 # (The former "upstream" entries for multiple-value truncation and mid-session
 # import failures were removed once those interpreter bugs were fixed.)
 
 # --- interactive REPL features (not available in piped mode) ---
-ch02-installation.tex:189  # tab completion is an interactive REPL feature
-ch02-installation.tex:206  # the _ last-result variable is an interactive REPL feature
+ch02-installation.tex:211  # tab completion is an interactive REPL feature
+ch02-installation.tex:239  # the _ last-result variable is an interactive REPL feature
 ch11-macros.tex:85   # ,expand is an interactive REPL command
 ch11-macros.tex:87   # ,expand is an interactive REPL command
 ch11-macros.tex:216  # ,expand is an interactive REPL command (hygiene renaming demo)
@@ -28,14 +28,14 @@ ch10-input-and-output.tex:108  # interactive: depends on user input above
 ch10-input-and-output.tex:110  # interactive: depends on user input above
 
 # --- illustrative code that cannot run (hypothetical procedures) ---
-ch14-error-handling.tex:296    # hypothetical http-get/fetch example
+ch14-error-handling.tex:338    # hypothetical http-get/fetch example
 
 # --- appendix D deliberately demonstrates fatal errors ---
-# The read/compile-error listings earlier in the appendix terminate the
-# piped session, so later listings get no output. Each message is verified
+# The `(lambda)` compile-error demo terminates the piped session, so the
+# runtime-error listings after it get no output. Each message is verified
 # in a fresh session by scripts/check-appendix-examples.sh (make check-examples).
-appendix-d-error-messages.tex:81   # session killed by the read-error demos above; verified fresh
-appendix-d-error-messages.tex:109  # session killed by the read-error demos above; verified fresh
-appendix-d-error-messages.tex:111  # session killed by the read-error demos above; verified fresh
-appendix-d-error-messages.tex:134  # session killed by the read-error demos above; verified fresh
-appendix-d-error-messages.tex:136  # session killed by the read-error demos above; verified fresh
+appendix-d-error-messages.tex:83   # (lambda) compile error ends the piped session; verified fresh
+appendix-d-error-messages.tex:111  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:114  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:138  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:140  # session killed by the (lambda) demo above; verified fresh

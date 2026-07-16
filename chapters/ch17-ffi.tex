@@ -116,7 +116,8 @@ The following C types are supported in parameter and return type positions:
 
 \begin{itemize}
     \item \textbf{Strings:} Scheme strings are automatically converted to null-terminated C strings when passed as arguments, and C strings are converted back to Scheme strings when returned.
-    \item \textbf{Numbers:} Scheme integers and floats are converted to the appropriate C numeric type.
+    \item \textbf{Numbers:} Scheme integers and floats are converted to the appropriate C numeric type. Out-of-range values are rejected with an error naming the FFI function and the expected type.
+    \item \textbf{Characters:} The \texttt{char} type takes and returns Scheme characters---a C function declared \texttt{(char) -> char} maps \texttt{\#\textbackslash a} to \texttt{\#\textbackslash A}, not \texttt{97} to \texttt{65}.
     \item \textbf{Pointers:}\index{pointer} Opaque pointer values are represented as Scheme FFI pointer objects. You cannot dereference them directly from Scheme.
     \item \textbf{Void:} Use \texttt{'void} as the return type for C functions that return nothing.
 \end{itemize}
@@ -259,6 +260,8 @@ Pointer arguments arrive in the Scheme procedure as raw addresses. You cannot de
 \begin{warning}[Always release callbacks]
 Callbacks pin Scheme closures so the garbage collector cannot reclaim them. Always call \texttt{ffi-callback-release}\index{ffi-callback-release} when the callback is no longer needed to prevent memory leaks.
 \end{warning}
+
+If the Scheme procedure raises an error while C is calling it, the error is not lost: it is re-raised in your program as soon as the C call that invoked the callback returns, where \texttt{guard} can catch it as usual. The C code itself never sees a Scheme exception---it runs to completion first.
 
 \section{Closing Libraries}
 \index{ffi-close}

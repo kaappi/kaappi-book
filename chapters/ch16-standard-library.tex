@@ -309,7 +309,7 @@ Passing tests are silent. Failures are reported the moment they run, and \texttt
 # of expected passes      1
 \end{lstlisting}
 
-In a real project, tests live in their own files---the ecosystem convention is a \texttt{tests/} directory next to \texttt{lib/}---and each file is an ordinary script you run with \texttt{kaappi tests/test-mylib.scm}. Import the library under test, exercise its exports, and let the summary tell you where you stand. Kaappi can also report which exported procedures your tests never called: run the suite with \texttt{kaappi --coverage} (Appendix~\ref{app:cli}).
+In a real project, tests live in their own files---the ecosystem convention is a \texttt{tests/} directory next to \texttt{lib/}---and each file is an ordinary script you run with \texttt{kaappi tests/test-mylib.scm}. Import the library under test, exercise its exports, and let the summary tell you where you stand. To run a whole suite at once, hand the directory to the built-in runner: \texttt{kaappi test tests/}\index{kaappi test} executes each file in its own subprocess, aggregates the pass/fail tallies, and exits non-zero on any failure---exactly what a CI job wants. Kaappi can also report which exported procedures your tests never called: run the suite with \texttt{kaappi --coverage} (Appendix~\ref{app:cli}).
 
 If SRFI-64 feels heavyweight for a quick script, SRFI-78\index{SRFI-78} offers a one-form alternative: \texttt{check} compares an expression against an expected value and reports immediately:
 
@@ -325,6 +325,48 @@ Checks: 1 total, 1 passed, 0 failed.
 Beyond the SRFIs, the ecosystem provides \texttt{kaappi-test} (a richer test framework with suites and CI-friendly output) and \texttt{kaappi-bdd} (behavior-driven \texttt{describe}/\texttt{it}/\texttt{expect} style); see Appendix~\ref{app:ecosystem}.
 
 \section{Other Useful SRFIs}
+
+\subsection{SRFI-17: Generalized \texttt{set!}}
+\index{SRFI-17}\index{generalized set"!}
+
+With SRFI-17, \texttt{set!} accepts an \emph{accessor call} as its target and updates the place that accessor reads---the closest Scheme comes to Python's \texttt{p[0] = x}:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 17))
+> (define p (list 1 2 3))
+> (set! (car p) 99)
+> p
+(99 2 3)
+> (define v (vector 'a 'b 'c))
+> (set! (vector-ref v 2) 'z)
+> v
+#(a b z)
+\end{lstlisting}
+
+Setters come pre-defined for the common accessors, including \texttt{car}, \texttt{cdr}, \texttt{vector-ref}, and \texttt{string-ref}---\texttt{(set! (vector-ref v 2) 'z)} means \texttt{(vector-set! v 2 'z)}. The mutation caveats of Chapter~\ref{ch:lists} still apply; this changes the spelling, not the semantics.
+
+\subsection{SRFI-61: A More General \texttt{cond}}
+\index{SRFI-61}\index{cond}
+
+Chapter~\ref{ch:control-flow}'s \texttt{cond} can pass a truthy test value to a receiver with \texttt{=>}. SRFI-61 extends the clause to \texttt{(generator guard => receiver)}: the generator produces a value, the \emph{guard} decides whether the clause fires, and the receiver gets the value. That separates ``produced a value'' from ``produced the right kind of value'':
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 61))
+> (define (classify s)
+    (cond ((string->number s) exact-integer? =>
+           (lambda (n) (list 'integer n)))
+          ((string->number s) number? =>
+           (lambda (n) (list 'number n)))
+          (else 'not-a-number)))
+> (classify "42")
+(integer 42)
+> (classify "3.5")
+(number 3.5)
+> (classify "hello")
+not-a-number
+\end{lstlisting}
+
+With plain \texttt{cond}, the first clause would fire for \emph{any} number; the \texttt{exact-integer?} guard lets \texttt{"3.5"} fall through to the second clause without parsing the string twice by hand.
 
 \subsection{SRFI-26: Partial Application with \texttt{cut}}
 \index{SRFI-26}\index{cut}
@@ -521,11 +563,14 @@ Indexed random access & Vector & 133 & O(1) index \\
     numbers), and SRFI-115 (regular expressions) cover common needs.
     \item SRFI-158 provides generators, and other SRFIs add sets
     and bags, format strings, and the Maybe and Either types.
+    \item SRFI-17 lets \texttt{set!} target accessor calls
+    (\texttt{(set! (car p) v)}), and SRFI-61 adds a guard step
+    to \texttt{cond}'s \texttt{=>} clauses.
     \item SRFI-64 is the standard test framework
     (\texttt{test-begin}, \texttt{test-end},
     \texttt{test-equal}, \texttt{test-assert},
-    \texttt{test-error}). SRFI-78's \texttt{check}
-    is a lightweight alternative.
+    \texttt{test-error}); \texttt{kaappi test} runs whole suites.
+    SRFI-78's \texttt{check} is a lightweight alternative.
     \item R7RS's own \texttt{(scheme lazy)} library provides
     \texttt{delay} and \texttt{force} for memoized, on-demand
     computation.

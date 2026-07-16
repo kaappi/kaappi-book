@@ -35,7 +35,7 @@ The key rule: all the \texttt{expr} values are computed \emph{before} any bindin
 > (let ((x 5)
         (y (* x 2)))   ; ERROR: x is not yet bound here
     y)
-error: undefined variable 'x'
+error[KP3001]: undefined variable 'x'
 \end{lstlisting}
 
 This fails because \texttt{x} is not visible to the expression \texttt{(* x 2)}---the bindings are computed in the outer environment. If you need sequential bindings, use \texttt{let*}.

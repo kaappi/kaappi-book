@@ -280,11 +280,11 @@ The file \texttt{parser-impl.scm} is read as if its contents were inside a \text
        (define (get-os) "unknown")))))
 \end{lstlisting}
 
-Kaappi defines the feature identifiers \texttt{kaappi}, \texttt{r7rs}, \texttt{ieee-float}, \texttt{posix}, and \texttt{exact-closed}. The built-in procedure \texttt{(features)}\index{features} returns the list the running interpreter reports:
+Kaappi defines the feature identifiers \texttt{kaappi}, \texttt{r7rs}, \texttt{ieee-float}, \texttt{posix}, \texttt{exact-closed}, and \texttt{exact-complex}, plus one identifier per optional subsystem---\texttt{kaappi-fibers}, \texttt{kaappi-reactor}, \texttt{kaappi-threads}, and \texttt{kaappi-diagnostics}---so portable code can test for green threads or OS threads (Chapter~\ref{ch:concurrency}) the same way it tests for an operating system. The built-in procedure \texttt{(features)}\index{features} returns the list the running interpreter reports:
 
 \begin{lstlisting}[style=repl]
 > (features)
-(r7rs kaappi ieee-float posix)
+(r7rs kaappi ieee-float posix exact-closed exact-complex kaappi-fibers kaappi-reactor kaappi-diagnostics kaappi-threads)
 \end{lstlisting}
 
 \section{Project Structure}

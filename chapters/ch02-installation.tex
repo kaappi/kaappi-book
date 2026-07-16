@@ -123,6 +123,27 @@ echo '(+ 1 2)' | kaappi
 
 This should print \texttt{3}. If both commands succeed, your installation is ready.
 
+When something is not working---or you simply want a thorough once-over---run the built-in self-check:
+
+\begin{Verbatim}[fontsize=\small]
+kaappi doctor
+\end{Verbatim}
+
+\texttt{doctor}\index{kaappi doctor}\index{doctor} inspects six areas (the binary, the library search path, the package manager, the native-compiler toolchain, the REPL, and the FFI) and prints \texttt{PASS}, \texttt{WARN}, or \texttt{FAIL} for each check, with a suggested fix under every failure:
+
+\begin{Verbatim}[fontsize=\small, commandchars=\\\{\}]
+binary
+  PASS  version: v\kaappiversion
+  PASS  target: aarch64-macos-none
+  PASS  on-PATH: /Users/ada/.local/bin/kaappi
+
+library
+  PASS  ~/.kaappi/lib: /Users/ada/.kaappi/lib
+  ...
+\end{Verbatim}
+
+Keep \texttt{kaappi doctor} in mind for later chapters too: it is the fastest way to diagnose a missing library path or an FFI toolchain problem.
+
 \begin{note}[No install yet?]
 If you want to follow along before installing, Kaappi provides a browser-based playground\index{playground} at \texttt{https://kaappi-lang.org/\allowbreak playground/} that runs the same interpreter via WebAssembly. It is perfect for trying examples, though you will eventually want a local install for file I/O and the full feature set.
 \end{note}
@@ -195,7 +216,18 @@ Completion works for built-in procedures, your own definitions, and imported lib
 
 \subsection{Syntax Highlighting}
 
-As you type, the REPL colors different elements: keywords in magenta, strings in green, numbers in yellow, and comments in gray. This makes it easier to spot typos and unbalanced parentheses.
+As you type, the REPL colors different elements---keywords, strings, numbers, comments---and highlights the parenthesis that matches the one under your cursor. This makes it easier to spot typos and unbalanced parentheses.
+
+The colors are configurable through \texttt{\textasciitilde/.kaappi/config}\index{config file}, a plain \texttt{key: value} file. \texttt{repl.theme} selects the \texttt{dark} (default) or \texttt{light} preset, \texttt{repl.color.\emph{token}} overrides individual token colors, and \texttt{repl.prompt} replaces the prompt text:
+
+\begin{Verbatim}[fontsize=\small]
+# ~/.kaappi/config
+repl.theme: light
+repl.color.string: cyan
+repl.prompt: scheme>
+\end{Verbatim}
+
+Setting the \texttt{NO\_COLOR}\index{NO\_COLOR} environment variable disables all coloring, and \texttt{repl.highlight: false} turns highlighting off from the config file.
 
 \subsection{The \texttt{\_} Variable}
 
