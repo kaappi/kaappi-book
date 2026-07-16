@@ -57,37 +57,37 @@ check() {
 
 ## Appendix D: error message wording ------------------------------------
 
-check undefined-variable "undefined variable 'foo'" <<'EOF'
+check undefined-variable "error[KP3001]: undefined variable 'foo'" <<'EOF'
 (foo 1)
 EOF
 
-check set-unbound "set!: unbound variable 'nope'" <<'EOF'
+check set-unbound "error[KP3001]: set!: unbound variable 'nope'" <<'EOF'
 (set! nope 42)
 EOF
 
-check type-error-car "type error in 'car': expected pair, got ()" <<'EOF'
+check type-error-car "error[KP3002]: type error in 'car': expected pair, got ()" <<'EOF'
 (car '())
 EOF
 
-check type-error-plus 'expected number, got #<string>' <<'EOF'
+check type-error-plus "error[KP3002]: type error in 'arithmetic': expected number, got #<string>" <<'EOF'
 (+ 1 "two")
 EOF
 
-check arity "'f': expected 2 arguments, got 1" <<'EOF'
+check arity "error[KP3003]: 'f': expected 2 arguments, got 1" <<'EOF'
 (define (f a b) a)
 (f 1)
 EOF
 
-check not-a-procedure "not a procedure" <<'EOF'
+check not-a-procedure "error[KP3005]: not a procedure" <<'EOF'
 (define x 42)
 (x 1)
 EOF
 
-check exception-raised "error: division by zero" <<'EOF'
+check exception-raised "error[KP3004]: division by zero" <<'EOF'
 (/ 1 0)
 EOF
 
-check error-irritants "error: bad input 42" <<'EOF'
+check error-irritants "error[KP3000]: bad input 42" <<'EOF'
 (error "bad input" 42)
 EOF
 
@@ -96,39 +96,58 @@ check guard-message "division by zero" <<'EOF'
   (/ 1 0))
 EOF
 
-check index-out-of-bounds "vector-ref: index 5 out of range" <<'EOF'
+check index-out-of-bounds "error[KP3006]: vector-ref: index 5 out of range" <<'EOF'
 (vector-ref (vector 1) 5)
 EOF
 
-check stack-overflow "error.StackOverflow" <<'EOF'
+check stack-overflow "error[KP3008]: stack overflow" <<'EOF'
 (define (forever n) (+ 1 (forever (+ n 1))))
 (forever 0)
 EOF
 
-check unexpected-eof "error.UnexpectedEof" <<'EOF'
+check unexpected-eof "read error[KP1001]: unexpected end of input" <<'EOF'
 (define (square x)
   (* x x)
 EOF
 
-check unterminated-string "error.UnterminatedString" <<'EOF'
+check unterminated-string "read error[KP1006]: unterminated string literal" <<'EOF'
 (display "oops)
 EOF
 
-check unexpected-right-paren "error.UnexpectedRightParen" <<'EOF'
+check unexpected-right-paren "read error[KP1003]: unexpected ')'" <<'EOF'
 (display (+ 1 2)))
 EOF
 
-check invalid-escape "error.InvalidEscape" <<'EOF'
+check invalid-escape "read error[KP1007]: invalid escape sequence" <<'EOF'
 (display "hello\q")
 EOF
 
-check invalid-syntax "error.InvalidSyntax" <<'EOF'
+check invalid-syntax "compile error[KP2001]: invalid syntax" <<'EOF'
 (lambda)
 EOF
 
-check library-not-found "library not found: (nope.utils)" <<'EOF'
+check library-not-found "error[KP2001]: library not found: (nope.utils)" <<'EOF'
 (import (nope utils))
 EOF
+
+mkdir -p "$TMP/mylib"
+printf '(define-library (mylib a) (import (scheme base) (mylib b)) (export a-proc) (begin (define (a-proc) 1)))\n' > "$TMP/mylib/a.sld"
+printf '(define-library (mylib b) (import (scheme base) (mylib a)) (export b-proc) (begin (define (b-proc) 2)))\n' > "$TMP/mylib/b.sld"
+check circular-import "error[KP2001]: circular import: (mylib.a)" <<'EOF'
+(import (mylib a))
+EOF
+
+# sandbox: the (kaappi ffi) import itself is blocked under --sandbox
+printf '(import (kaappi ffi))\n' > "$TMP/sandbox-ffi.scm"
+sandbox_out="$(cd "$TMP" && "$KAAPPI" --sandbox "$TMP/sandbox-ffi.scm" 2>&1)"
+if printf '%s' "$sandbox_out" | grep -qF "error[KP2001]: sandbox: cannot load library from file"; then
+    pass=$((pass + 1))
+else
+    fail=$((fail + 1))
+    echo "FAIL: sandbox-ffi"
+    echo "  expected substring: error[KP2001]: sandbox: cannot load library from file"
+    echo "  got: $(printf '%s' "$sandbox_out" | head -2)"
+fi
 
 ## Appendix A: built-ins are available without imports ------------------
 

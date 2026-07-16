@@ -5,8 +5,16 @@
 \section{Synopsis}
 
 \begin{Verbatim}[fontsize=\small]
-kaappi [OPTIONS] [FILE]
+kaappi [OPTIONS] [FILE] [ARGS...]
 kaappi compile FILE [-o OUTPUT]
+kaappi check FILE
+kaappi ast|expand|ir FILE
+kaappi test [PATHS...]
+kaappi fmt [--check] [FILES...]
+kaappi explain CODE
+kaappi doctor [--json]
+kaappi features [--json]
+kaappi cache status|clear
 \end{Verbatim}
 
 With no arguments, launches the REPL. With a file argument, executes the Scheme source file. Input can also be piped: \texttt{echo '(+ 1 2)' | kaappi}.
@@ -23,6 +31,8 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \texttt{kaappi compile FILE}\index{compile} & Compile Scheme source to a native binary via LLVM \\
 \end{tabularx}
 \end{center}
+
+The development-tool subcommands (\texttt{check}, \texttt{test}, \texttt{fmt}, \texttt{explain}, \texttt{doctor}, \texttt{features}, \texttt{ast}, \texttt{expand}, \texttt{ir}, \texttt{cache}) are covered in Section~\ref{sec:dev-tools}.
 
 \section{Options}
 
@@ -47,8 +57,61 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \texttt{--coverage}\index{--coverage} & Report library procedure coverage \\
 \texttt{--coverage-xml FILE} & Write Cobertura XML coverage report \\
 \texttt{--completions SHELL} & Output shell completion script (bash, zsh, or fish) \\
+\texttt{--diagnostics=FMT}\index{--diagnostics} & Diagnostic output format: \texttt{text} (default) or \texttt{json} \\
+\texttt{--timings[=FMT]}\index{--timings} & Per-stage pipeline timings and cache HIT/MISS on stderr; \texttt{text} or \texttt{json} \\
+\texttt{--deny-warnings} & With \texttt{check}: treat lint warnings as errors for the exit code \\
+\texttt{--no-ir-opt} & Disable IR optimization passes (skips the bytecode cache) \\
 \end{tabularx}
 \end{center}
+
+With \texttt{--diagnostics=json}, every read, expand, compile, and runtime diagnostic is emitted as one JSON object per line on stderr, shaped like an LSP \texttt{Diagnostic}---the same objects the language server sends, so editor tooling and scripts can share one parser.
+
+\section{Development Tools}
+\label{sec:dev-tools}
+
+\subsection{\texttt{kaappi check}: Static Analysis}
+\index{kaappi check}
+
+Reads, expands, and compiles a file without executing it, reporting read and compile errors plus \texttt{KP4xxx} lint warnings: unknown top-level variables, and wrong arity or a wrong-typed literal in a direct call to a built-in. It never rejects a program R7RS permits, so a clean \texttt{check} is a cheap gate before running or committing:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+$ kaappi check lint.scm
+3:1: warning[KP4001]: unknown variable 'undefined-thing' at top level
+check: 0 errors, 1 warning
+\end{Verbatim}
+
+Errors make the exit status non-zero; warnings do so only with \texttt{--deny-warnings}. \texttt{--diagnostics=json} applies here too.
+
+\subsection{\texttt{kaappi test}: Suite Runner}
+\index{kaappi test}
+
+Runs SRFI-64 test files (Chapter~\ref{ch:stdlib})---each in its own subprocess, so one crash cannot take down the rest---and aggregates the runners' own tallies:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+$ kaappi test tests/
+kaappi test: seed 352045 (reproduce with: kaappi test --seed 352045)
+  PASS  tests/test-math.scm  (2 tests, 0 skipped, 6ms)
+
+Summary: 2 passed, 0 failed, 0 unexpected-pass, 0 expected-fail, 0 skipped
+Files:   1 run, 0 failed, 0 errored (66ms)
+\end{Verbatim}
+
+\texttt{--json} emits the results as JSON, \texttt{--seed N} reproduces an ordering, and \texttt{--changed} (or \texttt{--list-affected}, optionally \texttt{--since REV}) runs only the suites whose import closure actually changed.
+
+\subsection{\texttt{kaappi fmt}: Formatter}
+\index{kaappi fmt}
+
+Canonically formats Scheme source in place: two-space R7RS indentation and 80-column reflow, preserving comments. Before writing, it re-reads the result and checks it is \texttt{equal?} to the original program, so formatting can never change what the code means. \texttt{--check} reports files that need formatting and exits 1 without writing (for CI); with no files it formats stdin to stdout.
+
+\subsection{\texttt{kaappi explain}, \texttt{doctor}, and \texttt{features}}
+\index{kaappi explain}\index{kaappi doctor}\index{kaappi features}
+
+\texttt{explain CODE} prints a diagnostic code's registry entry---what it means, a minimal example that triggers it, and how to fix it (Chapter~\ref{ch:errors}); \texttt{--all} lists every code. \texttt{doctor} runs the installation self-check described in Chapter~\ref{ch:installation}. \texttt{features} reports the build's capabilities: version and build id, target triple, compiled-in subsystems, built-in versus portable SRFIs, and VM/GC limits---derived from the same source as \texttt{cond-expand} and \texttt{(features)}, so it cannot drift. All three take \texttt{--json}.
+
+\subsection{Pipeline Inspection: \texttt{ast}, \texttt{expand}, \texttt{ir}}
+\index{kaappi expand}\index{kaappi ast}\index{kaappi ir}
+
+Read-only dumps of successive compiler stages: \texttt{ast} prints the datums as read, \texttt{expand} prints the program after full macro expansion (valid source---it round-trips; Chapter~\ref{ch:macros}), and \texttt{ir} prints the intermediate representation after the optimization passes (\texttt{--no-opt} shows it before).
 
 \section{Environment Variables}
 
@@ -57,8 +120,10 @@ With no arguments, launches the REPL. With a file argument, executes the Scheme 
 \begin{tabularx}{\textwidth}{@{}lY@{}}
 \textbf{Variable} & \textbf{Description} \\
 \hline
+\texttt{KAAPPI\_HOME}\index{KAAPPI\_HOME} & Overrides the \texttt{\textasciitilde/.kaappi} directory (libraries, packages, history, \texttt{config}, bytecode cache) \\
 \texttt{KAAPPI\_LIB\_DIR} & Directory containing \texttt{libkaappi\_rt.a} (used by \texttt{kaappi compile}) \\
-\texttt{HOME} & Used to locate \texttt{\textasciitilde/.kaappi/lib/} and \texttt{\textasciitilde/.kaappi/history} \\
+\texttt{NO\_COLOR}\index{NO\_COLOR} & When set and non-empty, disables all REPL coloring \\
+\texttt{HOME} & Locates \texttt{\textasciitilde/.kaappi} when \texttt{KAAPPI\_HOME} is unset \\
 \end{tabularx}
 \end{center}
 
@@ -70,13 +135,17 @@ When resolving \texttt{(import (lib name))}, Kaappi searches for \texttt{lib/nam
     \item Current working directory (\texttt{./})
     \item The \texttt{./lib/} subdirectory
     \item Directories from \texttt{--lib-path} flags (in order)
-    \item \texttt{\textasciitilde/.kaappi/lib/} (user library directory, where thottam installs packages)
+    \item The script's own directory, when running a file
+    \item \texttt{\$KAAPPI\_HOME/lib} (default \texttt{\textasciitilde/.kaappi/lib}, where thottam installs packages)
+    \item \texttt{../lib} relative to the \texttt{kaappi} executable (last-resort fallback for from-source builds)
 \end{enumerate}
 
 \section{The REPL}
 \index{REPL}
 
 The REPL prompt is \texttt{kaappi>}. Expressions with unbalanced parentheses automatically continue on the next line. History is saved to \texttt{\textasciitilde/.kaappi/history} (up to 1000 entries). Exit with \texttt{,quit}, \texttt{(exit)}, or Ctrl-D on an empty line.
+
+The REPL reads \texttt{\textasciitilde/.kaappi/config}\index{config file} at startup---a plain \texttt{key: value} file. The \texttt{repl.theme} key picks the \texttt{dark} (default) or \texttt{light} color preset; \texttt{repl.color.\emph{token}} overrides one token class (\texttt{keyword}, \texttt{string}, \texttt{number}, \texttt{comment}, \texttt{boolean}, \texttt{paren}, \texttt{match-paren}, \texttt{prompt}, \texttt{continuation}) with a named color such as \texttt{cyan}, \texttt{bright-red}, \texttt{bold green}, or \texttt{none}; \texttt{repl.prompt} replaces the prompt text; \texttt{repl.history-length} resizes the history; and \texttt{repl.highlight: false} disables highlighting entirely (Chapter~\ref{ch:installation} shows an example file).
 
 \subsection{Comma-Commands}
 
@@ -192,10 +261,16 @@ kaappi --emit-llvm program.scm -o program.ll
 \end{Verbatim}
 
 \section{Bytecode Caching}
+\index{bytecode cache}\index{kaappi cache}
 
-When Kaappi runs a file, it caches the compiled bytecode in a \texttt{.sbc} file alongside the source. On subsequent runs, if the source has not changed (by timestamp), the cached bytecode is loaded directly---skipping the reader, expander, and compiler passes.
+When Kaappi runs a file, it caches the compiled bytecode (\texttt{.sbc}) under \texttt{\$KAAPPI\_HOME/cache} (default \texttt{\textasciitilde/.kaappi/cache}). On subsequent runs of an unchanged file, the cached bytecode is loaded directly---skipping the reader, expander, and compiler passes. The cache key includes the exact compiler build, so upgrading Kaappi (or rebuilding it from source) recompiles rather than serving bytecode an older compiler produced.
 
-To force recompilation, delete the \texttt{.sbc} file or modify the source.
+\begin{Verbatim}[fontsize=\small]
+kaappi cache status   # location, entries, sizes
+kaappi cache clear    # remove all cached bytecode
+\end{Verbatim}
+
+Add \texttt{--timings} to any run to see the per-stage cost and an explicit cache \texttt{HIT} or \texttt{MISS} line.
 
 \section{Sandbox Mode}
 \label{sec:sandbox-mode}
