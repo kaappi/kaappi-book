@@ -2,7 +2,9 @@
 
 A XeLaTeX book teaching the Kaappi Scheme programming language to programmers
 who already know Python/JS/Ruby. First edition, 18 chapters + 7 appendices.
-Published on [Amazon KDP](https://www.amazon.com/dp/B0H7PK7LB5).
+Published on [Amazon KDP](https://www.amazon.com/dp/B0H7PK7LB5) and at
+[kaappi-lang.org/book](https://kaappi-lang.org/book/) (PDF download +
+embedded viewer); see Releasing below for how the three channels update.
 
 Part of the [kaappi multi-repo workspace](../CLAUDE.md).
 
@@ -63,6 +65,46 @@ Gemini-generated cup illustration on the front.
   the font; pgfmath overflows ~16384; tiny decimals with units lose precision
   — use `\fpeval` first; `remember picture` needs two passes) are documented
   in the cover.tex header comment. Read it before editing the file.
+
+## Releasing
+
+The book reaches readers through three channels. Only the website's
+*download link* follows a new release automatically — the other two
+surfaces are manual copies that go stale until someone updates them.
+
+1. **GitHub release (canonical PDF).** No workflow or Makefile target;
+   after a full `make` (checks green, page count/cover verified), release
+   by hand:
+
+   ```bash
+   gh release create vX.Y.Z build/kaappi-book.pdf \
+     --title "vX.Y.Z — <edition name>" --notes "<what changed>"
+   ```
+
+   `v1.0.0` is the First Edition. The single asset must be named
+   `kaappi-book.pdf`: the website's download table links to
+   `github.com/kaappi/kaappi-book/releases/latest/download/kaappi-book.pdf`,
+   which always resolves to the newest release's asset of that name.
+
+2. **Website embedded viewer** ([kaappi-lang.org/book](https://kaappi-lang.org/book/)).
+   `../kaappi.github.io/docs/book.md` renders the PDF in an iframe from a
+   copy **committed** to the site repo at `docs/assets/kaappi-book.pdf` —
+   unlike the playground's `kaappi.wasm`, it is *not* fetched at build or
+   deploy time. After cutting a release, copy the identical PDF there and
+   commit in the site repo, or the online viewer keeps serving the previous
+   edition. Also keep in sync on that page:
+   - `docs/assets/book-cover.png` — 500×750 front-panel crop of
+     `build/cover.pdf`, committed to the site repo. Regenerate only when
+     the front artwork, title, or author line changes; spine-width changes
+     from a reflow do not show in the crop.
+   - Hardcoded facts in `book.md`: edition/year, "18 chapters plus 7
+     appendices", the chapter-outline table, and the Amazon links.
+
+3. **Amazon KDP paperback.** Manual upload of the interior
+   (`build/kaappi-book.pdf`) and the wrap cover (`build/cover.pdf`). A
+   reflowed interior changes the page count and therefore the spine width:
+   update `\PageCount` (see Cover above), rebuild, and re-upload **both**
+   files together.
 
 ## Project Layout
 
