@@ -11,7 +11,7 @@ The simplest way to signal an error is the \texttt{error} procedure:
 
 \begin{lstlisting}[style=repl]
 > (error "something went wrong")
-error: something went wrong
+error[KP3000]: something went wrong
 \end{lstlisting}
 
 \texttt{error} creates an \emph{error object}\index{error object} and raises it as an exception. The first argument is a message string; additional arguments are \emph{irritants}\index{irritants}---values that provide context about what went wrong, as in \texttt{(error "index out of range" 5)}.
@@ -28,19 +28,20 @@ At the top level, the REPL prints the message and irritants and abandons the eva
 > (safe-divide 10 2)
 5
 > (safe-divide 10 0)
-error: division by zero 10 0
+error[KP3000]: division by zero 10 0
 \end{lstlisting}
 
 Note how the irritants \texttt{10} and \texttt{0} appear after the message---this is why you pass the offending values to \texttt{error} instead of formatting them into the string.
 
 \subsection{What an Uncaught Error Looks Like}
 
-When no handler catches an error, Kaappi reports it and abandons the evaluation. Errors detected by the runtime itself---type errors, arity mismatches, undefined variables---are reported with their full detail, and running a script also gets you the file, line, and offending expression:
+When no handler catches an error, Kaappi reports it and abandons the evaluation. Errors detected by the runtime itself---type errors, arity mismatches, undefined variables---are reported with their full detail, and running a script also gets you the file, line, and column of the offending expression, the source line itself, and the call site it was reached from:
 
-\begin{Verbatim}[fontsize=\small]
+\begin{Verbatim}[fontsize=\footnotesize]
 $ kaappi process.scm
-process.scm:12: error: type error in 'car': expected pair, got 5
-    (car n)
+process.scm:2:3: error[KP3002]: type error in 'car': expected pair, got 5
+      (car n))
+  called from process.scm:3
 \end{Verbatim}
 
 Learn to read these reports before learning to catch errors---most of the time, the right response to an unexpected error is to fix the bug it points at, not to handle it.
@@ -438,9 +439,9 @@ Write a \code{validate-email} procedure that checks a string for basic email val
 > (validate-email "alice@example.com")
 #t
 > (validate-email "no-at-sign")
-error: missing @ in email address "no-at-sign"
+error[KP3000]: missing @ in email address "no-at-sign"
 > (validate-email "@example.com")
-error: empty local part in email address "@example.com"
+error[KP3000]: empty local part in email address "@example.com"
 \end{lstlisting}
 \end{exercise}
 

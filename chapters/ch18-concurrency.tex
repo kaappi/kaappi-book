@@ -13,7 +13,7 @@ Modern programs often need to do multiple things at once: serve multiple network
 Library & \texttt{(kaappi fibers)} & \texttt{(srfi 18)} \\
 Scheduling & Cooperative (yield) & Preemptive (OS) \\
 Parallelism & No (single OS thread) & Yes (multiple cores) \\
-Communication & Channels (unbounded queues) & Deep-copy at boundaries \\
+Communication & Channels & Channels + deep-copy \\
 Overhead & Low (kilobytes per fiber) & High (VM + GC per thread) \\
 Shared state & Same heap & Separate heaps (safe) \\
 Use case & I/O, event loops & CPU-bound parallelism \\
@@ -132,10 +132,10 @@ Since fibers are cooperative, a fiber that runs a long computation without yield
 \section{Channels}
 \index{channels}\index{make-channel}\index{channel-send}\index{channel-receive}
 
-Channels provide safe communication between fibers. A channel is an unbounded queue: \texttt{channel-send} appends a value and returns immediately---it never blocks---while \texttt{channel-receive} takes the oldest value, letting other fibers run until one is available.
+Channels provide safe communication between fibers. A channel is a queue: \texttt{channel-send} appends a value and \texttt{channel-receive} takes the oldest one, letting other fibers run until a value is available. By default the queue is unbounded and a send returns immediately; \texttt{(make-channel n)} caps it at \texttt{n} queued values, and a send to a full bounded channel blocks the sending fiber until a receive frees a slot.
 
 \begin{note}[Coming from Go]
-Go's unbuffered channels synchronize sender and receiver: a send waits until a receive happens. Kaappi channels are closer to an unbounded buffered channel or an Erlang mailbox---producers never wait. There is no backpressure, so a producer that outruns its consumer grows the queue (and memory) with the backlog.
+Go's unbuffered channels synchronize sender and receiver: a send waits until a receive happens. Kaappi's default channel is closer to an unbounded buffered channel or an Erlang mailbox---producers never wait, so one that outruns its consumer grows the queue (and memory) with the backlog. A bounded channel \texttt{(make-channel n)} behaves like Go's \texttt{make(chan T, n)}: once \texttt{n} values are queued, senders wait---backpressure that keeps the producer honest. There is no zero-capacity rendezvous.
 \end{note}
 
 \begin{lstlisting}[style=repl]

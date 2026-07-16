@@ -299,7 +299,7 @@ The catch-all clause matches anything the first clause rejected, and the \texttt
          (error "Assertion failed" 'expr)))))
 > (assert (= (+ 1 1) 2))
 > (assert (= (+ 1 1) 3))
-error: Assertion failed (= (+ 1 1) 3)
+error[KP3000]: Assertion failed (= (+ 1 1) 3)
 \end{lstlisting}
 
 The failing assertion raises an error object whose message is \texttt{"Assertion failed"} and whose irritant is the \emph{source code} of the assertion---\texttt{'expr} in the template quotes it, which is why the report shows the exact expression that failed. A handler can read both parts back; Chapter~\ref{ch:errors} shows how.
@@ -388,7 +388,7 @@ Write an \code{assert-equal} macro that takes two expressions, evaluates both, a
 > (assert-equal (+ 1 2) 3)
 ;; no output --- assertion passed
 > (assert-equal (* 2 3) 7)
-error: assertion failed: (* 2 3) evaluated to 6, expected 7
+error[KP3000]: assertion failed: (* 2 3) evaluated to 6, expected 7
 \end{lstlisting}
 \end{exercise}
 
