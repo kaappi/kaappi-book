@@ -2,10 +2,10 @@
 \index{SRFI!catalog}
 \label{app:srfi}
 
-All 72 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}. Chapter~\ref{ch:stdlib} covers the most commonly used SRFIs in depth. Each SRFI's full specification, rationale, and reference implementation are published at \url{https://srfi.schemers.org}.
+All 85 SRFIs supported by Kaappi, grouped by category. Import with \texttt{(import (srfi N))}. Chapter~\ref{ch:stdlib} covers the most commonly used SRFIs in depth. Each SRFI's full specification, rationale, and reference implementation are published at \url{https://srfi.schemers.org}.
 
 \begin{note}[Built-in vs.\ Portable]
-Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \textbf{*} below) for performance. The remaining 64 are portable Scheme \texttt{.sld} files loaded on demand. Both are imported the same way: \code{(import (srfi N))}.
+Of Kaappi's 85 SRFIs, 11 are compiled into the interpreter binary (marked with \textbf{*} below) for performance. The remaining 73 are portable Scheme \texttt{.sld} files loaded on demand, plus SRFI 261 (a naming convention with no library file). All are imported the same way: \code{(import (srfi N))}.
 \end{note}
 
 \section{Data Structures}
@@ -31,6 +31,9 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 195 & Multiple-value boxes \\
 196 & Range objects (lazy integer ranges) \\
 222 & Compound objects \\
+250 & Insertion-ordered hash tables \\
+254\textbf{*} & Ephemerons and guardians \\
+263 & Prototype object system \\
 \end{tabular}
 \end{center}
 
@@ -51,6 +54,8 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 166 & Formatting (pretty-print, columnar, unicode, color) \\
 175 & ASCII character library \\
 233 & INI file parser \\
+264 & Scheme regular expressions (string syntax --- SSRE) \\
+267 & Raw string syntax \\
 \end{tabular}
 \end{center}
 
@@ -92,7 +97,11 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 219 & Define higher-order lambda \\
 227 & Optional arguments \\
 232 & Flexible curried procedures \\
+229 & Tagged procedures \\
 235 & Combinators (compose, constantly, complement) \\
+248 & Minimal delimited continuations \\
+257 & Simple extendable pattern matcher with backtracking \\
+259 & Tagged procedures with type safety \\
 \end{tabular}
 \end{center}
 
@@ -158,5 +167,9 @@ Of Kaappi's 72 SRFIs, 8 are compiled into the interpreter binary (marked with \t
 \hline
 38 & External representation for data with shared structure \\
 43 & Vector library (R7RS-compatible, superseded by 133) \\
+258\textbf{*} & Uninterned symbols \\
+260\textbf{*} & Generated symbols \\
+261 & Portable SRFI library references (naming convention) \\
+271 & Random port libraries \\
 \end{tabular}
 \end{center}

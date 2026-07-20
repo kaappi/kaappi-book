@@ -8,7 +8,7 @@ Kaappi's package manager \texttt{thottam} provides access to a growing ecosystem
 thottam install package-name
 \end{Verbatim}
 
-Dependencies are resolved automatically---installing \texttt{kaappi-web} also pulls in \texttt{kaappi-http} and \texttt{kaappi-json}. Packages land in \texttt{\textasciitilde/.kaappi/lib/} and are immediately importable from any Scheme file. All packages are MIT licensed. For the full set of \texttt{thottam} commands (removing, updating, pinning versions), see Appendix~\ref{app:cli}.
+Dependencies are resolved automatically---installing \texttt{kaappi-web} also pulls in \texttt{kaappi-http} and \texttt{kaappi-json}. Packages land in \texttt{\textasciitilde/.kaappi/lib/} and are immediately importable from any Scheme file. All packages are MIT licensed except \texttt{kaappi-mpl}, which is Apache-2.0 (inherited from the upstream project it ports). For the full set of \texttt{thottam} commands (removing, updating, pinning versions), see Appendix~\ref{app:cli}.
 
 \begin{note}[Native Packages Need System Libraries]
 Packages that wrap C libraries via the FFI compile a small native shim when installed. OpenSSL is needed by \texttt{kaappi-net} and \texttt{kaappi-crypto}, libpq by \texttt{kaappi-pg}, and libsqlite3 by \texttt{kaappi-sqlite}. The pure-Scheme packages have no system requirements.
@@ -68,6 +68,8 @@ kaappi-log & Structured logging with levels & \texttt{(kaappi log)} \\
 kaappi-cli & CLI argument parsing, subcommands, help & \texttt{(kaappi cli)} \\
 kaappi-test & Unit testing (assertions, test suites, CI) & \texttt{(kaappi test)} \\
 kaappi-bdd & BDD-style testing (describe, it, expect) & \texttt{(kaappi bdd)} \\
+kaappi-math & Math and statistics (Zig extension via FFI) & \texttt{(kaappi math)} \\
+kaappi-mpl & Symbolic math / computer algebra (Apache-2.0) & \texttt{(kaappi mpl)} \\
 kaappi-examples & Example applications demonstrating real-world usage & (various) \\
 \end{tabularx}
 \end{center}

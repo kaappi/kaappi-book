@@ -96,7 +96,7 @@ The reader reports these when it cannot parse your source into Scheme data, with
 \begin{itemize}
     \item Typo in the variable name (e.g., \texttt{lenght} instead of \texttt{length})---follow the did-you-mean hint.
     \item Used a name before its \texttt{define} (order matters in scripts).
-    \item The name comes from a \emph{portable} SRFI or an ecosystem library you have not imported. Kaappi's eight built-in SRFIs (including SRFI-1's \texttt{filter} and \texttt{fold}) are always available, but the 64 portable SRFIs load from \texttt{.sld} files only when imported---\texttt{list-sort} needs \texttt{(import (srfi 132))}. Appendix~\ref{app:srfi} marks which SRFIs are built in.
+    \item The name comes from a \emph{portable} SRFI or an ecosystem library you have not imported. Kaappi's 11 built-in SRFIs (including SRFI-1's \texttt{filter} and \texttt{fold}) are always available, but the 73 portable SRFIs load from \texttt{.sld} files only when imported---\texttt{list-sort} needs \texttt{(import (srfi 132))}. Appendix~\ref{app:srfi} marks which SRFIs are built in.
 \end{itemize}
 
 \textbf{Fix:} Check the spelling, reorder definitions, or add the missing \texttt{(import ...)}.

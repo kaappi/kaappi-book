@@ -53,11 +53,18 @@ macOS & ARM64 (Apple Silicon) & \texttt{kaappi-aarch64-macos} \\
 Linux & x86\_64 & \texttt{kaappi-x86\_64-linux} \\
 Linux & ARM64 & \texttt{kaappi-aarch64-linux} \\
 Linux & RISC-V 64 & \texttt{kaappi-riscv64-linux} \\
+Linux & s390x & \texttt{kaappi-s390x-linux} \\
+Linux & ppc64le & \texttt{kaappi-ppc64le-linux} \\
+Windows & x86\_64 & \texttt{kaappi-x86\_64-windows.exe} \\
+Windows & ARM64 & \texttt{kaappi-aarch64-windows.exe} \\
+FreeBSD & x86\_64 / ARM64 & \texttt{kaappi-\{arch\}-freebsd} \\
+OpenBSD & x86\_64 / ARM64 & \texttt{kaappi-\{arch\}-openbsd} \\
+NetBSD & x86\_64 / ARM64 & \texttt{kaappi-\{arch\}-netbsd} \\
 \end{tabular}
 \end{center}
 
 \begin{note}[Windows]
-There are no native Windows binaries---Kaappi depends on POSIX APIs. On Windows, install the Linux x86\_64 build inside WSL2 (Windows Subsystem for Linux); everything in this book works there.
+Native Windows binaries ship for both x86\_64 and ARM64. The full interpreter works---REPL, fibers, channels, SRFI-18 threads, FFI (via \texttt{LoadLibrary})---but POSIX-only operations from SRFI-170 (uid/gid, symlinks, chmod) raise a catchable error instead. WSL2 remains an option if you need the full POSIX surface.
 \end{note}
 
 Each release also ships a matching \texttt{thottam} package-manager binary per platform (e.g., \texttt{thottam-aarch64-macos})---download it alongside \texttt{kaappi}. After downloading, make the binaries executable and move them to a directory in your PATH:

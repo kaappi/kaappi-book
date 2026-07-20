@@ -186,14 +186,14 @@ When you type a Scheme expression, Kaappi processes it through a pipeline:
     \item \textbf{Virtual machine}\index{virtual machine} --- executes the bytecode on a register-based VM with a generational mark-and-sweep garbage collector\index{garbage collector}.
 \end{enumerate}
 
-This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 48,000 lines of Zig).
+This architecture means Kaappi is fast enough for real work while remaining simple enough that the entire implementation is readable (about 100,000 lines of Zig).
 
 \subsection{Batteries Included}
 
 Beyond the R7RS standard, Kaappi provides:
 
 \begin{itemize}
-    \item \textbf{72 SRFIs}\index{SRFI} --- community-standard libraries for lists, strings, hash tables, sorting, regular expressions, random numbers, and much more.
+    \item \textbf{85 SRFIs}\index{SRFI} --- community-standard libraries for lists, strings, hash tables, sorting, regular expressions, random numbers, and much more.
     \item \textbf{C FFI}\index{FFI} --- call functions in C shared libraries directly from Scheme, including passing Scheme callbacks into C code.
     \item \textbf{Green threads}\index{fibers} --- lightweight fibers with channels for concurrent programming without the complexity of OS threads.
     \item \textbf{Package manager} --- \texttt{thottam}\index{thottam} installs and manages third-party libraries with a single command.
@@ -203,7 +203,7 @@ Beyond the R7RS standard, Kaappi provides:
 
 \subsection{Single Binary, Multiple Platforms}
 
-Kaappi installs as a statically linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V), and in the browser via WebAssembly\index{WebAssembly}.
+Kaappi installs as a statically linked binary plus a small archive of portable Scheme libraries---no shared library dependencies, no runtime to configure. It runs on macOS (ARM64), Linux (x86\_64, ARM64, RISC-V, s390x, ppc64le), Windows (x86\_64, ARM64), FreeBSD, OpenBSD, and NetBSD (x86\_64, ARM64), and in the browser via WebAssembly\index{WebAssembly}.
 
 \section{Why Learn Scheme?}
 
@@ -237,7 +237,7 @@ Let's get started.
     \item Scheme is a minimalist Lisp dialect built from a few powerful ideas: first-class functions, lexical closures, recursion, and macros.
     \item Many features of Python, JavaScript, and Ruby---closures, \texttt{lambda}, garbage collection---trace back to Lisp and Scheme.
     \item Kaappi is a practical, batteries-included implementation of R7RS-small, written in Zig and shipped as a single statically linked binary.
-    \item Beyond the standard, Kaappi adds 72 SRFIs, a C foreign function interface, green-threaded concurrency, and a package manager.
+    \item Beyond the standard, Kaappi adds 85 SRFIs, a C foreign function interface, green-threaded concurrency, and a package manager.
 \end{itemize}
 
 \section*{Exercises}

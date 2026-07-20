@@ -45,7 +45,7 @@ R7RS defines 16 standard libraries. The 15 you will actually use are listed belo
 \end{tabular}
 \end{center}
 
-Beyond these, Kaappi provides 72 SRFIs importable as \texttt{(srfi N)}:
+Beyond these, Kaappi provides 85 SRFIs importable as \texttt{(srfi N)}:
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 1))   ; Extended list library
@@ -60,14 +60,14 @@ The REPL also accepts the \texttt{,import} command, which takes the same forms: 
 \subsection{Built-in vs.\ Portable SRFIs}
 \index{SRFI!built-in vs.\ portable}
 
-The 72 SRFIs come in two kinds, and the difference shows up in practice:
+The 85 SRFIs come in two kinds, and the difference shows up in practice:
 
 \begin{itemize}
-    \item \textbf{Eight built-in SRFIs} (1, 9, 13, 18, 39, 69, 133, 170) are implemented inside the runtime and always available---\texttt{filter} from SRFI-1 works even if you forget the import.
-    \item \textbf{64 portable SRFIs} are ordinary \texttt{.sld} libraries loaded on demand. These \emph{must} be imported: \texttt{(list-sort < lst)} fails with an undefined-variable error until you write \texttt{(import (srfi 132))}.
+    \item \textbf{Eleven built-in SRFIs} (1, 9, 13, 18, 39, 69, 133, 170, 254, 258, 260) are implemented inside the runtime and always available---\texttt{filter} from SRFI-1 works even if you forget the import.
+    \item \textbf{73 portable SRFIs} are ordinary \texttt{.sld} libraries loaded on demand. These \emph{must} be imported: \texttt{(list-sort < lst)} fails with an undefined-variable error until you write \texttt{(import (srfi 132))}.
 \end{itemize}
 
-When in doubt, write the import---it is always correct, and it keeps the program portable. Appendix~\ref{app:srfi} catalogs all 72 and marks which are built in.
+When in doubt, write the import---it is always correct, and it keeps the program portable. Appendix~\ref{app:srfi} catalogs all 85 and marks which are built in.
 
 \section{Import Modifiers}
 \index{import modifiers}
@@ -336,7 +336,7 @@ Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, which is always
 
 \begin{itemize}
     \item \texttt{import} brings library bindings into scope, and the modifiers \texttt{only}, \texttt{except}, \texttt{prefix}, and \texttt{rename} control exactly what is imported.
-    \item Kaappi's built-ins (including eight built-in SRFIs) are globally available, but the 64 portable SRFIs and your own libraries genuinely require \texttt{import}---and portable R7RS code always writes its imports.
+    \item Kaappi's built-ins (including 11 built-in SRFIs) are globally available, but the 73 portable SRFIs and your own libraries genuinely require \texttt{import}---and portable R7RS code always writes its imports.
     \item \texttt{define-library} declares a library with explicit \texttt{export} and \texttt{import} sets.
     \item Libraries are found through the search path, and \texttt{include} and \texttt{cond-expand} support file inclusion and conditional code.
     \item The \texttt{thottam} package manager publishes and installs third-party packages.

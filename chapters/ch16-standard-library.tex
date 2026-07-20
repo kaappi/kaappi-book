@@ -2,7 +2,7 @@
 \index{SRFI}\index{standard library}
 \label{ch:stdlib}
 
-Beyond the R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 72 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all 72 SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
+Beyond the R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 85 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all 85 SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
 
 \section{What Are SRFIs?}
 
@@ -16,14 +16,24 @@ Import any SRFI by number:
 (import (srfi 13))  ; String library
 \end{lstlisting}
 
-Kaappi's 72 SRFIs fall into two categories:
+Kaappi's 85 SRFIs fall into two categories:
 
 \begin{itemize}
-    \item \textbf{8 built-in SRFIs} --- implemented in Zig for performance, always available.
-    \item \textbf{64 portable SRFIs} --- pure Scheme implementations loaded on demand from \texttt{.sld} files.
+    \item \textbf{11 built-in SRFIs} --- implemented in Zig for performance, always available.
+    \item \textbf{73 portable SRFIs} --- pure Scheme implementations loaded on demand from \texttt{.sld} files, plus the SRFI 261 naming convention.
 \end{itemize}
 
 In practice the split is invisible: both kinds are imported with the same \texttt{(import (srfi N))} form. The built-in ones are simply faster.
+
+To check whether a specific SRFI is available before importing it, use a \texttt{srfi-\emph{n}} feature identifier in \texttt{cond-expand}:
+
+\begin{lstlisting}
+(cond-expand
+  (srfi-1 (import (srfi 1)))
+  (else   (error "SRFI 1 not available")))
+\end{lstlisting}
+
+Every SRFI Kaappi supports has a corresponding \texttt{srfi-\emph{n}} identifier, derived from the same database as \texttt{(import (srfi N))}. This is portable---other R7RS implementations that support the same SRFIs will honor the same identifiers.
 
 \section{SRFI-1: Extended List Library}
 \index{SRFI-1}
@@ -427,6 +437,48 @@ A set needs a \emph{comparator} (from SRFI-128) that tells it how to compare ele
 
 \texttt{maybe} is like Python's \texttt{Optional} or Rust's \texttt{Option}---it represents a value that might not exist.
 
+\subsection{SRFI-257: Pattern Matching}
+\index{SRFI-257}\index{match}\index{pattern matching}
+
+Pattern matching destructures data in a single expression, replacing chains of \texttt{car}/\texttt{cdr}/\texttt{if} with declarative clauses:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 257))
+> (match '(1 2 3)
+    ((a b c) (+ a b c)))
+6
+> (match '(point 3 4)
+    (('point x y) (list x y)))
+(3 4)
+> (define (describe val)
+    (match val
+      ((? string?) "a string")
+      ((? number?) "a number")
+      ((a . b)     "a pair")
+      (_           "something else")))
+> (describe "hello")
+"a string"
+> (describe 42)
+"a number"
+> (describe '(1 . 2))
+"a pair"
+\end{lstlisting}
+
+Patterns are non-linear: a variable that appears more than once requires all occurrences to be \texttt{equal?}:
+
+\begin{lstlisting}[style=repl]
+> (match '(a b a)
+    ((x _ x) (list 'same x))
+    (_       'different))
+(same a)
+> (match '(a b c)
+    ((x _ x) (list 'same x))
+    (_       'different))
+different
+\end{lstlisting}
+
+Patterns are user-extensible via \texttt{define-match-pattern}. Two sublibraries ship with the matcher: \texttt{(srfi 257 misc)} adds catamorphism patterns and a \texttt{syntax-rules}-like matcher, and \texttt{(srfi 257 rx)} matches strings against SRFI-115/264 regular expressions directly in pattern position.
+
 \section{Beyond SRFIs: Lazy Evaluation with \texttt{(scheme lazy)}}
 \index{lazy evaluation}\index{delay}\index{force}\index{promises}
 
@@ -556,16 +608,17 @@ Indexed random access & Vector & 133 & O(1) index \\
 \section*{Summary}
 
 \begin{itemize}
-    \item SRFIs are community-standard libraries; Kaappi ships 72 of them, each imported with \texttt{(import (srfi N))}.
+    \item SRFIs are community-standard libraries; Kaappi ships 85 of them, each imported with \texttt{(import (srfi N))}.
     \item SRFI-1 extends list processing, SRFI-13 extends strings,
     and SRFI-69 provides hash tables.
     \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random
     numbers), and SRFI-115 (regular expressions) cover common needs.
     \item SRFI-158 provides generators, and other SRFIs add sets
     and bags, format strings, and the Maybe and Either types.
-    \item SRFI-17 lets \texttt{set!} target accessor calls
-    (\texttt{(set! (car p) v)}), and SRFI-61 adds a guard step
-    to \texttt{cond}'s \texttt{=>} clauses.
+    \item SRFI-257 provides pattern matching with non-linear patterns
+    and backtracking; SRFI-17 lets \texttt{set!} target accessor
+    calls, and SRFI-61 adds a guard step to \texttt{cond}'s
+    \texttt{=>} clauses.
     \item SRFI-64 is the standard test framework
     (\texttt{test-begin}, \texttt{test-end},
     \texttt{test-equal}, \texttt{test-assert},
