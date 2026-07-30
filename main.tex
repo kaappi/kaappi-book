@@ -15,7 +15,19 @@
 
 % Kaappi version shown in prose and transcripts. Keep in sync with releases;
 % inside listings, expand it with the (*@\kaappiversion@*) escape.
-\newcommand{\kaappiversion}{0.21.0}
+\newcommand{\kaappiversion}{0.22.0}
+
+% SRFI counts, quoted in a dozen places across the chapters and appendices.
+% Never write the digits inline -- a release that moves them left the book
+% claiming 85 in eleven places at once. Verify against the RELEASED binary:
+%   kaappi features --json
+% \srfitotal is \srfibuiltin + \srfiportable importable libraries, plus the
+% SRFI 261 naming convention (no library file) and the three SRFIs that ship
+% as sub-libraries only (160, 211, 226) -- features --json lists neither,
+% since it reads only top-level lib/srfi/N.sld files.
+\newcommand{\srfitotal}{178}
+\newcommand{\srfibuiltin}{12}
+\newcommand{\srfiportable}{162}
 
 \begin{document}
 
@@ -71,7 +83,7 @@ This matters because Scheme's ideas are everywhere. Python borrowed \texttt{lamb
 
 Kaappi\index{Kaappi} is a modern, complete implementation of the R7RS-small\index{R7RS} standard. Unlike many Scheme implementations that focus on either academic purity or raw performance, Kaappi aims to be a practical, batteries-included language for building real programs.
 
-It ships as a statically linked binary with no shared library dependencies---just the binary and a library archive of portable Scheme files. The interactive REPL\index{REPL} provides syntax highlighting, tab completion, and history---a comfortable environment for exploration. Beyond the standard, Kaappi includes 85 SRFIs\index{SRFI} (11 compiled into the binary, 73 as portable Scheme libraries), a C foreign function interface, green threads with channels, a package manager, and an ecosystem of libraries for web servers, databases, JSON, and more.
+It ships as a statically linked binary with no shared library dependencies---just the binary and a library archive of portable Scheme files. The interactive REPL\index{REPL} provides syntax highlighting, tab completion, and history---a comfortable environment for exploration. Beyond the standard, Kaappi includes \srfitotal{} SRFIs\index{SRFI} (\srfibuiltin{} compiled into the binary, \srfiportable{} as portable Scheme libraries), a C foreign function interface, green threads with channels, a package manager, and an ecosystem of libraries for web servers, databases, JSON, and more.
 
 If you have ever tried a Scheme and felt it was ``just a toy,'' Kaappi is different. You can build real applications with it.
 

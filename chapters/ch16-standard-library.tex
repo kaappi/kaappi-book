@@ -2,7 +2,7 @@
 \index{SRFI}\index{standard library}
 \label{ch:stdlib}
 
-Beyond the R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides 85 SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all 85 SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
+Beyond the R7RS standard libraries (covered in Chapter~\ref{ch:libraries}), Kaappi provides \srfitotal{} SRFIs (Scheme Requests for Implementation)---community-standard libraries that extend Scheme's capabilities. This chapter surveys the most useful SRFIs, showing practical examples of each. For the complete catalog of all \srfitotal{} SRFIs Kaappi supports, see Appendix~\ref{app:srfi}.
 
 \section{What Are SRFIs?}
 
@@ -16,11 +16,11 @@ Import any SRFI by number:
 (import (srfi 13))  ; String library
 \end{lstlisting}
 
-Kaappi's 85 SRFIs fall into two categories:
+Kaappi's \srfitotal{} SRFIs fall into two categories:
 
 \begin{itemize}
-    \item \textbf{11 built-in SRFIs} --- implemented in Zig for performance, always available.
-    \item \textbf{73 portable SRFIs} --- pure Scheme implementations loaded on demand from \texttt{.sld} files, plus the SRFI 261 naming convention.
+    \item \textbf{\srfibuiltin{} built-in SRFIs} --- implemented in Zig for performance, always available.
+    \item \textbf{\srfiportable{} portable SRFIs} --- pure Scheme implementations loaded on demand from \texttt{.sld} files, plus the SRFI 261 naming convention and three SRFIs that ship only as sub-libraries.
 \end{itemize}
 
 In practice the split is invisible: both kinds are imported with the same \texttt{(import (srfi N))} form. The built-in ones are simply faster.
@@ -257,7 +257,7 @@ The comparator is a two-argument predicate. Use \texttt{<} for ascending numbers
 > (regexp-matches '(: "hello") "hello world")
 #f
 > (regexp-search '(: "world") "hello world")
-#<<regexp-match> "hello world" #((6 11))>
+#<<regexp-match> "hello world" #((6 11)) ()>
 > (regexp-replace '(+ num) "age: 25" "XX")
 "age: XX"
 > (regexp-extract '(+ alpha) "foo123bar456baz")
@@ -440,40 +440,51 @@ A set needs a \emph{comparator} (from SRFI-128) that tells it how to compare ele
 \subsection{SRFI-257: Pattern Matching}
 \index{SRFI-257}\index{match}\index{pattern matching}
 
-Pattern matching destructures data in a single expression, replacing chains of \texttt{car}/\texttt{cdr}/\texttt{if} with declarative clauses:
+Pattern matching destructures data in a single expression, replacing chains of \texttt{car}/\texttt{cdr}/\texttt{if} with declarative clauses.
+
+A structural pattern is written as a \emph{quasiquote} template: the backtick introduces the shape you expect, and \texttt{,name} marks each hole to bind. Everything not preceded by a comma is matched literally. If you have met pattern matching in Racket or ML, note that SRFI-257 does not use their bare-list notation---the backtick is required:
 
 \begin{lstlisting}[style=repl]
 > (import (srfi 257))
 > (match '(1 2 3)
-    ((a b c) (+ a b c)))
+    (`(,a ,b ,c) (+ a b c)))
 6
 > (match '(point 3 4)
-    (('point x y) (list x y)))
+    (`(point ,x ,y) (list x y)))
 (3 4)
+\end{lstlisting}
+
+Here \texttt{point} matches only the literal symbol \texttt{point}, while \texttt{,x} and \texttt{,y} bind whatever sits in those positions.
+
+Predicate patterns are spelled \texttt{(\textasciitilde pred?\ var)}, and \texttt{\_} matches anything without binding it:
+
+\begin{lstlisting}[style=repl]
 > (define (describe val)
     (match val
-      ((? string?) "a string")
-      ((? number?) "a number")
-      ((a . b)     "a pair")
-      (_           "something else")))
+      ((~string? s) "a string")
+      ((~number? n) "a number")
+      (`(,a . ,b)   "a pair")
+      (_            "something else")))
 > (describe "hello")
 "a string"
 > (describe 42)
 "a number"
 > (describe '(1 . 2))
 "a pair"
+> (describe #t)
+"something else"
 \end{lstlisting}
 
 Patterns are non-linear: a variable that appears more than once requires all occurrences to be \texttt{equal?}:
 
 \begin{lstlisting}[style=repl]
 > (match '(a b a)
-    ((x _ x) (list 'same x))
-    (_       'different))
+    (`(,x ,_ ,x) (list 'same x))
+    (_           'different))
 (same a)
 > (match '(a b c)
-    ((x _ x) (list 'same x))
-    (_       'different))
+    (`(,x ,_ ,x) (list 'same x))
+    (_           'different))
 different
 \end{lstlisting}
 
@@ -608,7 +619,7 @@ Indexed random access & Vector & 133 & O(1) index \\
 \section*{Summary}
 
 \begin{itemize}
-    \item SRFIs are community-standard libraries; Kaappi ships 85 of them, each imported with \texttt{(import (srfi N))}.
+    \item SRFIs are community-standard libraries; Kaappi ships \srfitotal{} of them, nearly all imported with \texttt{(import (srfi N))}.
     \item SRFI-1 extends list processing, SRFI-13 extends strings,
     and SRFI-69 provides hash tables.
     \item SRFI-133 (vectors), SRFI-132 (sorting), SRFI-27 (random

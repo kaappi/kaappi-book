@@ -154,7 +154,7 @@ Kaappi is a complete implementation of the R7RS-small Scheme standard, written f
 
 \subsection{Standards Conformance}
 
-Kaappi implements every identifier in the R7RS-small specification: all 14 standard libraries, all 32 syntax forms, and 613 built-in procedures. It passes 1,391 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
+Kaappi implements every identifier in the R7RS-small specification: all 14 standard libraries, all 32 syntax forms, and 690 built-in procedures. It passes 1,395 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
 
 \subsection{How It Works}
 
@@ -193,7 +193,7 @@ This architecture means Kaappi is fast enough for real work while remaining simp
 Beyond the R7RS standard, Kaappi provides:
 
 \begin{itemize}
-    \item \textbf{85 SRFIs}\index{SRFI} --- community-standard libraries for lists, strings, hash tables, sorting, regular expressions, random numbers, and much more.
+    \item \textbf{\srfitotal{} SRFIs}\index{SRFI} --- community-standard libraries for lists, strings, hash tables, sorting, regular expressions, random numbers, and much more.
     \item \textbf{C FFI}\index{FFI} --- call functions in C shared libraries directly from Scheme, including passing Scheme callbacks into C code.
     \item \textbf{Green threads}\index{fibers} --- lightweight fibers with channels for concurrent programming without the complexity of OS threads.
     \item \textbf{Package manager} --- \texttt{thottam}\index{thottam} installs and manages third-party libraries with a single command.
@@ -237,7 +237,7 @@ Let's get started.
     \item Scheme is a minimalist Lisp dialect built from a few powerful ideas: first-class functions, lexical closures, recursion, and macros.
     \item Many features of Python, JavaScript, and Ruby---closures, \texttt{lambda}, garbage collection---trace back to Lisp and Scheme.
     \item Kaappi is a practical, batteries-included implementation of R7RS-small, written in Zig and shipped as a single statically linked binary.
-    \item Beyond the standard, Kaappi adds 85 SRFIs, a C foreign function interface, green-threaded concurrency, and a package manager.
+    \item Beyond the standard, Kaappi adds \srfitotal{} SRFIs, a C foreign function interface, green-threaded concurrency, and a package manager.
 \end{itemize}
 
 \section*{Exercises}
