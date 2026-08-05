@@ -253,7 +253,7 @@ Native compilation targets x86\_64 and ARM64 only, on any OS Kaappi otherwise su
 Requirements:
 \begin{itemize}
     \item LLVM must be available on the system (the compiler emits LLVM IR and invokes \texttt{clang})
-    \item \texttt{libkaappi\_rt.a} must be built (\texttt{zig build lib})
+    \item \texttt{libkaappi\_rt.a} must be present --- already there at \texttt{\textasciitilde/.local/lib/} if you used the install script (Chapter~\ref{ch:installation}); building from source instead requires \texttt{zig build lib}
 \end{itemize}
 
 To inspect the generated LLVM IR without compiling:
