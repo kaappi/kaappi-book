@@ -154,7 +154,7 @@ Kaappi is a complete implementation of the R7RS-small Scheme standard, written f
 
 \subsection{Standards Conformance}
 
-Kaappi implements every identifier in the R7RS-small specification: all 14 standard libraries, all 32 syntax forms, and 690 built-in procedures. It passes 1,395 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
+Kaappi implements every identifier in the R7RS-small specification: all 16 standard libraries, all 32 syntax forms, and 689 built-in procedures. It passes 1,395 tests from the R7RS test suite with zero failures. When the standard says how something should work, that is exactly how Kaappi behaves.
 
 \subsection{How It Works}
 
@@ -165,13 +165,13 @@ When you type a Scheme expression, Kaappi processes it through a pipeline:
     stage/.style={rectangle, draw, rounded corners, minimum height=2em, minimum width=4.5em,
                   font=\sffamily\small, text centered},
     arr/.style={->, >=stealth, thick},
-    lbl/.style={font=\scriptsize, above, midway}
+    lbl/.style={font=\tiny, above, midway}
 ]
 \node[stage] (src) {Source};
 \node[stage, right=0.6cm of src] (read) {Reader};
-\node[stage, right=0.6cm of read] (exp) {Expander};
+\node[stage, right=0.75cm of read] (exp) {Expander};
 \node[stage, right=0.6cm of exp] (comp) {Compiler};
-\node[stage, right=0.6cm of comp] (vm) {VM};
+\node[stage, right=0.9cm of comp] (vm) {VM};
 \draw[arr] (src) -- (read) node[lbl] {text};
 \draw[arr] (read) -- (exp) node[lbl] {S-expr};
 \draw[arr] (exp) -- (comp) node[lbl] {core};

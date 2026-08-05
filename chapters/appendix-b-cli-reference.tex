@@ -248,6 +248,8 @@ kaappi compile program.scm -o myapp
 ./myapp
 \end{Verbatim}
 
+Native compilation targets x86\_64 and ARM64 only, on any OS Kaappi otherwise supports (macOS, Linux, Windows, FreeBSD, OpenBSD, NetBSD). Other CPU architectures---RISC-V, s390x, ppc64le---run Kaappi programs fine through the interpreter, but \texttt{kaappi compile} refuses rather than link a binary that would crash at runtime.
+
 Requirements:
 \begin{itemize}
     \item LLVM must be available on the system (the compiler emits LLVM IR and invokes \texttt{clang})
