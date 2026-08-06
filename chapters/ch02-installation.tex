@@ -195,7 +195,7 @@ The REPL tracks open parentheses. If your expression is incomplete, it shows a \
 
 \subsection{Line Editing}
 
-The REPL supports standard editing keys:
+The REPL includes standard editing keys:
 
 \begin{center}
 \begin{tabular}{ll}
@@ -206,9 +206,13 @@ Up / Down & Navigate history \\
 Ctrl-A & Move to start of line \\
 Ctrl-E & Move to end of line \\
 Ctrl-K & Delete to end of line \\
+Ctrl-U & Delete to start of line \\
+Ctrl-W & Delete previous word \\
+Ctrl-L & Clear screen \\
+Ctrl-R & Search history \\
 Ctrl-C & Cancel current line \\
 Tab & Auto-complete symbol names \\
-Ctrl-D & Exit (on empty line) \\
+Ctrl-D & Delete character; exit on an empty line \\
 \end{tabular}
 \end{center}
 
@@ -240,7 +244,7 @@ Setting the \texttt{NO\_COLOR}\index{NO\_COLOR} environment variable disables al
 
 \subsection{The \texttt{\_} Variable}
 
-The special variable \texttt{\_} always holds the result of the last evaluated expression:
+The special variable \texttt{\_} holds the result of the most recently evaluated expression that produced a value:
 
 \begin{lstlisting}[style=repl]
 > (+ 10 20)
@@ -249,7 +253,7 @@ The special variable \texttt{\_} always holds the result of the last evaluated e
 60
 \end{lstlisting}
 
-This is useful for building on previous results without re-typing them.
+This is useful for building on previous results without re-typing them. Forms that return no value---\texttt{define}, \texttt{display}, \texttt{set!}---leave \texttt{\_} unchanged.
 
 \subsection{History}
 
