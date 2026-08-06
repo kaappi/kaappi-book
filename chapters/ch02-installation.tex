@@ -184,11 +184,11 @@ The actual prompt is \texttt{kaappi>}. To keep examples compact, the rest of thi
 
 \subsection{Multi-Line Input}
 
-The REPL tracks open parentheses. If your expression is incomplete, it shows a \texttt{...} continuation prompt and waits for you to finish:
+The REPL tracks open parentheses. If your expression is incomplete, it indents the next line and waits for you to finish---the whole form stays in one editable buffer until it balances, with no separate continuation prompt:
 
 \begin{lstlisting}[style=repl]
 > (define (square x)
-...   (* x x))
+    (* x x))
 > (square 7)
 49
 \end{lstlisting}

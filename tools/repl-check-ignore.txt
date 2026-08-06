@@ -11,8 +11,8 @@
 # import failures were removed once those interpreter bugs were fixed.)
 
 # --- interactive REPL features (not available in piped mode) ---
-ch02-installation.tex:218  # tab completion is an interactive REPL feature
-ch02-installation.tex:246  # the _ last-result variable is an interactive REPL feature
+ch02-installation.tex:224  # tab completion is an interactive REPL feature
+ch02-installation.tex:252  # the _ last-result variable is an interactive REPL feature
 ch11-macros.tex:85   # ,expand is an interactive REPL command
 ch11-macros.tex:87   # ,expand is an interactive REPL command
 ch11-macros.tex:216  # ,expand is an interactive REPL command (hygiene renaming demo)
