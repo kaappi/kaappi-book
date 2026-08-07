@@ -37,5 +37,8 @@ ch14-error-handling.tex:338    # hypothetical http-get/fetch example
 appendix-d-error-messages.tex:83   # (lambda) compile error ends the piped session; verified fresh
 appendix-d-error-messages.tex:111  # session killed by the (lambda) demo above; verified fresh
 appendix-d-error-messages.tex:114  # session killed by the (lambda) demo above; verified fresh
-appendix-d-error-messages.tex:138  # session killed by the (lambda) demo above; verified fresh
-appendix-d-error-messages.tex:140  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:126  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:127  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:130  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:154  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:156  # session killed by the (lambda) demo above; verified fresh

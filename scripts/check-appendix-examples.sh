@@ -73,6 +73,15 @@ check type-error-plus "error[KP3002]: type error in 'arithmetic': expected numbe
 (+ 1 "two")
 EOF
 
+check type-error-string-set "error[KP3002]: type error in 'string-set!': expected mutable string, got #<string>" <<'EOF'
+(define s "abc")
+(string-set! s 0 #\Z)
+EOF
+
+check type-error-vector-set "error[KP3002]: type error in 'vector-set!': expected mutable vector, got #<vector>" <<'EOF'
+(vector-set! #(1 2 3) 0 99)
+EOF
+
 check arity "error[KP3003]: 'f': expected 2 arguments, got 1" <<'EOF'
 (define (f a b) a)
 (f 1)

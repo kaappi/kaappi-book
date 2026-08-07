@@ -118,6 +118,22 @@ The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbou
 
 \textbf{Fix:} Check for the empty list with \code{null?} before calling \code{car}/\code{cdr}. For arithmetic on strings, convert first with \code{string->number}.
 
+\subsection{\texttt{error[KP3002]: type error in 'string-set!': expected mutable string, got \#<string>}}
+
+\textbf{Cause:} \texttt{string-set!}, \texttt{vector-set!}, \texttt{set-car!}, \texttt{set-cdr!}, and \texttt{bytevector-u8-set!} all reject a value written literally in your source code---strings, vectors, pairs, and bytevectors created by a literal such as \texttt{"abc"}, \texttt{\#(1 2 3)}, \texttt{'(1 2 3)}, or \texttt{\#u8(1 2 3)} are immutable, and so is the string \texttt{symbol->string} returns. This surprises many newcomers, but Kaappi always raises a loud type error rather than mutating silently:
+
+\begin{lstlisting}[style=repl]
+> (define s "abc")
+> (string-set! s 0 #\Z)
+; error[KP3002]: type error in 'string-set!':
+;   expected mutable string, got #<string>
+> (vector-set! #(1 2 3) 0 99)
+; error[KP3002]: type error in 'vector-set!':
+;   expected mutable vector, got #<vector>
+\end{lstlisting}
+
+\textbf{Fix:} Build a fresh, mutable value instead of mutating the literal: \texttt{string-copy} or \texttt{make-string} for strings, \texttt{vector-copy} or \texttt{make-vector} for vectors, \texttt{list} or \texttt{cons} for pairs.
+
 \subsection{\texttt{error[KP3003]: 'f': expected 2 arguments, got 1}}
 
 \textbf{Cause:} A procedure was called with the wrong number of arguments. Variadic procedures report \texttt{expected at least N arguments}.
@@ -203,7 +219,6 @@ Behavior that silently surprises programmers coming from Python or JavaScript:
     \item \textbf{Only \code{#f} is false.} \texttt{0}, \texttt{""}, and \texttt{'()} are all true in conditionals.
     \item \textbf{\code{eq?} does not compare numbers reliably.} Use \code{=} for numbers, \code{equal?} for structures. See Section~\ref{sec:equality}.
     \item \textbf{\code{set!} changes the binding, not the caller's variable.} Assigning to a parameter inside a procedure does not affect the argument at the call site.
-    \item \textbf{String literals are immutable.} \code{string-set!} needs a mutable string; make one with \code{string-copy}.
     \item \textbf{\code{map} stops at the shortest list.} With lists of different lengths, extra elements are silently ignored.
 \end{itemize}
 

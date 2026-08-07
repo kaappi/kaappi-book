@@ -275,7 +275,7 @@ Strings in Scheme are mutable: \texttt{string-set!} replaces the character at an
 "Zaa"
 \end{lstlisting}
 
-There is one exception: string \emph{literals} are immutable. Calling \texttt{string-set!} on a string that appears literally in your source code, like \texttt{(define s "abc")}, raises an error. Create fresh, mutable strings with \texttt{make-string} or \texttt{string-copy}.
+Two kinds of strings are immutable: string \emph{literals}, and the string returned by \texttt{symbol->string}. Calling \texttt{string-set!} on a string that appears literally in your source code, like \texttt{(define s "abc")}, raises an error---and so does calling it on \texttt{(symbol->string 'hello)}. Create fresh, mutable strings with \texttt{make-string} or \texttt{string-copy}.
 
 In practice, idiomatic Scheme rarely mutates strings. Most programs build new strings from existing ones:
 
@@ -416,6 +416,8 @@ Vectors are mutable---you can change individual elements:
 > v
 #(1 99 3)
 \end{lstlisting}
+
+Vector literals are immutable, for the same reason string literals are: \texttt{(vector-set! \#(1 2 3) 0 99)} raises a type error. Build a mutable vector with \texttt{vector} or \texttt{make-vector} instead.
 
 \subsection{Vector Operations}
 \index{vector-ref}\index{vector-length}\index{make-vector}\index{vector-map}\index{vector->list}\index{list->vector}
@@ -560,7 +562,7 @@ When in doubt, \texttt{equal?} is the safe general-purpose choice; reach for the
 
 \begin{itemize}
     \item Scheme's numeric tower spans integers, exact rationals, real (floating-point) numbers, and complex numbers, with a key distinction between exact and inexact values.
-    \item Strings are sequences of Unicode characters (mutable, except literals---though idiomatic code builds new strings instead), and characters are a distinct type.
+    \item Strings are sequences of Unicode characters (mutable, except literals and \texttt{symbol->string} results---though idiomatic code builds new strings instead), and characters are a distinct type.
     \item Symbols are interned names, and the only booleans are \texttt{\#t} and \texttt{\#f}.
     \item Vectors are fixed-length, mutable, constant-time-indexed sequences; bytevectors hold raw bytes.
     \item Type predicates such as \texttt{number?}, \texttt{string?}, and \texttt{vector?} test a value's type.
