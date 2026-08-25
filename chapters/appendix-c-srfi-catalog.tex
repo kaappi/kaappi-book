@@ -10,10 +10,13 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 
 \section{Data Structures}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 1\textbf{*} & Extended list library (fold, filter, find, partition, iota, zip, take, drop) \\
 4 & Homogeneous numeric vector datatypes \\
 9\textbf{*} & Defining record types (define-record-type) \\
@@ -60,15 +63,17 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 250 & Insertion-ordered hash tables \\
 254\textbf{*} & Ephemerons and guardians \\
 263 & Prototype object system \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Strings and Text}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 6 & Basic string ports (open-input-string, open-output-string) \\
 13\textbf{*} & String library (contains, split, join, trim, prefix?, suffix?) \\
 14 & Character sets (char-set, char-set-contains?) \\
@@ -90,15 +95,17 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 233 & INI file parser \\
 264 & Scheme regular expressions (string syntax --- SSRE) \\
 267 & Raw string syntax \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Numbers and Bits}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 27 & Sources of random bits (random-integer, random-real) \\
 60 & Integers as bits (bitwise-and, bitwise-or, bit-count) \\
 70 & Numbers (an extended numeric tower vocabulary) \\
@@ -110,15 +117,17 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 169 & Underscores in numeric literals (\texttt{1\_000\_000}) \\
 223 & Bisecting search \\
 270 & Hexadecimal floating-point constants \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Control Flow and Syntax}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 0 & Feature-based conditional expansion (cond-expand) \\
 2 & \texttt{and-let*} --- short-circuit \texttt{let} with guards \\
 5 & A compatible \texttt{let} with signatures and rest arguments \\
@@ -150,15 +159,17 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 248 & Minimal delimited continuations \\
 257 & Simple extendable pattern matcher with backtracking \\
 259 & Tagged procedures with type safety \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Macros and Syntactic Extensions}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 30 & Nested multi-line comments (\texttt{\#| ... |\#}) \\
 46 & Basic \texttt{syntax-rules} extensions (custom ellipsis, tail patterns) \\
 62 & S-expression comments (\texttt{\#;}) \\
@@ -172,15 +183,17 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 241 & R6RS-style \texttt{match} with catamorphisms \\
 247 & Syntactic monads \\
 251 & Mixing groups of definitions with expressions within bodies \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Records and Types}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 57 & Records with inheritance via ``schemes'' \\
 131 & ERR5RS record syntax (reduced) \\
 136 & Extensible record types \\
@@ -189,15 +202,17 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 237 & R6RS records, refined for R7RS (inheritance and protocols) \\
 240 & Reconciled records \\
 253 & Data type-checking \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Iteration, Generators, and Lazy Evaluation}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 41 & Streams (lazy lists with memoization) \\
 42 & Eager comprehensions (list-ec, vector-ec, sum-ec) \\
 45 & Primitives for expressing iterative lazy algorithms \\
@@ -206,43 +221,49 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 171 & Transducers (also \texttt{(srfi 171 meta)}) \\
 190 & Coroutine generators \\
 221 & Generator/accumulator sub-library \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Exceptions and Conditions}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 23 & Error reporting (\texttt{error} procedure) \\
 34 & Exception handling for programs \\
 35 & Conditions (structured exception types) \\
 36 & I/O conditions \\
 189 & \texttt{maybe} and \texttt{either} --- optional values without exceptions \\
 255 & Restarting conditions \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Ports, I/O, and Data Interchange}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 180 & JSON reader and writer \\
 181 & Custom ports, including transcoded ports (UTF-8 codec) \\
 192\textbf{*} & Port positioning (port-position, set-port-position!) \\
 238 & Codesets (symbolic names for numeric error codes) \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Time, System, and Concurrency}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 18\textbf{*} & Multithreading (threads, mutexes, condition variables) \\
 19 & Time data types and procedures (date, time-utc) \\
 37 & \texttt{args-fold} --- program argument processor \\
@@ -254,27 +275,31 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 174 & POSIX timespecs \\
 193 & Command line \\
 215 & Central log exchange \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Testing}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 64 & A Scheme API for test suites (test-begin, test-assert, test-equal) \\
 78 & Lightweight testing (check, check-report) \\
 252 & Property testing \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Miscellaneous}
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Description} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Description} \\
+\hline
+\endhead
 7 & Feature-based program configuration language \\
 38 & External representation for data with shared structure \\
 43 & Vector library (R7RS-compatible, superseded by 133) \\
@@ -288,20 +313,21 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 260\textbf{*} & Generated symbols \\
 261 & Portable SRFI library references (naming convention) \\
 271 & Random port libraries \\
-\end{tabular}
-\end{center}
+\end{longtable}
 
 \section{Sub-Library-Only SRFIs}
 
 Three SRFIs have no bare \texttt{(srfi N)} library to import---only their
 sub-libraries. Asking for the bare form is an error.
 
-\begin{center}
-\begin{tabular}{rp{9cm}}
+\begin{longtable}{rp{9cm}}
 \textbf{SRFI} & \textbf{Import as} \\
 \hline
+\endfirsthead
+\textbf{SRFI} & \textbf{Import as} \\
+\hline
+\endhead
 160 & Homogeneous numeric vectors: \texttt{(srfi 160 base)}, plus one library per element type --- \texttt{u8}, \texttt{s8}, \texttt{u16}, \texttt{s16}, \texttt{u32}, \texttt{s32}, \texttt{u64}, \texttt{s64}, \texttt{f32}, \texttt{f64}, \texttt{c64}, \texttt{c128} \\
 211 & Procedural macro transformers: \texttt{(srfi 211 explicit-renaming)}, \texttt{(srfi 211 define-macro)}, \texttt{(srfi 211 syntax-parameter)} \\
 226 & Control features (escape-only prompts): \texttt{(srfi 226 control prompts)}, \texttt{(srfi 226 control continuations)}, \texttt{(srfi 226 control times)} \\
-\end{tabular}
-\end{center}
+\end{longtable}

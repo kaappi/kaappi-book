@@ -120,7 +120,7 @@ The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbou
 
 \subsection{\texttt{error[KP3002]: type error in 'string-set!': expected mutable string, got "abc"}}
 
-\textbf{Cause:} \texttt{string-set!}, \texttt{vector-set!}, \texttt{set-car!}, \texttt{set-cdr!}, and \texttt{bytevector-u8-set!} all reject a value written literally in your source code---strings, vectors, pairs, and bytevectors created by a literal such as \texttt{"abc"}, \texttt{\#(1 2 3)}, \texttt{'(1 2 3)}, or \texttt{\#u8(1 2 3)} are immutable, and so is the string \texttt{symbol->string} returns. This surprises many newcomers, but Kaappi always raises a loud type error rather than mutating silently:
+\textbf{Cause:} These five mutators reject a value written literally in your source code: \texttt{string-set!}, \texttt{vector-set!}, \texttt{set-car!}, \texttt{set-cdr!}, and \texttt{bytevector-\allowbreak u8-\allowbreak set!}. Strings, vectors, pairs, and bytevectors created by a literal such as \texttt{"abc"}, \texttt{\#(1 2 3)}, \texttt{'(1 2 3)}, or \texttt{\#u8(1 2 3)} are immutable, and so is the string \texttt{symbol->string} returns. This surprises many newcomers, but Kaappi always raises a loud type error rather than mutating silently:
 
 \begin{lstlisting}[style=repl]
 > (define s "abc")

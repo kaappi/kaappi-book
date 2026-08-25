@@ -11,8 +11,10 @@
 \usepackage{fancyvrb}
 
 % Tables that size themselves to the text block (reference tables in the
-% appendices). Column type Y is a ragged-right X column.
+% appendices). Column type Y is a ragged-right X column. longtable lets the
+% SRFI catalog break across pages (a whole catalog section is taller than one).
 \usepackage{tabularx}
+\usepackage{longtable}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 % Graphics
