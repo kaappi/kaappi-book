@@ -69,16 +69,16 @@ check type-error-car "error[KP3002]: type error in 'car': expected pair, got ()"
 (car '())
 EOF
 
-check type-error-plus "error[KP3002]: type error in 'arithmetic': expected number, got #<string>" <<'EOF'
+check type-error-plus "error[KP3002]: type error in 'arithmetic': expected number, got \"two\"" <<'EOF'
 (+ 1 "two")
 EOF
 
-check type-error-string-set "error[KP3002]: type error in 'string-set!': expected mutable string, got #<string>" <<'EOF'
+check type-error-string-set "error[KP3002]: type error in 'string-set!': expected mutable string, got \"abc\"" <<'EOF'
 (define s "abc")
 (string-set! s 0 #\Z)
 EOF
 
-check type-error-vector-set "error[KP3002]: type error in 'vector-set!': expected mutable vector, got #<vector>" <<'EOF'
+check type-error-vector-set "error[KP3002]: type error in 'vector-set!': expected mutable vector, got #<vector length 3>" <<'EOF'
 (vector-set! #(1 2 3) 0 99)
 EOF
 

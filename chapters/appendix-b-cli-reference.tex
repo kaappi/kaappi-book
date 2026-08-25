@@ -96,7 +96,7 @@ Summary: 2 passed, 0 failed, 0 unexpected-pass, 0 expected-fail, 0 skipped
 Files:   1 run, 0 failed, 0 errored (66ms)
 \end{Verbatim}
 
-\texttt{--json} emits the results as JSON, \texttt{--seed N} reproduces an ordering, and \texttt{--changed} (or \texttt{--list-affected}, optionally \texttt{--since REV}) runs only the suites whose import closure actually changed.
+\texttt{--json} emits the results as JSON, \texttt{--seed N} reproduces an ordering, \texttt{-j}/\texttt{--jobs N} runs files concurrently (default: one job per CPU; \texttt{--jobs 1} keeps the old strictly sequential behavior), and \texttt{--changed} (or \texttt{--list-affected}, optionally \texttt{--since REV}) runs only the suites whose import closure actually changed.
 
 \subsection{\texttt{kaappi fmt}: Formatter}
 \index{kaappi fmt}
@@ -132,20 +132,22 @@ Read-only dumps of successive compiler stages: \texttt{ast} prints the datums as
 When resolving \texttt{(import (lib name))}, Kaappi searches for \texttt{lib/name.sld} in:
 
 \begin{enumerate}
+    \item Directories from \texttt{--lib-path} flags (in order)
     \item Current working directory (\texttt{./})
     \item The \texttt{./lib/} subdirectory
-    \item Directories from \texttt{--lib-path} flags (in order)
     \item The script's own directory, when running a file
     \item \texttt{\$KAAPPI\_HOME/lib} (default \texttt{\textasciitilde/.kaappi/lib}, where thottam installs packages)
     \item \texttt{../lib} relative to the \texttt{kaappi} executable (last-resort fallback for from-source builds)
 \end{enumerate}
 
+\texttt{--lib-path} deliberately shadows the working-directory copies, so you can point it at your own version of a library---or an alternative implementation of a bundled SRFI---and trust it to win.
+
 \section{The REPL}
 \index{REPL}
 
-The REPL prompt is \texttt{kaappi>}. Expressions with unbalanced parentheses automatically continue on the next line. History is saved to \texttt{\textasciitilde/.kaappi/history} (up to 1000 entries). Exit with \texttt{,quit}, \texttt{(exit)}, or Ctrl-D on an empty line.
+The REPL prompt is \texttt{kaappi>}. Expressions with unbalanced parentheses automatically continue on the next line, and the whole form stays in one editable buffer---the editing keys, including the Paredit-style structural commands, are covered in Chapter~\ref{ch:installation}. History is saved to \texttt{\textasciitilde/.kaappi/history} (up to 1000 entries). Exit with \texttt{,quit}, \texttt{(exit)}, or Ctrl-D on an empty line.
 
-The REPL reads \texttt{\textasciitilde/.kaappi/config}\index{config file} at startup---a plain \texttt{key: value} file. The \texttt{repl.theme} key picks the \texttt{dark} (default) or \texttt{light} color preset; \texttt{repl.color.\emph{token}} overrides one token class (\texttt{keyword}, \texttt{string}, \texttt{number}, \texttt{comment}, \texttt{boolean}, \texttt{paren}, \texttt{match-paren}, \texttt{prompt}, \texttt{continuation}) with a named color such as \texttt{cyan}, \texttt{bright-red}, \texttt{bold green}, or \texttt{none}; \texttt{repl.prompt} replaces the prompt text; \texttt{repl.history-length} resizes the history; and \texttt{repl.highlight: false} disables highlighting entirely (Chapter~\ref{ch:installation} shows an example file).
+The REPL reads \texttt{\textasciitilde/.kaappi/config}\index{config file} at startup---a plain \texttt{key: value} file. The \texttt{repl.theme} key picks the \texttt{dark} (default) or \texttt{light} color preset; \texttt{repl.color.\emph{token}} overrides one token class (\texttt{keyword}, \texttt{string}, \texttt{number}, \texttt{comment}, \texttt{boolean}, \texttt{paren}, \texttt{match-paren}, \texttt{prompt}, \texttt{continuation}) with a named color such as \texttt{cyan}, \texttt{bright-red}, \texttt{bold green}, or \texttt{none}; \texttt{repl.prompt} replaces the prompt text; \texttt{repl.history-length} resizes the history; \texttt{repl.highlight: false} disables highlighting entirely; and \texttt{repl.mouse: true} lets a click inside the input place the edit cursor (default off). Chapter~\ref{ch:installation} shows an example file.
 
 \subsection{Comma-Commands}
 
@@ -234,10 +236,12 @@ thottam install PKG[@VER][::URL]
 thottam install kaappi-web              # latest release
 thottam install kaappi-web@v1.0.0       # exact tag
 thottam install kaappi-net@">=0.2.0"    # version range
+thottam install kaappi-web@"^1.2.0"     # compatible: same major (1.x)
+thottam install kaappi-web@"~1.2.0"     # patch-level: same minor (1.2.x)
 thottam install kaappi-auth::https://github.com/bob/kaappi-auth
 \end{Verbatim}
 
-Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, and the lockfile is kept at \nolinkurl{~/.kaappi/thottam.lock}.
+Packages are installed to \texttt{\textasciitilde/.kaappi/lib/}, and the lockfile is kept at \nolinkurl{~/.kaappi/thottam.lock}. \texttt{\^{}} and \texttt{\~{}} follow npm's conventions, and \texttt{install PKG@VER} on an already-installed package re-pins it to the requested version.
 
 \section{Native Compilation}
 

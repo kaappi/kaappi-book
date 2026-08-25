@@ -162,7 +162,7 @@ Hash tables provide O(1) average key lookup---much faster than association lists
 \end{lstlisting}
 
 \begin{warning}[Keys always compare with \texttt{equal?}]
-\index{hash tables!key equality}Kaappi accepts SRFI-69's optional equality and hash arguments to \texttt{make-hash-table} but ignores them: every table compares keys with \texttt{equal?}. Strings, lists, and vectors therefore work as keys by value, as the examples above show. Records do not---a record is \texttt{equal?} only to itself (Chapter~\ref{ch:records}), so a record key can be retrieved only with the very same object. To index by a record's contents, use a key built from plain data, such as a list of its field values.
+\index{hash tables!key equality}Kaappi accepts SRFI-69's optional equality and hash arguments to \texttt{make-hash-table} but ignores them: every table compares keys with \texttt{equal?}. Strings, lists, and vectors therefore work as keys by value, as the examples above show---and so do records: a record hashes and compares by content (same type, pairwise \texttt{equal?} fields; Chapter~\ref{ch:records}), so two separately constructed instances with equal fields behave as the same key.
 \end{warning}
 
 \subsection{Iteration}
@@ -427,13 +427,15 @@ A set needs a \emph{comparator} (from SRFI-128) that tells it how to compare ele
 > (define result (just 42))
 > (maybe? result)
 #t
-> (maybe-ref result)
+> (maybe-ref result (lambda () 'missing))
 42
-> (maybe-ref/default nothing 0)
+> (maybe-ref (nothing) (lambda () 'missing))
+missing
+> (maybe-ref/default (nothing) 0)
 0
 \end{lstlisting}
 
-\texttt{(just v)} wraps a present value; \texttt{nothing} is the singleton ``no value'' object.
+\texttt{(just v)} wraps a present value. \texttt{nothing} is a procedure: calling it returns the unique ``no value'' object. \texttt{maybe-ref} takes a \emph{failure} procedure as its second argument---a thunk called when the maybe holds nothing.
 
 \texttt{maybe} is like Python's \texttt{Optional} or Rust's \texttt{Option}---it represents a value that might not exist.
 

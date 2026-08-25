@@ -105,7 +105,7 @@ The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbou
 
 \subsection{\texttt{error[KP3002]: type error in 'car': expected pair, got ()}}
 
-\textbf{Cause:} A primitive received an argument of the wrong type. The message names the procedure, the expected type, and the offending argument---here, \texttt{car} applied to the empty list. Some primitives, such as the arithmetic operators, show the argument's type rather than its value:
+\textbf{Cause:} A primitive received an argument of the wrong type. The message names the procedure, the expected type, and the offending argument---here, \texttt{car} applied to the empty list. The argument prints readably, so you can see \emph{which} value was wrong: a string appears quoted, a vector with its length.
 
 \begin{lstlisting}[style=repl]
 > (car '())
@@ -113,12 +113,12 @@ The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbou
 ;   expected pair, got ()
 > (+ 1 "two")
 ; error[KP3002]: type error in 'arithmetic':
-;   expected number, got #<string>
+;   expected number, got "two"
 \end{lstlisting}
 
 \textbf{Fix:} Check for the empty list with \code{null?} before calling \code{car}/\code{cdr}. For arithmetic on strings, convert first with \code{string->number}.
 
-\subsection{\texttt{error[KP3002]: type error in 'string-set!': expected mutable string, got \#<string>}}
+\subsection{\texttt{error[KP3002]: type error in 'string-set!': expected mutable string, got "abc"}}
 
 \textbf{Cause:} \texttt{string-set!}, \texttt{vector-set!}, \texttt{set-car!}, \texttt{set-cdr!}, and \texttt{bytevector-u8-set!} all reject a value written literally in your source code---strings, vectors, pairs, and bytevectors created by a literal such as \texttt{"abc"}, \texttt{\#(1 2 3)}, \texttt{'(1 2 3)}, or \texttt{\#u8(1 2 3)} are immutable, and so is the string \texttt{symbol->string} returns. This surprises many newcomers, but Kaappi always raises a loud type error rather than mutating silently:
 
@@ -126,10 +126,10 @@ The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbou
 > (define s "abc")
 > (string-set! s 0 #\Z)
 ; error[KP3002]: type error in 'string-set!':
-;   expected mutable string, got #<string>
+;   expected mutable string, got "abc"
 > (vector-set! #(1 2 3) 0 99)
 ; error[KP3002]: type error in 'vector-set!':
-;   expected mutable vector, got #<vector>
+;   expected mutable vector, got #<vector length 3>
 \end{lstlisting}
 
 \textbf{Fix:} Build a fresh, mutable value instead of mutating the literal: \texttt{string-copy} or \texttt{make-string} for strings, \texttt{vector-copy} or \texttt{make-vector} for vectors, \texttt{list} or \texttt{cons} for pairs.
@@ -172,7 +172,7 @@ length procedure to verify bounds.
 
 \subsection{\texttt{error[KP3008]: stack overflow}}
 
-\textbf{Cause:} Non-tail-recursive function with very deep recursion. The call stack grows automatically up to 32768 frames; only recursion deeper than that overflows.
+\textbf{Cause:} Non-tail-recursive function with very deep recursion. The call stack grows automatically up to 32768 frames; only recursion deeper than that overflows. The error is not catchable---it unwinds past every \texttt{guard} handler, as does an execution timeout (KP3009).
 
 \textbf{Fix:} Rewrite as a tail-recursive function using an accumulator or named \texttt{let}. See Chapter~\ref{ch:functions} for the tail-call pattern.
 

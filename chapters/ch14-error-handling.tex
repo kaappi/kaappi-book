@@ -125,6 +125,17 @@ bad-syntax
 
 Prefer these predicates over matching on message text. Error messages differ between Scheme implementations---and may change between Kaappi versions---but the predicates are part of the standard.
 
+For operating-system errors, SRFI-170 adds a finer-grained protocol on top of \texttt{file-error?}: a file error raised by a failing syscall carries the underlying \texttt{errno}, \texttt{posix-error?}\index{posix-error?} recognizes such a condition, and \texttt{posix-error-name}\index{posix-error-name} and \texttt{posix-error-message}\index{posix-error-message} read the name and message back:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 170))
+> (guard (e ((posix-error? e) (posix-error-name e)))
+    (file-info "/no/such/path"))
+ENOENT
+\end{lstlisting}
+
+Errno numbers differ between operating systems; the names do not, which is why the protocol exposes the name (\texttt{ENOENT}, ``no such file or directory'') rather than a number.
+
 \subsection{Conditional Error Handling}
 
 You can match on the error message or type to handle different errors differently:
@@ -265,6 +276,10 @@ Here we intentionally catch all errors---any failure (missing file, parse error,
     (call-with-port (open-input-file filename)
       (lambda (port) (read port)))))
 \end{lstlisting}
+
+\begin{warning}[Not every error is catchable]
+A \texttt{\#t} clause catches errors raised by your program and by ordinary runtime faults---type errors, arity mismatches, unbound variables. It does not catch the interpreter's own limits: a stack overflow (KP3008, from runaway non-tail recursion) or an execution timeout (KP3009, from the \texttt{--timeout} flag) unwinds past every handler and terminates the program. A limit of the implementation is not a condition your handler can meaningfully field.
+\end{warning}
 
 \subsection{Guaranteed Cleanup}
 

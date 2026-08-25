@@ -195,26 +195,34 @@ The REPL tracks open parentheses. If your expression is incomplete, it indents t
 
 \subsection{Line Editing}
 
-The REPL includes standard editing keys:
+The REPL includes standard editing keys plus Paredit-style structural commands:
 
 \begin{center}
 \begin{tabular}{ll}
 \textbf{Key} & \textbf{Action} \\
 \hline
 Left / Right & Move cursor \\
-Up / Down & Navigate history \\
+Up / Down & Move within a multi-line form; at its edges, navigate history \\
 Ctrl-A & Move to start of line \\
 Ctrl-E & Move to end of line \\
 Ctrl-K & Delete to end of line \\
-Ctrl-U & Delete to start of line \\
+Ctrl-U & Delete entire line \\
 Ctrl-W & Delete previous word \\
 Ctrl-L & Clear screen \\
 Ctrl-R & Search history \\
-Ctrl-C & Cancel current line \\
+Ctrl-C & Cancel the current form \\
 Tab & Auto-complete symbol names \\
 Ctrl-D & Delete character; exit on an empty line \\
+Alt+Shift+S & Slurp: grow the list at the cursor \\
+Alt+Shift+B & Barf: expel the last expression from the list \\
+Alt+Shift+R & Raise: replace the enclosing list with the cursor's expression \\
+Alt+Y & Rotate: cycle the arguments, keeping the head \\
 \end{tabular}
 \end{center}
+
+Because the whole form lives in one buffer, the last four keys edit \emph{structure} rather than characters---they move a parenthesis, not a letter. Slurping grows the list under the cursor to swallow the expression after it; barfing is the reverse; raise replaces the enclosing list with the expression at the cursor; and rotate cycles a call's arguments, so repeating it restores the original order. The transforms understand strings, comments, and character literals, not just raw text, so they are safe in the middle of a nested form.
+
+You can also place the cursor by clicking: set \texttt{repl.mouse: true} in \texttt{\textasciitilde/.kaappi/config} and a click inside the input area moves the edit cursor there. It is off by default so the terminal's own click-drag selection keeps working.
 
 \subsection{Tab Completion}
 
