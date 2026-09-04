@@ -6,7 +6,7 @@ Macros are what make Lisp languages uniquely powerful. They let you extend the l
 
 Scheme's macro system is \emph{hygienic}\index{hygienic macros}: variables introduced by a macro never accidentally capture variables from the surrounding code. This eliminates an entire class of bugs that plague macro systems in C and Common Lisp.
 
-This chapter covers \texttt{define-syntax} and \texttt{syntax-rules}---the pattern-based macro system specified by R7RS.
+This chapter covers \texttt{define-syntax} and \texttt{syntax-rules}---the pattern-based macro system specified by R7RS---and, at the end, Kaappi's procedural alternative, \texttt{er-macro-transformer}.
 
 \section{What Is a Macro?}
 
@@ -126,6 +126,7 @@ This is a recursive macro: the third clause expands to another call to \texttt{m
 If no clause matches a call, expansion fails with a compile-time syntax error at the call site. The \texttt{dotimes} macro later in this chapter shows how to catch a misuse deliberately with \texttt{syntax-error}.
 
 \subsection{Literal Keywords}
+\label{sec:literal-keywords}
 
 The first argument to \texttt{syntax-rules} is a list of identifiers to match literally rather than as pattern variables:
 
@@ -191,6 +192,7 @@ Ellipsis can be nested for macros that process lists of lists:
 This \texttt{my-let} macro transforms into a lambda application---exactly how \texttt{let} is defined in the language.
 
 \section{Hygiene}
+\label{sec:hygiene}
 \index{hygienic macros}
 
 Scheme macros are hygienic: temporary variables introduced by a macro cannot clash with variables in the calling code. Consider:
@@ -340,6 +342,97 @@ The macro \texttt{double} exists only within the body. For mutually recursive ma
 A \texttt{syntax-rules} macro substitutes its arguments as \emph{code}, not as computed values. If a pattern variable appears several times in the template, its argument expression runs once for each occurrence. A \texttt{square} macro whose body is \texttt{(* x x)} expands \texttt{(square (read))} into \texttt{(* (read) (read))}, reading its input twice. When an argument may have side effects or is expensive, bind it once with \texttt{let} inside the macro before reusing it.
 \end{warning}
 
+\section{Procedural Macros with \texttt{er-macro-transformer}}
+\label{sec:er-macros}
+\index{er-macro-transformer}\index{explicit renaming}\index{procedural macros}\index{SRFI-211}
+
+Everything so far has been \texttt{syntax-rules}: a pattern on one side, a template on the other, and the expander does the rest. That covers most macros, and it is the only macro system R7RS-small specifies. Sometimes, though, the expansion has to be \emph{computed}---checked for shape, built up one element at a time, or generated from a table---and no template can express that. For those cases Kaappi ships a second macro system: \texttt{er-macro-transformer}, the \emph{explicit renaming} transformer standardized by SRFI-211 and imported as \texttt{(srfi 211 explicit-renaming)}. It is an extension beyond R7RS-small, and it is \emph{not} \texttt{syntax-case}\index{syntax-case}, the R6RS system, which Kaappi does not implement.
+
+An explicit-renaming macro is an ordinary procedure that runs at expansion time. It receives three arguments: \texttt{form}, the whole macro call as plain list data; \texttt{rename}, a procedure that turns a symbol into a hygienic identifier; and \texttt{compare}, a procedure that tests whether two identifiers mean the same thing. Whatever the procedure returns \emph{is} the expansion, so quasiquote (Chapter~\ref{ch:lists}) is the natural tool for building it. Here is \texttt{swap!} again, written by hand:
+
+\begin{lstlisting}[style=repl]
+> (import (srfi 211 explicit-renaming))
+> (define-syntax swap!
+    (er-macro-transformer
+      (lambda (form rename compare)
+        (let ((a (cadr form))
+              (b (caddr form))
+              (tmp (rename 'tmp)))
+          `(let ((,tmp ,a))
+             (set! ,a ,b)
+             (set! ,b ,tmp))))))
+> (let ((tmp 100) (x 1) (y 2))
+    (swap! x y)
+    (list tmp x y))
+(100 2 1)
+\end{lstlisting}
+
+Set this beside the \texttt{syntax-rules} version in Section~\ref{sec:hygiene}. There the template's \texttt{tmp} was renamed automatically; here \texttt{(rename 'tmp)} does the same job explicitly, producing the kind of fresh identifier the \texttt{,expand} output showed. The pieces that came from the call, \texttt{a} and \texttt{b}, are spliced in untouched, exactly as pattern variables are. Renaming the same symbol twice within one expansion yields the same identifier, so a binding site and its references agree. A fully defensive version would also write \texttt{(rename 'let)} and \texttt{(rename 'set!)}, so that the macro survives a caller who has shadowed those names; \texttt{syntax-rules} did that for every template identifier without being asked, and that is the convenience you give up here.
+
+\begin{note}[The transformer runs at expansion time]
+The \texttt{lambda} inside \texttt{er-macro-transformer} is evaluated when the \texttt{define-syntax} is, and called once per use of the macro---before any of the surrounding code runs. It cannot see runtime variables, and an \texttt{error} raised inside it is reported as a syntax error at the macro's use site rather than as a runtime exception.
+\end{note}
+
+\subsection{\texttt{compare}: Matching Keywords}
+
+\texttt{compare} answers the question a literal in Section~\ref{sec:literal-keywords} answers: do these two identifiers refer to the same binding? Hand it a piece of the input and a renamed keyword:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax my-if
+    (er-macro-transformer
+      (lambda (form rename compare)
+        (let ((test (list-ref form 1))
+              (kw1 (list-ref form 2))
+              (yes (list-ref form 3))
+              (kw2 (list-ref form 4))
+              (no (list-ref form 5)))
+          (unless (and (compare kw1 (rename 'then))
+                       (compare kw2 (rename 'else)))
+            (error "my-if: expected then/else keywords"))
+          `(if ,test ,yes ,no)))))
+> (my-if (> 3 2) then "yes" else "no")
+"yes"
+\end{lstlisting}
+
+The check is binding-aware, exactly like a \texttt{syntax-rules} literal. If the caller has a local variable named \texttt{else} in scope at the use site, \texttt{(compare kw2 (rename 'else))} returns \texttt{\#f}: the caller's \texttt{else} and the macro's \texttt{else} are different things, and the macro refuses the form just as a \texttt{syntax-rules} version with \texttt{(then else)} as its literals would.
+
+\subsection{Validation with Good Errors}
+
+Because the transformer sees the whole form, it can check the shape and refuse bad input at expansion time, with a message that says what was wrong:
+
+\begin{lstlisting}[style=repl]
+> (define-syntax strict-when
+    (er-macro-transformer
+      (lambda (form rename compare)
+        (if (= (length form) 3)
+            `(if ,(cadr form) ,(caddr form))
+            (error "strict-when: one body form, got"
+                   (- (length form) 2))))))
+> (strict-when (> 3 2) 'ok)
+ok
+\end{lstlisting}
+
+Save the import and the definition as \texttt{strict.scm}, add a good use---\texttt{(display (strict-when (> 3 2) 'ok))}---and then a bad one, \texttt{(strict-when \#t 1 2 3)}. Running the file prints the good result and then stops at the bad use, naming the file, the line and column of that use, and your own message with its irritant:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+$ kaappi strict.scm
+ok
+strict.scm:13:1: syntax-error[KP2002]: strict-when: one body form, got 3
+\end{Verbatim}
+
+A \texttt{syntax-rules} macro handed a form none of its clauses match can only report \texttt{compile error[KP2001]: invalid syntax}. Here the message is whatever you wrote, and it appears once, at the offending use, before anything runs.
+
+\subsection{When to Reach for It}
+
+Reach for \texttt{syntax-rules} first: it is shorter, declarative, and portable to every R7RS Scheme. Reach for \texttt{er-macro-transformer} when the expansion must be computed---validated with a precise message, built by deciding something per element (the kind of recursion a template cannot express), or generated from data your program holds. The cost is symmetrical: you construct the output \texttt{syntax-rules} would have constructed for you, and you take over renaming every identifier the expansion introduces. Portable code can test for the library itself:
+
+\begin{lstlisting}[style=repl]
+> (cond-expand
+    ((library (srfi 211 explicit-renaming)) 'procedural)
+    (else 'none))
+procedural
+\end{lstlisting}
+
 \section{When to Use Macros}
 
 Macros are powerful but should not be overused. Use a macro when:
@@ -361,6 +454,7 @@ Do \emph{not} use a macro when a function would suffice. Functions are simpler, 
     \item The ellipsis (\texttt{...}) matches and expands sequences of forms and can be nested.
     \item Scheme macros are hygienic, so introduced identifiers never accidentally capture the user's variables.
     \item The REPL's \texttt{,expand} command shows what a call expands to---the first tool to reach for when a macro misbehaves.
+    \item \texttt{er-macro-transformer} (SRFI-211) writes the expansion as a procedure: \texttt{rename} supplies hygiene and \texttt{compare} matches keywords. Use it when the expansion must be computed or validated; otherwise stay with \texttt{syntax-rules}.
     \item \texttt{let-syntax} defines local macros; reach for macros only when a function cannot do the job.
 \end{itemize}
 
@@ -417,6 +511,19 @@ Write a \code{with-logging} macro that prints an entry message before evaluating
 \end{lstlisting}
 
 As a bonus, make it print the elapsed time in the exit message using \code{current-second}.
+\end{exercise}
+
+\begin{exercise}[Counting at Expansion Time]
+Write \code{count-args}, an explicit-renaming macro that expands to the number of subforms it was given. The transformer computes the count, so the expansion is a literal integer.
+
+\begin{lstlisting}[style=repl]
+> (count-args a b c)
+3
+> (count-args)
+0
+\end{lstlisting}
+
+Use \code{,expand} to confirm that \code{(count-args a b c)} expands to plain \code{3}, then explain why the arguments are never evaluated.
 \end{exercise}
 
 In the next chapter (Chapter~\ref{ch:libraries}), we cover the library system---how to organize code into modules with clean interfaces.

@@ -125,7 +125,7 @@ Additional values attached to an error object, providing context about what went
 A scoping rule where a name refers to the binding in the nearest enclosing scope where it was defined. Also called static scope.
 
 \item[macro]\index{macro}
-A syntax transformation that rewrites code before it is compiled. Defined with \texttt{define-syntax} and \texttt{syntax-rules} (Chapter~\ref{ch:macros}). See also \emph{hygienic macro}.
+A syntax transformation that rewrites code before it is compiled. Defined with \texttt{define-syntax} and either \texttt{syntax-rules} (pattern-based) or \texttt{er-macro-transformer} (procedural, SRFI-211); see Chapter~\ref{ch:macros}. See also \emph{hygienic macro}.
 
 \item[NaN-boxing]\index{NaN-boxing}
 Kaappi's value representation technique: all Scheme values are stored in 64-bit words using the unused bit patterns of IEEE 754 NaN values.

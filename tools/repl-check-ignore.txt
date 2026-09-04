@@ -15,7 +15,7 @@ ch02-installation.tex:232  # tab completion is an interactive REPL feature
 ch02-installation.tex:260  # the _ last-result variable is an interactive REPL feature
 ch11-macros.tex:85   # ,expand is an interactive REPL command
 ch11-macros.tex:87   # ,expand is an interactive REPL command
-ch11-macros.tex:216  # ,expand is an interactive REPL command (hygiene renaming demo)
+ch11-macros.tex:218  # ,expand is an interactive REPL command (hygiene renaming demo)
 
 # --- session-dependent error suggestion suffix ---
 ch08-local-bindings.tex:35  # book shows the stable error prefix; kaappi appends a session-dependent "Did you mean ...?" suggestion
