@@ -39,6 +39,6 @@ appendix-d-error-messages.tex:111  # session killed by the (lambda) demo above; 
 appendix-d-error-messages.tex:114  # session killed by the (lambda) demo above; verified fresh
 appendix-d-error-messages.tex:126  # session killed by the (lambda) demo above; verified fresh
 appendix-d-error-messages.tex:127  # session killed by the (lambda) demo above; verified fresh
-appendix-d-error-messages.tex:130  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:129  # session killed by the (lambda) demo above; verified fresh
+appendix-d-error-messages.tex:152  # session killed by the (lambda) demo above; verified fresh
 appendix-d-error-messages.tex:154  # session killed by the (lambda) demo above; verified fresh
-appendix-d-error-messages.tex:156  # session killed by the (lambda) demo above; verified fresh

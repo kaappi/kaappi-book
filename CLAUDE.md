@@ -204,7 +204,7 @@ All paths are relative to this repo root (`kaappi-book/`):
 
 ## Key Facts
 
-- R7RS-small compliant, 613 built-in procedures, 32 syntax forms, 72 SRFIs (per `../kaappi/CONFORMANCE.md`)
+- R7RS-small compliant, 717 built-in procedures, 32 syntax forms, 180 SRFIs — 12 built-in + 164 portable + 4 imported differently (per `../kaappi/CONFORMANCE.md`)
 - Current Kaappi version lives in the `\kaappiversion` macro in `main.tex` — update it there, never hardcode versions in chapters
 - Written in Zig; runs on macOS ARM64, Linux x86_64/ARM64/RISC-V, WASM
 - Pipeline: Reader → Expander → IR → Bytecode → Register VM (+ LLVM native backend)

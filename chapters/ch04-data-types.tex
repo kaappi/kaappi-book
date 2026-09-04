@@ -137,10 +137,12 @@ Complex numbers are written in rectangular form with \texttt{+} or \texttt{-} se
 > (magnitude 3+4i)
 5.0
 > (sqrt -1)
-+1.0i
++i
+> (sqrt -2)
++1.4142135623730951i
 \end{lstlisting}
 
-Exactness follows the components, the same rule as real arithmetic: exact components stay exact---\texttt{(+ 1+2i 3+4i)} gives the exact \texttt{4+6i}---while a single inexact component makes the whole result inexact. Procedures that compute through floating point, such as \texttt{sqrt}, return inexact components even for exact arguments; in \texttt{+1.0i} the empty real part is shorthand for \texttt{0}. One fine point: an \emph{exact} zero imaginary part collapses to a plain real (\texttt{3+0i} is the integer \texttt{3}), but an \emph{inexact} one keeps the value complex, so \texttt{1.5+0.0i} is a complex number and not the real \texttt{1.5}.
+Exactness follows the components, the same rule as real arithmetic: exact components stay exact---\texttt{(+ 1+2i 3+4i)} gives the exact \texttt{4+6i}---while a single inexact component makes the whole result inexact. \texttt{sqrt} follows the same rule it does for reals: when an exact argument has an exact root, the result is exact---\texttt{(sqrt -1)} is the exact \texttt{+i}, \texttt{(sqrt -4)} is \texttt{+2i}, and \texttt{(sqrt -1/4)} is \texttt{+1/2i}---while \texttt{(sqrt -2)} comes back with an inexact imaginary part. In \texttt{+i} the empty real part is shorthand for \texttt{0} and the missing coefficient for \texttt{1}. One fine point: an \emph{exact} zero imaginary part collapses to a plain real (\texttt{3+0i} is the integer \texttt{3}), but an \emph{inexact} one keeps the value complex, so \texttt{1.5+0.0i} is a complex number and not the real \texttt{1.5}.
 
 \subsection{Numeric Predicates and Comparisons}
 \index{number?}\index{integer?}\index{zero?}\index{positive?}\index{negative?}

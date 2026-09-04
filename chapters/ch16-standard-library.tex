@@ -177,9 +177,9 @@ Hash tables provide O(1) average key lookup---much faster than association lists
     (lambda (key value)
       (display key) (display ": ")
       (display value) (newline)))
-name: Alice
-city: London
 age: 30
+city: London
+name: Alice
 \end{lstlisting}
 
 Notice that the iteration order is \emph{unspecified}---it matches neither the insertion order nor each other across calls. Never rely on the order in which a hash table yields its entries; sort the keys first if you need a stable order.

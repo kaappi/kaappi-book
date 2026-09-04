@@ -112,24 +112,22 @@ The \texttt{set!} variant of this error reads \texttt{error[KP3001]: set!: unbou
 ; error[KP3002]: type error in 'car':
 ;   expected pair, got ()
 > (+ 1 "two")
-; error[KP3002]: type error in 'arithmetic':
+; error[KP3002]: type error in '+':
 ;   expected number, got "two"
 \end{lstlisting}
 
 \textbf{Fix:} Check for the empty list with \code{null?} before calling \code{car}/\code{cdr}. For arithmetic on strings, convert first with \code{string->number}.
 
-\subsection{\texttt{error[KP3002]: type error in 'string-set!': expected mutable string, got "abc"}}
+\subsection{\texttt{error[KP3007]: string-set!: cannot mutate an immutable string}}
 
-\textbf{Cause:} These five mutators reject a value written literally in your source code: \texttt{string-set!}, \texttt{vector-set!}, \texttt{set-car!}, \texttt{set-cdr!}, and \texttt{bytevector-\allowbreak u8-\allowbreak set!}. Strings, vectors, pairs, and bytevectors created by a literal such as \texttt{"abc"}, \texttt{\#(1 2 3)}, \texttt{'(1 2 3)}, or \texttt{\#u8(1 2 3)} are immutable, and so is the string \texttt{symbol->string} returns. This surprises many newcomers, but Kaappi always raises a loud type error rather than mutating silently:
+\textbf{Cause:} These five mutators reject a value written literally in your source code: \texttt{string-set!}, \texttt{vector-set!}, \texttt{set-car!}, \texttt{set-cdr!}, and \texttt{bytevector-\allowbreak u8-\allowbreak set!}. Strings, vectors, pairs, and bytevectors created by a literal such as \texttt{"abc"}, \texttt{\#(1 2 3)}, \texttt{'(1 2 3)}, or \texttt{\#u8(1 2 3)} are immutable, and so is the string \texttt{symbol->string} returns. This surprises many newcomers, but Kaappi always raises a loud error rather than mutating silently. The code is \texttt{KP3007}, \emph{invalid argument}: the value has the right type but is one the procedure refuses. Pairs and bytevectors report \texttt{immutable pair} and \texttt{immutable bytevector} in the same words:
 
 \begin{lstlisting}[style=repl]
 > (define s "abc")
 > (string-set! s 0 #\Z)
-; error[KP3002]: type error in 'string-set!':
-;   expected mutable string, got "abc"
+; error[KP3007]: string-set!: cannot mutate an immutable string
 > (vector-set! #(1 2 3) 0 99)
-; error[KP3002]: type error in 'vector-set!':
-;   expected mutable vector, got #<vector length 3>
+; error[KP3007]: vector-set!: cannot mutate an immutable vector
 \end{lstlisting}
 
 \textbf{Fix:} Build a fresh, mutable value instead of mutating the literal: \texttt{string-copy} or \texttt{make-string} for strings, \texttt{vector-copy} or \texttt{make-vector} for vectors, \texttt{list} or \texttt{cons} for pairs.

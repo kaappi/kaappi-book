@@ -63,6 +63,7 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 250 & Insertion-ordered hash tables \\
 254\textbf{*} & Ephemerons and guardians \\
 263 & Prototype object system \\
+274 & Extended list conversion --- \texttt{start}/\texttt{end} ranges for \texttt{list->string}, \texttt{list->vector}, \texttt{list->generator}, and the numeric-vector conversions; works on dotted and circular lists when \texttt{end} is given \\
 \end{longtable}
 
 \section{Strings and Text}
@@ -202,6 +203,7 @@ Of Kaappi's \srfitotal{} SRFIs, \srfibuiltin{} are compiled into the interpreter
 237 & R6RS records, refined for R7RS (inheritance and protocols) \\
 240 & Reconciled records \\
 253 & Data type-checking \\
+273 & Extensions to data type-checking (\texttt{define-check}, \texttt{declare-checked}, \texttt{define-values-checked}); re-exports all of SRFI 253 \\
 \end{longtable}
 
 \section{Iteration, Generators, and Lazy Evaluation}
