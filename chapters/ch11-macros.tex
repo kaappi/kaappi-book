@@ -342,7 +342,7 @@ The macro \texttt{double} exists only within the body. For mutually recursive ma
 A \texttt{syntax-rules} macro substitutes its arguments as \emph{code}, not as computed values. If a pattern variable appears several times in the template, its argument expression runs once for each occurrence. A \texttt{square} macro whose body is \texttt{(* x x)} expands \texttt{(square (read))} into \texttt{(* (read) (read))}, reading its input twice. When an argument may have side effects or is expensive, bind it once with \texttt{let} inside the macro before reusing it.
 \end{warning}
 
-\section{Procedural Macros with \texttt{er-macro-transformer}}
+\section{Procedural Macros: Explicit Renaming}
 \label{sec:er-macros}
 \index{er-macro-transformer}\index{explicit renaming}\index{procedural macros}\index{SRFI-211}
 
@@ -412,7 +412,7 @@ Because the transformer sees the whole form, it can check the shape and refuse b
 ok
 \end{lstlisting}
 
-Save the import and the definition as \texttt{strict.scm}, add a good use---\texttt{(display (strict-when (> 3 2) 'ok))}---and then a bad one, \texttt{(strict-when \#t 1 2 3)}. Running the file prints the good result and then stops at the bad use, naming the file, the line and column of that use, and your own message with its irritant:
+Save the import and the definition as \texttt{strict.scm}, add a good use whose result you \texttt{display}, and then a bad one: \texttt{(strict-when \#t 1 2 3)}. Running the file prints the good result and then stops at the bad use, naming the file, the line and column of that use, and your own message with its irritant:
 
 \begin{Verbatim}[fontsize=\footnotesize]
 $ kaappi strict.scm

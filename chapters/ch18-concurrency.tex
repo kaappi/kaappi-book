@@ -499,7 +499,8 @@ The one rule to learn first: a command is a \emph{list of strings}, never a comm
 "hello\n"
 ""
 > (let-values (((status out err)
-                (run-process '("sort") 'input: "pear\napple\n")))
+                (run-process '("sort")
+                             'input: "pear\napple\n")))
     (list status out))
 (0 "apple\npear\n")
 \end{lstlisting}
@@ -510,8 +511,8 @@ A nonzero exit status is a \emph{value}, not an error---plenty of programs answe
 
 \begin{lstlisting}[style=repl]
 > (let-values (((status out err)
-                (run-process
-                  '("sh" "-c" "echo out; echo boom >&2; exit 1"))))
+                (run-process '("sh" "-c"
+                  "echo out; echo boom >&2; exit 1"))))
     (list status out err))
 (1 "out\n" "boom\n")
 > (guard (e ((file-error? e) 'no-such-program))
@@ -537,16 +538,17 @@ no-such-program
 \texttt{'directory:} sets the program's working directory. \texttt{'env:} \emph{replaces} its environment rather than adding to it, so build on \texttt{(process-environment)}---the current environment as an association list---when you mean ``the same, plus one'':
 
 \begin{lstlisting}[style=repl]
+> (define env
+    (cons '("GREETING" . "hello") (process-environment)))
 > (let-values (((status out err)
                 (run-process '("printenv" "GREETING")
-                             'env: (cons '("GREETING" . "hello")
-                                         (process-environment)))))
+                             'env: env)))
     out)
 "hello\n"
 > (let-values (((status out err)
-                (run-process '("pwd") 'directory: "/")))
+                (run-process '("pwd") 'directory: "/usr")))
     out)
-"/\n"
+"/usr\n"
 \end{lstlisting}
 
 \subsection{Several Programs at Once}
@@ -596,7 +598,8 @@ To stop a program, \texttt{process-kill} sends \texttt{SIGTERM}. Add \texttt{'gr
 
 \begin{lstlisting}[style=repl]
 > (define w
-    (spawn-process '("sh" "-c" "sleep 9 & wait") 'new-group: #t))
+    (spawn-process '("sh" "-c" "sleep 9 & wait")
+                   'new-group: #t))
 > (process-kill w 'group: #t)
 > (process-wait w)
 (signaled . 15)
