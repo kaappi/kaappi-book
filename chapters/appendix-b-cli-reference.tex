@@ -296,6 +296,7 @@ Add \texttt{--timings} to any run to see the per-stage cost and an explicit cach
     (\texttt{command-line}, \texttt{exit},
     environment variables)
     \item OS threads (SRFI-18) are disabled
+    \item Subprocesses are disabled---the whole \texttt{(kaappi process)} library is absent (Section~\ref{sec:subprocesses}), so a sandboxed script cannot escape by starting a program; the \texttt{(library (kaappi process))} \texttt{cond-expand} requirement is false
 \end{itemize}
 
 Pure computation, standard output (\texttt{display}, \texttt{write}), and green fibers remain available.

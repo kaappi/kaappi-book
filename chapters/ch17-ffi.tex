@@ -305,7 +305,7 @@ When FFI calls misbehave, use this checklist:
 \section{FFI and Sandbox Mode}
 \index{sandbox}\index{--sandbox}
 
-Kaappi's \texttt{--sandbox} mode disables the FFI entirely. This is useful for running untrusted code:
+Kaappi's \texttt{--sandbox} mode disables the FFI entirely (and, for the same reason, the subprocess library of Section~\ref{sec:subprocesses}). This is useful for running untrusted code:
 
 \begin{lstlisting}
 kaappi --sandbox untrusted.scm

@@ -175,11 +175,21 @@ Follow the interleaving. The producer does not run until the first \texttt{chann
 \subsection{Timeouts and Closing}
 \index{channel-close"!}\index{channels!timeouts}
 
-Both \texttt{channel-receive} and \texttt{channel-send} accept an optional timeout in seconds, plus a value to return if it expires instead of raising an error:
+Both \texttt{channel-receive} and \texttt{channel-send} accept an optional timeout in seconds, plus a value to return if it expires instead of raising:
 
 \begin{lstlisting}[style=repl]
 > (channel-receive (make-channel) 0.05 'nothing)
 nothing
+\end{lstlisting}
+
+Leave the fallback out and expiry raises a \emph{distinct} condition, recognized by \texttt{channel-timeout-exception?}\index{channel-timeout-exception?}---the channel analog of SRFI-18's \texttt{join-timeout-exception?}. That lets a \texttt{guard} (Chapter~\ref{ch:errors}) tell ``nothing arrived in time'' apart from any value a sender could legitimately send or any error it could raise. A \texttt{channel-send} that times out on a full bounded channel raises the same condition:
+
+\begin{lstlisting}[style=repl]
+> (channel-receive (make-channel) 0.05)
+error[KP3000]: channel-receive: timed out
+> (guard (e ((channel-timeout-exception? e) 'timed-out))
+    (channel-receive (make-channel) 0.05))
+timed-out
 \end{lstlisting}
 
 When a stream of values ends, close the channel. \texttt{channel-close!} marks it finished: receivers drain whatever is still queued and then get an EOF object---the same value a port returns at end of input (Chapter~\ref{ch:io})---while further sends raise an error. \texttt{channel-closed?} tests for it.
@@ -470,6 +480,139 @@ For finer control, build the pool yourself. \texttt{(make-pool n)} starts \textt
 \texttt{parallel-map} submits one pool task per list element, so every element pays a cross-thread round trip; it suits lists up to a few hundred elements whose per-element work is substantial. For bigger inputs, chunk: submit one \texttt{pool-submit} task per core, each covering a slice of the input with an ordinary sequential loop. The tasks-as-envelopes model is the same one \texttt{thread-start!} uses, so thunks and results cross by copy here too.
 \end{note}
 
+\section{Subprocesses: The \texttt{(kaappi process)} Library}
+\label{sec:subprocesses}
+\index{kaappi process}\index{subprocesses}\index{run-process}\index{spawn-process}
+
+Concurrency is not only about work inside your program. A great deal of real work is done by \emph{other} programs---\texttt{git}, a compiler, an image converter, a deploy script---and the \texttt{(kaappi process)} library runs them for you. It belongs in this chapter because of how it waits: a fiber that starts a program and waits for it parks, exactly like a fiber blocked on a channel, so the rest of your program keeps running. The library is a Kaappi extension---R7RS has nothing to say about running programs---and the examples below use the \texttt{sh}, \texttt{echo}, and \texttt{sort} found on macOS and Linux.
+
+The one rule to learn first: a command is a \emph{list of strings}, never a command line. The first string is the program; the rest are its arguments, and each reaches the program exactly as written. Nothing is word-split, nothing is glob-expanded, and no shell is involved, so a file name containing a space or a semicolon is still one argument.\index{shell injection} When you actually want shell features---a pipeline, a glob---ask for a shell explicitly with \texttt{"sh" "-c"}, and then the quoting is your problem.
+
+\subsection{Running a Program}
+
+\texttt{run-process} runs a program to completion and returns three values: the exit status, everything it wrote to standard output, and everything it wrote to standard error. The REPL prints multiple values one per line; in a program, bind them with \texttt{let-values} (Chapter~\ref{ch:bindings}):
+
+\begin{lstlisting}[style=repl]
+> (import (kaappi process))
+> (run-process '("echo" "hello"))
+0
+"hello\n"
+""
+> (let-values (((status out err)
+                (run-process '("sort") 'input: "pear\napple\n")))
+    (list status out))
+(0 "apple\npear\n")
+\end{lstlisting}
+
+The \texttt{'input:} option writes a string to the program's standard input and then closes it. Without it the program's input is empty rather than connected to your terminal, so a filter like \texttt{sort} sees end-of-file at once instead of waiting for you to type.
+
+A nonzero exit status is a \emph{value}, not an error---plenty of programs answer questions through their exit code, and it is your call what to do about it. Failing to \emph{start} a program is different: a missing or non-executable file raises a file error, which \texttt{file-error?} recognizes (Chapter~\ref{ch:errors}):
+
+\begin{lstlisting}[style=repl]
+> (let-values (((status out err)
+                (run-process
+                  '("sh" "-c" "echo out; echo boom >&2; exit 1"))))
+    (list status out err))
+(1 "out\n" "boom\n")
+> (guard (e ((file-error? e) 'no-such-program))
+    (run-process '("/no/such/program")))
+no-such-program
+\end{lstlisting}
+
+\subsection{Timeouts}
+\index{process-timeout?}
+
+\texttt{'timeout:} bounds the whole call in seconds. When the deadline passes, the program---and anything it started---is killed outright, and \texttt{run-process} raises a condition instead of returning. The condition carries whatever the program managed to write, because the three-value return never happens and the partial output has nowhere else to go:
+
+\begin{lstlisting}[style=repl]
+> (guard (e ((process-timeout? e)
+             (list 'timed-out (process-timeout-stdout e))))
+    (run-process '("sh" "-c" "printf started; sleep 5")
+                 'timeout: 0.5))
+(timed-out "started")
+\end{lstlisting}
+
+\subsection{Environment and Working Directory}
+
+\texttt{'directory:} sets the program's working directory. \texttt{'env:} \emph{replaces} its environment rather than adding to it, so build on \texttt{(process-environment)}---the current environment as an association list---when you mean ``the same, plus one'':
+
+\begin{lstlisting}[style=repl]
+> (let-values (((status out err)
+                (run-process '("printenv" "GREETING")
+                             'env: (cons '("GREETING" . "hello")
+                                         (process-environment)))))
+    out)
+"hello\n"
+> (let-values (((status out err)
+                (run-process '("pwd") 'directory: "/")))
+    out)
+"/\n"
+\end{lstlisting}
+
+\subsection{Several Programs at Once}
+
+Here is where fibers earn their keep. Each \texttt{run-process} parks only the fiber that called it, so one fiber per program runs a whole batch concurrently on a single OS thread, and \texttt{fiber-join} collects the results in order:
+
+\begin{lstlisting}[style=repl]
+> (define (probe argv)
+    (spawn (lambda ()
+      (let-values (((status out err) (run-process argv)))
+        (cons status out)))))
+> (map fiber-join
+       (map probe '(("echo" "a") ("echo" "b") ("echo" "c"))))
+((0 . "a\n") (0 . "b\n") (0 . "c\n"))
+\end{lstlisting}
+
+\begin{note}[Coming from Python]
+\texttt{run-process} is \texttt{subprocess.run(argv, capture\_output=True, text=True, input=..., timeout=...)}, with the three values standing in for \texttt{.returncode}, \texttt{.stdout}, and \texttt{.stderr}; a timeout raises the analog of \texttt{TimeoutExpired}, partial output attached. \texttt{spawn-process}, below, is \texttt{Popen(stdin=PIPE, stdout=PIPE)}. What Python's \texttt{communicate()} does with a thread per stream, \texttt{run-process} does with fibers inside the call.
+\end{note}
+
+\subsection{Streaming with \texttt{spawn-process}}
+\index{process-wait}\index{process-kill}
+
+When the program is long-lived---a server, a REPL, anything you exchange messages with over time---\texttt{spawn-process} starts it and returns immediately with a process object. Its standard streams are inherited from Kaappi unless you ask for pipes; \texttt{process-stdin}, \texttt{process-stdout}, and \texttt{process-stderr} then hand you ordinary ports (Chapter~\ref{ch:io}), integrated with the reactor like socket ports: a read that would block parks only the calling fiber. Give the output pipe its own fiber, then feed the input and wait:
+
+\begin{lstlisting}[style=repl]
+> (define p
+    (spawn-process '("sort") 'stdin: 'pipe 'stdout: 'pipe))
+> (define reader
+    (spawn (lambda ()
+      (let loop ((acc '()))
+        (let ((line (read-line (process-stdout p))))
+          (if (eof-object? line)
+              (reverse acc)
+              (loop (cons line acc))))))))
+> (write-string "pear\napple\n" (process-stdin p))
+> (close-port (process-stdin p))
+> (fiber-join reader)
+("apple" "pear")
+> (process-wait p)
+0
+\end{lstlisting}
+
+That reader fiber is not decoration. Writing to a program and then reading its output from the same fiber deadlocks the moment either pipe buffer fills: you are blocked writing, the program is blocked writing to an output nobody drains, and neither side moves again. \texttt{run-process} avoids this internally by draining all three streams at once, in fibers of its own; with \texttt{spawn-process}, the hazard is yours to handle. A few more tools for the long-lived case: \texttt{process-wait} takes an optional \texttt{'timeout:} and returns \texttt{\#f} when it expires with the program still running; \texttt{process-status} answers without waiting (\texttt{\#f} while the program runs); \texttt{process-pid} gives the operating-system id; and at spawn time \texttt{'stderr: 'stdout} merges the two output streams when you do not care which one a line came from, while \texttt{'null} discards a stream entirely.
+
+To stop a program, \texttt{process-kill} sends \texttt{SIGTERM}. Add \texttt{'group: \#t} to reach its descendants as well, which requires having spawned it with \texttt{'new-group: \#t}; a program killed by a signal reports a status of \texttt{(signaled . n)} rather than an integer:
+
+\begin{lstlisting}[style=repl]
+> (define w
+    (spawn-process '("sh" "-c" "sleep 9 & wait") 'new-group: #t))
+> (process-kill w 'group: #t)
+> (process-wait w)
+(signaled . 15)
+\end{lstlisting}
+
+\begin{note}[Not everywhere]
+\texttt{(kaappi process)} is absent in the WebAssembly build, which has no process model, and under \texttt{--sandbox}, which excludes it deliberately (Appendix~\ref{app:cli}). There is no feature identifier for it: portable code checks for the library itself, and the check answers correctly under \texttt{--sandbox} too.
+
+\begin{lstlisting}[style=repl]
+> (cond-expand
+    ((library (kaappi process)) 'available)
+    (else 'absent))
+available
+\end{lstlisting}
+\end{note}
+
 \section{A Complete Example: Fiber Pipeline}
 
 A pipeline where data flows through multiple stages via channels. The producer and the transformer each run as a fiber; the main fiber acts as the final stage. An \texttt{'eof} sentinel flows through the channels to shut the pipeline down:
@@ -543,9 +686,10 @@ Closing scales better than a sentinel when a channel has several readers: every 
 \begin{itemize}
     \item Kaappi offers two concurrency models: lightweight cooperative fibers and preemptive OS threads.
     \item Fibers are scheduled cooperatively and communicate through channels---unbounded by default, bounded for backpressure---supporting producer-consumer, fan-out, and racing patterns.
-    \item Channel sends and receives take optional timeouts; \code{channel-close!} signals end-of-stream (receivers drain, then get an EOF object); an unsatisfiable wait raises a deadlock error instead of hanging.
+    \item Channel sends and receives take optional timeouts (an expired timeout without a fallback raises a condition \code{channel-timeout-exception?} recognizes); \code{channel-close!} signals end-of-stream (receivers drain, then get an EOF object); an unsatisfiable wait raises a deadlock error instead of hanging.
     \item OS threads (SRFI-18) use deep-copy semantics and synchronize with mutexes and condition variables; a channel handed to a thread's thunk is promoted and shared, so threads can stream results back before the join.
     \item \code{(kaappi parallel)} adds \code{parallel-map} and worker pools (\code{make-pool}, \code{pool-submit}, \code{task-wait}) over pooled OS threads.
+    \item \code{(kaappi process)} runs external programs: \code{run-process} returns exit status, stdout, and stderr and parks only its fiber; \code{spawn-process} hands you pipe ports, one reader fiber per pipe. The command is always a list of strings, and the library is absent on WASM and under \code{--sandbox}.
     \item Use fibers for I/O-bound concurrency and threads for CPU-bound parallelism.
 \end{itemize}
 

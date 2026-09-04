@@ -449,6 +449,8 @@ Your arguments are \texttt{(cdr (command-line))}---the equivalent of Python's \t
 
 Its companion \texttt{get-environment-variables} returns the entire environment as an association list of name--value string pairs, ready for \texttt{assoc} (Chapter~\ref{ch:lists}).
 
+Running \emph{other} programs is outside R7RS; Kaappi's \texttt{(kaappi process)} library covers it in Section~\ref{sec:subprocesses}.
+
 \begin{note}[Coming from Python]
 \texttt{(command-line)} is \texttt{sys.argv}, and \texttt{(exit 1)} is \texttt{sys.exit(1)}. \texttt{(get-environment-variable "X")} behaves like \texttt{os.environ.get("X")}, down to returning a falsy value when the variable is missing.
 \end{note}
